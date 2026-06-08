@@ -1,10 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const crypto = require('crypto');
 const authMiddleware = require('../middleware/auth');
-
-// Variables pour mettre en cache le token OAuth FatSecret
-let accessToken = null;
-let tokenExpiresAt = null;
 
 // Mock de base de données d'aliments au cas où les clés ne sont pas configurées
 const MOCK_FOODS = [
@@ -34,43 +31,77 @@ function areCredentialsConfigured() {
   );
 }
 
-// Obtenir le jeton d'accès FatSecret (OAuth 2.0 Client Credentials Flow)
-async function getFatSecretToken() {
-  if (accessToken && tokenExpiresAt && Date.now() < tokenExpiresAt) {
-    return accessToken;
-  }
+// ============================================================
+// Implémentation OAuth 1.0 (HMAC-SHA1) pour FatSecret
+// ============================================================
 
-  console.log('Demande d\'un nouveau token FatSecret...');
-  const clientId = process.env.FATSECRET_CLIENT_ID;
-  const clientSecret = process.env.FATSECRET_CLIENT_SECRET;
-  
-  const auth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-  
-  // Utiliser la fonction native fetch (disponible en Node.js v18+)
-  const response = await fetch('https://oauth.fatsecret.com/connect/token', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Basic ${auth}`,
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    body: 'grant_type=client_credentials&scope=api'
-  });
+// Encodage RFC 3986 (percent-encoding strict)
+function percentEncode(str) {
+  return encodeURIComponent(str)
+    .replace(/!/g, '%21')
+    .replace(/\*/g, '%2A')
+    .replace(/'/g, '%27')
+    .replace(/\(/g, '%28')
+    .replace(/\)/g, '%29');
+}
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`FatSecret Token Error: ${response.status} - ${errorText}`);
-  }
+// Générer un nonce aléatoire
+function generateNonce() {
+  return crypto.randomBytes(16).toString('hex');
+}
 
-  const data = await response.json();
-  accessToken = data.access_token;
-  // Expiration moins 1 minute de marge de sécurité (data.expires_in est en secondes)
-  tokenExpiresAt = Date.now() + (data.expires_in - 60) * 1000;
-  
-  return accessToken;
+// Construire la requête signée OAuth 1.0 pour FatSecret
+function buildSignedUrl(method, apiParams) {
+  const consumerKey = process.env.FATSECRET_CLIENT_ID;
+  const consumerSecret = process.env.FATSECRET_CLIENT_SECRET;
+  const baseUrl = 'https://platform.fatsecret.com/rest/server.api';
+
+  // Paramètres OAuth obligatoires
+  const oauthParams = {
+    oauth_consumer_key: consumerKey,
+    oauth_signature_method: 'HMAC-SHA1',
+    oauth_timestamp: Math.floor(Date.now() / 1000).toString(),
+    oauth_nonce: generateNonce(),
+    oauth_version: '1.0'
+  };
+
+  // Fusionner tous les paramètres (API + OAuth)
+  const allParams = { ...apiParams, ...oauthParams };
+
+  // Trier les paramètres par ordre alphabétique et les encoder
+  const sortedKeys = Object.keys(allParams).sort();
+  const paramString = sortedKeys
+    .map(key => `${percentEncode(key)}=${percentEncode(allParams[key])}`)
+    .join('&');
+
+  // Construire la Base String (méthode&URL&params)
+  const baseString = [
+    method.toUpperCase(),
+    percentEncode(baseUrl),
+    percentEncode(paramString)
+  ].join('&');
+
+  // Clé de signature = consumer_secret& (pas de token secret en 2-legged OAuth)
+  const signingKey = `${percentEncode(consumerSecret)}&`;
+
+  // Calculer la signature HMAC-SHA1
+  const signature = crypto
+    .createHmac('sha1', signingKey)
+    .update(baseString)
+    .digest('base64');
+
+  // Construire l'URL finale avec tous les paramètres + signature
+  allParams.oauth_signature = signature;
+
+  const finalQuery = Object.keys(allParams)
+    .map(key => `${percentEncode(key)}=${percentEncode(allParams[key])}`)
+    .join('&');
+
+  return `${baseUrl}?${finalQuery}`;
 }
 
 // @route   GET api/foods/search
-// @desc    Rechercher des aliments via FatSecret (ou mock si non configuré)
+// @desc    Rechercher des aliments via FatSecret (OAuth 1.0) ou mock si non configuré
 // @access  Privé (nécessite d'être connecté)
 router.get('/search', authMiddleware, async (req, res) => {
   const query = req.query.query;
@@ -87,24 +118,23 @@ router.get('/search', authMiddleware, async (req, res) => {
   }
 
   try {
-    const token = await getFatSecretToken();
-    
-    // Appel à l'API FatSecret
-    const params = new URLSearchParams({
+    // Paramètres de la requête API FatSecret
+    const apiParams = {
       method: 'foods.search',
       search_expression: query,
       format: 'json',
-      max_results: 15
-    });
+      max_results: '15'
+    };
 
-    const response = await fetch(`https://platform.fatsecret.com/rest/server.api?${params.toString()}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    // Construire l'URL signée OAuth 1.0
+    const signedUrl = buildSignedUrl('GET', apiParams);
+    
+    console.log('Appel API FatSecret (OAuth 1.0)...');
+    const response = await fetch(signedUrl);
 
     if (!response.ok) {
-      throw new Error(`FatSecret API Error: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`FatSecret API Error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
@@ -147,7 +177,7 @@ router.get('/search', authMiddleware, async (req, res) => {
 
   } catch (error) {
     console.error('Erreur API FatSecret:', error.message);
-    // En cas d'erreur de clé ou de réseau, on bascule sur le mock au lieu de planter, c'est plus robuste pour l'étudiant
+    // En cas d'erreur de clé ou de réseau, on bascule sur le mock au lieu de planter
     console.log('Bascule de secours sur les données Mockées.');
     const filtered = MOCK_FOODS.filter(food => 
       food.food_name.toLowerCase().includes(query.toLowerCase())
