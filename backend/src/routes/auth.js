@@ -26,8 +26,14 @@ router.post('/register', async (req, res) => {
     return res.status(400).json({ message: 'Format d\'email invalide.' });
   }
 
-  if (password.length < 6) {
-    return res.status(400).json({ message: 'Le mot de passe doit faire au moins 6 caractères.' });
+  if (password.length < 8) {
+    return res.status(400).json({ message: 'Le mot de passe doit faire au moins 8 caractères.' });
+  }
+
+  const hasLetter = /[a-zA-Z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  if (!hasLetter || !hasNumber) {
+    return res.status(400).json({ message: 'Le mot de passe doit contenir au moins une lettre et un chiffre.' });
   }
 
   try {

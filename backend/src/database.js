@@ -44,7 +44,7 @@ async function initializeDatabase() {
 async function createTables() {
   const connection = await pool.getConnection();
   try {
-    // Table Utilisateurs
+    // 1. Table Utilisateurs
     await connection.query(`
       CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -56,12 +56,38 @@ async function createTables() {
     `);
     console.log('Table "users" vérifiée/créée.');
 
-    // Table Journal Alimentaire
+    // Vérifier et ajouter les colonnes de profil si elles n'existent pas encore
+    const [columns] = await connection.query('SHOW COLUMNS FROM users');
+    const columnNames = columns.map(c => c.Field);
+
+    const columnsToAdd = [
+      { name: 'display_name', definition: 'VARCHAR(100) DEFAULT NULL' },
+      { name: 'avatar_url', definition: 'VARCHAR(255) DEFAULT NULL' },
+      { name: 'is_private', definition: 'TINYINT(1) DEFAULT 0' },
+      { name: 'gender', definition: "ENUM('male', 'female') DEFAULT NULL" },
+      { name: 'age', definition: 'INT DEFAULT NULL' },
+      { name: 'height', definition: 'INT DEFAULT NULL' },
+      { name: 'current_weight', definition: 'DECIMAL(5,2) DEFAULT NULL' },
+      { name: 'activity_level', definition: 'VARCHAR(20) DEFAULT NULL' },
+      { name: 'calorie_goal', definition: 'INT DEFAULT 2000' },
+      { name: 'protein_goal', definition: 'INT DEFAULT 130' },
+      { name: 'carb_goal', definition: 'INT DEFAULT 220' },
+      { name: 'fat_goal', definition: 'INT DEFAULT 65' }
+    ];
+
+    for (const col of columnsToAdd) {
+      if (!columnNames.includes(col.name)) {
+        await connection.query(`ALTER TABLE users ADD COLUMN \`${col.name}\` ${col.definition}`);
+        console.log(`Colonne "${col.name}" ajoutée à la table "users".`);
+      }
+    }
+
+    // 2. Table Journal Alimentaire
     await connection.query(`
       CREATE TABLE IF NOT EXISTS journal_entries (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
-        food_id VARCHAR(100), -- ID FatSecret de l'aliment si disponible
+        food_id VARCHAR(100),
         food_name VARCHAR(255) NOT NULL,
         calories INT NOT NULL,
         protein DECIMAL(6,2) DEFAULT 0.00,
@@ -75,6 +101,68 @@ async function createTables() {
       ) ENGINE=InnoDB;
     `);
     console.log('Table "journal_entries" vérifiée/créée.');
+
+    // 3. Table de suivi du poids
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS weight_history (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        weight DECIMAL(5,2) NOT NULL,
+        entry_date DATE NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        UNIQUE KEY unique_user_date (user_id, entry_date)
+      ) ENGINE=InnoDB;
+    `);
+    console.log('Table "weight_history" vérifiée/créée.');
+
+    // 4. Table des aliments favoris
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS favorites (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        food_id VARCHAR(100) NOT NULL,
+        food_name VARCHAR(255) NOT NULL,
+        calories INT NOT NULL,
+        protein DECIMAL(6,2) DEFAULT 0.00,
+        carbs DECIMAL(6,2) DEFAULT 0.00,
+        fat DECIMAL(6,2) DEFAULT 0.00,
+        serving_description VARCHAR(100) DEFAULT '100g',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB;
+    `);
+    console.log('Table "favorites" vérifiée/créée.');
+
+    // 5. Table des listes personnalisées
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS custom_lists (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        list_name VARCHAR(100) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB;
+    `);
+    console.log('Table "custom_lists" vérifiée/créée.');
+
+    // 6. Table des éléments de listes personnalisées
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS custom_list_items (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        list_id INT NOT NULL,
+        food_id VARCHAR(100) DEFAULT NULL,
+        food_name VARCHAR(255) NOT NULL,
+        calories INT NOT NULL,
+        protein DECIMAL(6,2) DEFAULT 0.00,
+        carbs DECIMAL(6,2) DEFAULT 0.00,
+        fat DECIMAL(6,2) DEFAULT 0.00,
+        serving_description VARCHAR(100) DEFAULT '100g',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (list_id) REFERENCES custom_lists(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB;
+    `);
+    console.log('Table "custom_list_items" vérifiée/créée.');
 
   } catch (error) {
     console.error('Erreur lors de la création des tables:', error.message);
