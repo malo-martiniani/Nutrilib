@@ -1,43 +1,42 @@
 @import "tailwindcss";
 
 /* ============================================================
-   NUTRILIB — DARK NEO-BRUTALIST DESIGN SYSTEM
+   NUTRILIB — PREMIUM MATTE SOFT PASTEL DESIGN SYSTEM
    ============================================================ */
 
 :root {
   /* Core surfaces */
-  --bg-dark-green: #040d0a;
-  --bg-charcoal: #0e1210;
-  --surface: #0f1c16;
-  --surface-raised: #182a21;
-  --surface-inset: #070e0b;
+  --bg-dark-slate: #0b0f19; /* Bleu-ardoise très sombre */
+  --bg-charcoal: #121824; /* Slate charcoal slightly warmer */
+  --surface: #182030; /* Bleu-ardoise moyen, mat */
+  --surface-raised: #222d42; /* Slightly lighter matte slate for raised elements */
+  --surface-inset: #090d16; /* Inset slate */
 
   /* Borders */
-  --border: rgba(255, 255, 255, 0.08);
-  --border-focus: rgba(57, 255, 20, 0.3);
-  --border-muted: rgba(255, 255, 255, 0.04);
-  --border-dim: rgba(255, 255, 255, 0.02);
+  --border: rgba(148, 163, 184, 0.12); /* Soft slate border */
+  --border-focus: rgba(210, 240, 192, 0.35); /* Pistachio glow/focus */
+  --border-muted: rgba(148, 163, 184, 0.06);
+  --border-dim: rgba(148, 163, 184, 0.02);
 
   /* Text */
-  --text: #f0f7f4;
-  --text-muted: #9ab2a6;
-  --text-dim: #5d7568;
+  --text: #faf8f5; /* Blanc chaud */
+  --text-muted: #cbd5e1; /* Gris-sage très pâle / slate */
+  --text-dim: #64748b; /* Disabled/dimmed slate-gray */
 
-  /* Accents */
-  --accent: #BFFF00; /* lime green */
-  --accent-neon: #39FF14; /* neon bright green */
-  --accent-amber: #FFB000; /* soft amber */
-  --accent-cyan: #00f2fe; /* icy cyan */
-  --accent-magenta: #FF2D7B; /* destructive */
+  /* Accents - Premium Soft Pastels */
+  --accent-pistachio: #d2f0c0; /* Pistache pâle */
+  --accent-powder: #a9d4f5; /* Bleu-poudre doux */
+  --accent-sand: #f5d5ae; /* Sable adouci */
+  --accent-magenta: #e5989b; /* Soft pastel red/pink for destructive actions */
 
-  /* Macro colors */
-  --protein: #00f2fe;
-  --carbs: #39FF14;
-  --fat: #FFB000;
+  /* Macro mappings to soft pastels */
+  --protein: #a9d4f5; /* Bleu-poudre doux */
+  --carbs: #d2f0c0; /* Pistache pâle */
+  --fat: #f5d5ae; /* Sable adouci */
 
   /* Shadows */
-  --shadow-soft: 0 16px 40px rgba(0, 0, 0, 0.6);
-  --shadow-subtle: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-soft: 0 16px 40px rgba(5, 8, 15, 0.6);
+  --shadow-subtle: 0 8px 24px rgba(5, 8, 15, 0.4);
 }
 
 /* ============================================================
@@ -51,7 +50,7 @@
 html, body {
   margin: 0;
   padding: 0;
-  background: linear-gradient(135deg, var(--bg-dark-green) 0%, var(--bg-charcoal) 100%);
+  background: linear-gradient(135deg, var(--bg-dark-slate) 0%, var(--bg-charcoal) 100%);
   background-attachment: fixed;
   color: var(--text);
   font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
@@ -65,7 +64,7 @@ html, body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-dark-green);
+  background: var(--bg-dark-slate);
 }
 ::-webkit-scrollbar-thumb {
   background: var(--surface-raised);
@@ -76,7 +75,7 @@ html, body {
 }
 
 /* ============================================================
-   PREMIUM NATURE UTILITY CLASSES
+   PREMIUM MATTE UTILITY CLASSES
    ============================================================ */
 
 /* Cards */
@@ -90,7 +89,7 @@ html, body {
 }
 .brutal-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 20px 48px rgba(5, 8, 15, 0.7);
   border-color: rgba(255, 255, 255, 0.12);
 }
 
@@ -98,13 +97,13 @@ html, body {
   background: var(--surface);
   border: 1px solid var(--border-focus);
   border-radius: 28px;
-  box-shadow: 0 0 25px rgba(57, 255, 20, 0.05), var(--shadow-soft);
+  box-shadow: 0 0 25px rgba(210, 240, 192, 0.03), var(--shadow-soft);
   padding: 1.5rem;
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .brutal-card-accent:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0 35px rgba(57, 255, 20, 0.08), 0 20px 48px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 0 35px rgba(210, 240, 192, 0.05), 0 20px 48px rgba(5, 8, 15, 0.7);
 }
 
 /* Inputs */
@@ -125,9 +124,9 @@ html, body {
   color: var(--text-dim);
 }
 .brutal-input:focus {
-  border-color: var(--accent-neon);
-  background-color: rgba(7, 14, 11, 0.6);
-  box-shadow: 0 0 0 4px rgba(57, 255, 20, 0.1);
+  border-color: var(--accent-pistachio);
+  background-color: rgba(9, 13, 22, 0.6);
+  box-shadow: 0 0 0 4px rgba(210, 240, 192, 0.1);
 }
 
 /* Buttons */
@@ -138,7 +137,7 @@ html, body {
   gap: 0.5rem;
   padding: 0.875rem 1.75rem;
   background: var(--text);
-  color: var(--bg-dark-green);
+  color: var(--bg-dark-slate);
   font-family: 'Space Grotesk', sans-serif;
   font-weight: 700;
   font-size: 0.875rem;
@@ -169,8 +168,8 @@ html, body {
   justify-content: center;
   gap: 0.5rem;
   padding: 0.875rem 1.75rem;
-  background: var(--accent-neon);
-  color: var(--bg-dark-green);
+  background: var(--accent-pistachio);
+  color: var(--bg-dark-slate);
   font-family: 'Space Grotesk', sans-serif;
   font-weight: 700;
   font-size: 0.875rem;
@@ -179,12 +178,12 @@ html, body {
   border: none;
   border-radius: 20px;
   cursor: pointer;
-  box-shadow: 0 8px 20px rgba(57, 255, 20, 0.15);
+  box-shadow: 0 8px 20px rgba(210, 240, 192, 0.1);
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
 }
 .brutal-btn-accent:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(57, 255, 20, 0.25);
+  box-shadow: 0 12px 28px rgba(210, 240, 192, 0.18);
 }
 .brutal-btn-accent:active {
   transform: translateY(0);
@@ -234,8 +233,8 @@ html, body {
 }
 .brutal-btn-danger:hover {
   color: var(--accent-magenta);
-  border-color: rgba(255, 45, 123, 0.2);
-  background-color: rgba(255, 45, 123, 0.05);
+  border-color: rgba(229, 152, 155, 0.2);
+  background-color: rgba(229, 152, 155, 0.05);
 }
 
 /* Labels */
@@ -297,7 +296,7 @@ html, body {
   z-index: 50;
   display: flex;
   align-items: stretch;
-  background: rgba(15, 28, 22, 0.85);
+  background: rgba(24, 32, 48, 0.85); /* Card surface with transparency */
   backdrop-filter: blur(20px);
   border-top: 1px solid var(--border);
   box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4);
@@ -328,7 +327,7 @@ html, body {
   color: var(--text-muted);
 }
 .bottom-nav-item.active {
-  color: var(--accent-neon);
+  color: var(--accent-pistachio);
 }
 .bottom-nav-item.active::before {
   content: '';
@@ -337,7 +336,7 @@ html, body {
   left: 20%;
   right: 20%;
   height: 3px;
-  background: var(--accent-neon);
+  background: var(--accent-pistachio);
   border-radius: 0 0 3px 3px;
 }
 
@@ -353,7 +352,7 @@ html, body {
     flex-direction: column;
     border-top: none;
     border-right: 1px solid var(--border);
-    background: rgba(15, 28, 22, 0.95);
+    background: rgba(24, 32, 48, 0.95);
   }
   .bottom-nav-item {
     min-height: 80px;
@@ -377,7 +376,7 @@ html, body {
 .brutal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(4, 13, 10, 0.85);
+  background: rgba(11, 15, 25, 0.85); /* Dark slate background */
   backdrop-filter: blur(8px);
   z-index: 60;
   display: flex;
@@ -410,7 +409,7 @@ html, body {
   width: 36px;
   height: 36px;
   border: 3px solid var(--border-muted);
-  border-top-color: var(--accent-neon);
+  border-top-color: var(--accent-pistachio);
   border-radius: 50%;
   animation: nature-spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
@@ -420,7 +419,7 @@ html, body {
   width: 18px;
   height: 18px;
   border: 2px solid rgba(0, 0, 0, 0.1);
-  border-top-color: var(--bg-dark-green);
+  border-top-color: var(--bg-dark-slate);
   border-radius: 50%;
   animation: nature-spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }

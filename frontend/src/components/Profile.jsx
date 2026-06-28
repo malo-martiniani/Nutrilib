@@ -29,9 +29,9 @@ export default function Profile({ token, onProfileUpdate }) {
   const [isPrivate, setIsPrivate] = useState(false);
 
   const [gender, setGender] = useState('male');
-  const [age, setAge] = useState('');
-  const [height, setHeight] = useState('');
-  const [weight, setWeight] = useState('');
+  const [age, setAge] = useState('25');
+  const [height, setHeight] = useState('175');
+  const [weight, setWeight] = useState('70');
   const [activityLevel, setActivityLevel] = useState('sedentary');
 
   const [calcResults, setCalcResults] = useState(null);
@@ -47,11 +47,11 @@ export default function Profile({ token, onProfileUpdate }) {
         setDisplayName(data.display_name || '');
         setAvatarUrl(data.avatar_url || '');
         setIsPrivate(data.is_private === 1);
-        if (data.gender) setGender(data.gender);
-        if (data.age) setAge(data.age.toString());
-        if (data.height) setHeight(data.height.toString());
-        if (data.current_weight) setWeight(data.current_weight.toString());
-        if (data.activity_level) setActivityLevel(data.activity_level);
+        setGender(data.gender || 'male');
+        setAge(data.age ? data.age.toString() : '25');
+        setHeight(data.height ? data.height.toString() : '175');
+        setWeight(data.current_weight ? data.current_weight.toString() : '70');
+        setActivityLevel(data.activity_level || 'sedentary');
       }
     } catch (error) { console.error('Erreur chargement profil:', error); }
     finally { setLoading(false); }
@@ -132,7 +132,7 @@ export default function Profile({ token, onProfileUpdate }) {
     if (avatarUrl && avatarUrl.startsWith('preset:')) {
       const [, emoji] = avatarUrl.split(':');
       return (
-        <div className="w-16 h-16 border border-[var(--accent-neon)] bg-[var(--surface-raised)] rounded-full flex items-center justify-center text-3xl shadow-[0_0_15px_rgba(57,255,20,0.15)]">
+        <div className="w-16 h-16 border border-[var(--accent-pistachio)] bg-[var(--surface-raised)] rounded-full flex items-center justify-center text-3xl shadow-[0_0_15px_rgba(210,240,192,0.15)]">
           {emoji}
         </div>
       );
@@ -161,7 +161,7 @@ export default function Profile({ token, onProfileUpdate }) {
       {/* SECTION 1: Basic Profile */}
       <div className="brutal-card space-y-6">
         <h2 className="text-base font-extrabold uppercase tracking-wider border-b border-[var(--border-muted)] pb-3 flex items-center gap-2 text-[var(--text)]">
-          <User className="w-5 h-5 text-[var(--accent-cyan)]" /> Mon Compte
+          <User className="w-5 h-5 text-[var(--accent-powder)]" /> Mon Compte
         </h2>
 
         <form onSubmit={handleUpdateBasic} className="space-y-5">
@@ -184,13 +184,13 @@ export default function Profile({ token, onProfileUpdate }) {
                   <button key={index} type="button" onClick={() => selectPresetAvatar(preset)}
                     className={`aspect-square border flex items-center justify-center text-xl cursor-pointer rounded-2xl relative transition-all duration-200 ${
                       isSelected
-                        ? 'border-[var(--accent-neon)] bg-[var(--surface-raised)]'
+                        ? 'border-[var(--accent-pistachio)] bg-[var(--surface-raised)]'
                         : 'border-[var(--border-muted)] bg-[var(--surface)] hover:border-[var(--text-dim)]'
                     }`}
                   >
                     {preset.emoji}
                     {isSelected && (
-                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-[var(--accent-neon)] flex items-center justify-center rounded-full border border-[#040d0a]">
+                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-[var(--accent-pistachio)] flex items-center justify-center rounded-full border border-[var(--bg-dark-slate)]">
                         <Check className="w-3.5 h-3.5 text-black stroke-[3]" />
                       </span>
                     )}
@@ -221,27 +221,27 @@ export default function Profile({ token, onProfileUpdate }) {
           <div className="flex items-center justify-between p-4 border border-[var(--border-muted)] bg-[var(--surface-raised)] rounded-[20px]">
             <div>
               <span className="text-sm font-bold flex items-center gap-2 text-[var(--text)]">
-                <Shield className="w-4 h-4 text-[var(--accent-cyan)]" /> Profil Privé
+                <Shield className="w-4 h-4 text-[var(--accent-powder)]" /> Profil Privé
               </span>
               <p className="text-[10px] text-[var(--text-muted)] mt-0.5 font-medium">Masque vos informations aux autres.</p>
             </div>
             <button type="button" onClick={() => setIsPrivate(!isPrivate)}
               className={`w-12 h-7 rounded-full cursor-pointer flex items-center px-1 border transition-colors duration-200 ${
-                isPrivate ? 'border-[var(--accent-neon)] bg-[var(--accent-neon)]' : 'border-[var(--border-muted)] bg-[var(--surface-inset)]'
+                isPrivate ? 'border-[var(--accent-pistachio)] bg-[var(--accent-pistachio)]' : 'border-[var(--border-muted)] bg-[var(--surface-inset)]'
               }`}>
-              <span className={`w-5 h-5 rounded-full block transition-transform duration-200 ${isPrivate ? 'translate-x-5 bg-[#040d0a]' : 'translate-x-0 bg-[var(--text-muted)]'}`}></span>
+              <span className={`w-5 h-5 rounded-full block transition-transform duration-200 ${isPrivate ? 'translate-x-5 bg-[var(--bg-dark-slate)]' : 'translate-x-0 bg-[var(--text-muted)]'}`}></span>
             </button>
           </div>
 
           {/* Feedback messages */}
           {message.text && message.type === 'success' && (
-            <div className="p-3.5 border border-[var(--accent-neon)]/20 bg-[var(--accent-neon)]/10 text-[var(--accent-neon)] text-xs font-semibold rounded-2xl">{message.text}</div>
+            <div className="p-3.5 border border-[var(--accent-pistachio)]/20 bg-[var(--accent-pistachio)]/10 text-[var(--accent-pistachio)] text-xs font-semibold rounded-2xl">{message.text}</div>
           )}
           {message.text && message.type === 'error' && (
             <div className="p-3.5 border border-[var(--accent-magenta)]/20 bg-[var(--accent-magenta)]/10 text-[var(--accent-magenta)] text-xs font-semibold rounded-2xl">{message.text}</div>
           )}
 
-          <button type="submit" disabled={updating} className="brutal-btn-accent w-full cursor-pointer">
+          <button type="submit" disabled={updating} className="brutal-btn-accent w-full cursor-pointer" style={{ backgroundColor: 'var(--accent-pistachio)', color: 'var(--bg-dark-slate)' }}>
             {updating ? 'Enregistrement...' : 'Enregistrer mon profil'}
           </button>
         </form>
@@ -250,7 +250,7 @@ export default function Profile({ token, onProfileUpdate }) {
       {/* SECTION 2: Calculator */}
       <div className="brutal-card space-y-6">
         <h2 className="text-base font-extrabold uppercase tracking-wider border-b border-[var(--border-muted)] pb-3 flex items-center gap-2 text-[var(--text)]">
-          <Flame className="w-5 h-5 text-[var(--accent-amber)]" /> Calculateur TDEE
+          <Flame className="w-5 h-5 text-[var(--accent-sand)]" /> Calculateur TDEE
         </h2>
 
         <form onSubmit={handleSaveCalculator} className="space-y-5">
@@ -259,7 +259,7 @@ export default function Profile({ token, onProfileUpdate }) {
             <button type="button" onClick={() => setGender('male')}
               className={`py-3 border font-bold text-sm uppercase rounded-2xl transition-all duration-200 cursor-pointer ${
                 gender === 'male'
-                  ? 'border-[var(--protein)] text-[var(--protein)] bg-[var(--protein)]/5'
+                  ? 'border-[var(--accent-powder)] text-[var(--accent-powder)] bg-[var(--accent-powder)]/5'
                   : 'border-[var(--border-muted)] text-[var(--text-dim)] hover:border-[var(--text-muted)]'
               }`}
             >
@@ -300,17 +300,17 @@ export default function Profile({ token, onProfileUpdate }) {
                 <button key={lvl.id} type="button" onClick={() => setActivityLevel(lvl.id)}
                   className={`w-full text-left p-3.5 border flex items-center justify-between rounded-2xl transition-all duration-200 cursor-pointer bg-[var(--surface)] ${
                     activityLevel === lvl.id
-                      ? 'border-[var(--accent-amber)] bg-[var(--surface-raised)] shadow-[var(--shadow-subtle)]'
+                      ? 'border-[var(--accent-sand)] bg-[var(--surface-raised)] shadow-[var(--shadow-subtle)]'
                       : 'border-[var(--border-muted)] hover:border-[var(--text-muted)]'
                   }`}
                 >
                   <div>
-                    <span className={`text-sm font-bold block ${activityLevel === lvl.id ? 'text-[var(--accent-amber)]' : 'text-[var(--text)]'}`}>
+                    <span className={`text-sm font-bold block ${activityLevel === lvl.id ? 'text-[var(--accent-sand)]' : 'text-[var(--text)]'}`}>
                       {lvl.name}
                     </span>
                     <span className="text-[10px] text-[var(--text-muted)] mt-0.5 block font-medium">{lvl.desc}</span>
                   </div>
-                  <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${activityLevel === lvl.id ? 'text-[var(--accent-amber)] translate-x-1' : 'text-[var(--text-dim)]'}`} />
+                  <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${activityLevel === lvl.id ? 'text-[var(--accent-sand)] translate-x-1' : 'text-[var(--text-dim)]'}`} />
                 </button>
               ))}
             </div>
@@ -322,7 +322,7 @@ export default function Profile({ token, onProfileUpdate }) {
               <div className="flex items-center justify-between border-b border-[var(--border-muted)] pb-3">
                 <div>
                   <span className="brutal-label mb-0">TDEE Quotidien</span>
-                  <span className="text-xl font-extrabold text-[var(--accent-amber)] block mt-0.5">{calcResults.tdee} kcal/jour</span>
+                  <span className="text-xl font-extrabold text-[var(--accent-sand)] block mt-0.5">{calcResults.tdee} kcal/jour</span>
                 </div>
                 <div className="text-right">
                   <span className="brutal-label mb-0">BMR</span>
@@ -330,18 +330,18 @@ export default function Profile({ token, onProfileUpdate }) {
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-3 text-center">
-                <div className="p-2 border border-[var(--protein)]/20 rounded-xl bg-[var(--protein)]/5">
-                  <span className="text-[9px] font-bold text-[var(--protein)] block uppercase">Protéines</span>
+                <div className="p-2 border border-[var(--accent-powder)]/20 rounded-xl bg-[var(--accent-powder)]/5">
+                  <span className="text-[9px] font-bold text-[var(--accent-powder)] block uppercase">Protéines</span>
                   <span className="text-base font-extrabold text-[var(--text)]">{calcResults.protein}g</span>
                   <span className="text-[9px] text-[var(--text-dim)] block mt-0.5">25% · 4kcal/g</span>
                 </div>
-                <div className="p-2 border border-[var(--carbs)]/20 rounded-xl bg-[var(--carbs)]/5">
-                  <span className="text-[9px] font-bold text-[var(--carbs)] block uppercase">Glucides</span>
+                <div className="p-2 border border-[var(--accent-powder)]/20 rounded-xl bg-[var(--accent-powder)]/5">
+                  <span className="text-[9px] font-bold text-[var(--accent-powder)] block uppercase">Glucides</span>
                   <span className="text-base font-extrabold text-[var(--text)]">{calcResults.carbs}g</span>
                   <span className="text-[9px] text-[var(--text-dim)] block mt-0.5">50% · 4kcal/g</span>
                 </div>
-                <div className="p-2 border border-[var(--fat)]/20 rounded-xl bg-[var(--fat)]/5">
-                  <span className="text-[9px] font-bold text-[var(--fat)] block uppercase">Lipides</span>
+                <div className="p-2 border border-[var(--accent-sand)]/20 rounded-xl bg-[var(--accent-sand)]/5">
+                  <span className="text-[9px] font-bold text-[var(--accent-sand)] block uppercase">Lipides</span>
                   <span className="text-base font-extrabold text-[var(--text)]">{calcResults.fat}g</span>
                   <span className="text-[9px] text-[var(--text-dim)] block mt-0.5">25% · 9kcal/g</span>
                 </div>
@@ -351,7 +351,7 @@ export default function Profile({ token, onProfileUpdate }) {
 
           <button type="submit" disabled={updating || !calcResults}
             className="brutal-btn w-full disabled:opacity-30 cursor-pointer"
-            style={{ background: 'var(--accent-amber)', borderColor: 'var(--accent-amber)', color: '#040d0a' }}>
+            style={{ background: 'var(--accent-sand)', borderColor: 'var(--accent-sand)', color: 'var(--bg-dark-slate)' }}>
             {updating ? 'Enregistrement...' : 'Valider les objectifs'}
           </button>
         </form>

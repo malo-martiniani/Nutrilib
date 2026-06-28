@@ -56,11 +56,10 @@ export default function LoginRegister() {
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-[var(--surface)] border border-[var(--border)] rounded-[28px] overflow-hidden shadow-[var(--shadow-soft)] transition-transform duration-300">
         
-        {/* Decorative Nature Header */}
-        <div className="h-40 bg-[url('https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=600&q=80')] bg-cover bg-center relative">
-          <div className="absolute inset-0 bg-gradient-to-t from-[var(--surface)] via-[var(--surface)]/40 to-black/20"></div>
-          <div className="absolute bottom-4 left-6">
-            <h1 className="text-3xl font-extrabold uppercase tracking-tight text-[var(--text)]">
+        {/* Solid Matte Header */}
+        <div className="h-32 bg-gradient-to-br from-[var(--surface-raised)] to-[var(--surface)] border-b border-[var(--border-muted)] relative flex items-end pb-4 pl-6">
+          <div>
+            <h1 className="text-3xl font-extrabold uppercase tracking-tight text-[var(--accent-pistachio)]">
               Nutrilib
             </h1>
             <p className="text-[var(--text-muted)] text-xs font-medium mt-1">
@@ -93,7 +92,8 @@ export default function LoginRegister() {
                       placeholder="Ex: JeanDupont"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      className="brutal-input pl-10"
+                      className="brutal-input pr-8 py-2 text-xs"
+                      style={{ paddingLeft: '2.5rem' }}
                       required
                     />
                   </div>
@@ -109,7 +109,8 @@ export default function LoginRegister() {
                     placeholder="contact@nutrilib.fr"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="brutal-input pl-10"
+                    className="brutal-input pr-8 py-2 text-xs"
+                    style={{ paddingLeft: '2.5rem' }}
                     required
                   />
                 </div>
@@ -124,7 +125,8 @@ export default function LoginRegister() {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="brutal-input pl-10"
+                    className="brutal-input pr-8 py-2 text-xs"
+                    style={{ paddingLeft: '2.5rem' }}
                     required
                   />
                 </div>
@@ -135,6 +137,7 @@ export default function LoginRegister() {
               type="submit"
               disabled={submitting}
               className="brutal-btn-accent w-full mt-2"
+              style={{ backgroundColor: 'var(--accent-pistachio)', color: 'var(--bg-dark-slate)' }}
             >
               {submitting ? (
                 <div className="brutal-spinner-sm"></div>
@@ -157,7 +160,7 @@ export default function LoginRegister() {
                 Pas encore de compte ?{' '}
                 <button
                   onClick={toggleMode}
-                  className="text-[var(--accent-neon)] font-bold uppercase text-xs tracking-wider underline underline-offset-4 decoration-1 cursor-pointer hover:text-[var(--text)] transition-colors duration-200"
+                  className="text-[var(--accent-pistachio)] font-bold uppercase text-xs tracking-wider underline underline-offset-4 decoration-1 cursor-pointer hover:text-[var(--text)] transition-colors duration-200"
                 >
                   Inscrivez-vous
                 </button>
@@ -167,7 +170,7 @@ export default function LoginRegister() {
                 Vous avez déjà un compte ?{' '}
                 <button
                   onClick={toggleMode}
-                  className="text-[var(--accent-neon)] font-bold uppercase text-xs tracking-wider underline underline-offset-4 decoration-1 cursor-pointer hover:text-[var(--text)] transition-colors duration-200"
+                  className="text-[var(--accent-pistachio)] font-bold uppercase text-xs tracking-wider underline underline-offset-4 decoration-1 cursor-pointer hover:text-[var(--text)] transition-colors duration-200"
                 >
                   Connectez-vous
                 </button>

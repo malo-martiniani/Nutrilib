@@ -91,13 +91,13 @@ export default function WeightTracker({ token, onWeightChange }) {
     datasets: [{
       label: 'Poids (kg)',
       data: weightHistory.map(w => parseFloat(w.weight)),
-      borderColor: '#39FF14',
-      backgroundColor: 'rgba(57, 255, 20, 0.06)',
+      borderColor: '#d2f0c0', // Pistachio
+      backgroundColor: 'rgba(210, 240, 192, 0.06)',
       borderWidth: 3,
       tension: 0.35,
       fill: true,
-      pointBackgroundColor: '#39FF14',
-      pointBorderColor: '#0f1c16',
+      pointBackgroundColor: '#d2f0c0',
+      pointBorderColor: '#182030', // surface color
       pointBorderWidth: 2,
       pointRadius: 4,
       pointHoverRadius: 6,
@@ -110,10 +110,10 @@ export default function WeightTracker({ token, onWeightChange }) {
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: '#0f1c16',
-        titleColor: '#9ab2a6',
-        bodyColor: '#f0f7f4',
-        borderColor: 'rgba(255, 255, 255, 0.08)',
+        backgroundColor: '#182030', // surface color
+        titleColor: '#cbd5e1', // text-muted
+        bodyColor: '#faf8f5', // text
+        borderColor: 'rgba(148, 163, 184, 0.12)',
         borderWidth: 1,
         padding: 12,
         cornerRadius: 16,
@@ -125,13 +125,13 @@ export default function WeightTracker({ token, onWeightChange }) {
     },
     scales: {
       y: {
-        grid: { color: 'rgba(255, 255, 255, 0.04)', lineWidth: 1 },
-        ticks: { color: '#5d7568', font: { family: 'Space Grotesk', size: 10, weight: 500 } },
+        grid: { color: 'rgba(148, 163, 184, 0.04)', lineWidth: 1 },
+        ticks: { color: '#64748b', font: { family: 'Space Grotesk', size: 10, weight: 500 } },
         border: { display: false }
       },
       x: {
         grid: { display: false },
-        ticks: { color: '#5d7568', font: { family: 'Space Grotesk', size: 10, weight: 500 } },
+        ticks: { color: '#64748b', font: { family: 'Space Grotesk', size: 10, weight: 500 } },
         border: { display: false }
       }
     }
@@ -147,7 +147,7 @@ export default function WeightTracker({ token, onWeightChange }) {
       {/* Input form */}
       <div className="brutal-card space-y-4">
         <h3 className="font-extrabold text-sm uppercase tracking-wider flex items-center gap-2 text-[var(--text)]">
-          <Scale className="w-4 h-4 text-[var(--accent-cyan)]" /> Saisie du poids
+          <Scale className="w-4 h-4 text-[var(--accent-powder)]" /> Saisie du poids
         </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
@@ -162,7 +162,7 @@ export default function WeightTracker({ token, onWeightChange }) {
             </div>
           </div>
           {error && <p className="text-xs text-[var(--accent-magenta)] font-bold">{error}</p>}
-          <button type="submit" disabled={saving} className="brutal-btn-accent w-full cursor-pointer">
+          <button type="submit" disabled={saving} className="brutal-btn-accent w-full cursor-pointer" style={{ backgroundColor: 'var(--accent-pistachio)', color: 'var(--bg-dark-slate)' }}>
             <Plus className="w-4 h-4" /> Enregistrer
           </button>
         </form>
@@ -178,9 +178,9 @@ export default function WeightTracker({ token, onWeightChange }) {
           {changeStats && (
             <span className={`brutal-tag text-[10px] ${
               changeStats.isDown
-                ? 'text-[var(--accent-neon)]'
+                ? 'text-[var(--accent-pistachio)]'
                 : 'text-[var(--accent-magenta)]'
-            }`} style={{ borderColor: changeStats.isDown ? 'var(--accent-neon)' : 'var(--accent-magenta)' }}>
+            }`} style={{ borderColor: changeStats.isDown ? 'var(--accent-pistachio)' : 'var(--accent-magenta)' }}>
               {changeStats.isDown ? <TrendingDown className="w-3.5 h-3.5" /> : <TrendingUp className="w-3.5 h-3.5" />}
               {changeStats.diff > 0 ? `+${changeStats.diff}` : changeStats.diff} kg ({changeStats.percent}%)
             </span>
@@ -201,7 +201,7 @@ export default function WeightTracker({ token, onWeightChange }) {
       {/* History list */}
       <div className="brutal-card space-y-3">
         <h3 className="font-extrabold text-sm uppercase tracking-wider flex items-center gap-2 border-b border-[var(--border-muted)] pb-3">
-          <Calendar className="w-4 h-4 text-[var(--accent-cyan)]" /> Historique
+          <Calendar className="w-4 h-4 text-[var(--accent-powder)]" /> Historique
         </h3>
         <div className="max-h-[300px] overflow-y-auto space-y-2">
           {weightHistory.length === 0 ? (
