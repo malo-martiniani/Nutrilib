@@ -20,7 +20,8 @@ import {
   BookOpen,
   Clock,
   CheckCircle,
-  ListTodo
+  ListTodo,
+  SlidersHorizontal
 } from 'lucide-react';
 import Profile from './Profile';
 import WeightTracker from './WeightTracker';
@@ -100,6 +101,14 @@ export default function Dashboard() {
 
   const [showListSelectorForFood, setShowListSelectorForFood] = useState(null);
 
+  // Advanced search filters states
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [caloriesMin, setCaloriesMin] = useState('');
+  const [caloriesMax, setCaloriesMax] = useState('');
+  const [proteinMin, setProteinMin] = useState('');
+  const [carbsMax, setCarbsMax] = useState('');
+  const [fatMax, setFatMax] = useState('');
+
   // Data fetchers
   const fetchProfileData = async () => {
     if (!token) return;
@@ -156,7 +165,14 @@ export default function Dashboard() {
     const delayDebounceFn = setTimeout(async () => {
       setHeaderSearching(true);
       try {
-        const response = await fetch(`${API_URL}/foods/search?query=${encodeURIComponent(headerSearchQuery)}`, {
+        let url = `${API_URL}/foods/search?query=${encodeURIComponent(headerSearchQuery)}`;
+        if (caloriesMin) url += `&caloriesMin=${caloriesMin}`;
+        if (caloriesMax) url += `&caloriesMax=${caloriesMax}`;
+        if (proteinMin) url += `&proteinMin=${proteinMin}`;
+        if (carbsMax) url += `&carbsMax=${carbsMax}`;
+        if (fatMax) url += `&fatMax=${fatMax}`;
+
+        const response = await fetch(url, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (response.ok) {
@@ -168,7 +184,7 @@ export default function Dashboard() {
       finally { setHeaderSearching(false); }
     }, 400);
     return () => clearTimeout(delayDebounceFn);
-  }, [headerSearchQuery, token]);
+  }, [headerSearchQuery, caloriesMin, caloriesMax, proteinMin, carbsMax, fatMax, token]);
 
   // Debounced search for meal search modal
   useEffect(() => {
@@ -179,7 +195,14 @@ export default function Dashboard() {
     const delayDebounceFn = setTimeout(async () => {
       setMealSearching(true);
       try {
-        const response = await fetch(`${API_URL}/foods/search?query=${encodeURIComponent(mealSearchQuery)}`, {
+        let url = `${API_URL}/foods/search?query=${encodeURIComponent(mealSearchQuery)}`;
+        if (caloriesMin) url += `&caloriesMin=${caloriesMin}`;
+        if (caloriesMax) url += `&caloriesMax=${caloriesMax}`;
+        if (proteinMin) url += `&proteinMin=${proteinMin}`;
+        if (carbsMax) url += `&carbsMax=${carbsMax}`;
+        if (fatMax) url += `&fatMax=${fatMax}`;
+
+        const response = await fetch(url, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (response.ok) {
@@ -190,7 +213,7 @@ export default function Dashboard() {
       finally { setMealSearching(false); }
     }, 400);
     return () => clearTimeout(delayDebounceFn);
-  }, [mealSearchQuery, token]);
+  }, [mealSearchQuery, caloriesMin, caloriesMax, proteinMin, carbsMax, fatMax, token]);
 
   const handleToggleFavorite = async (e, food) => {
     e.stopPropagation();
@@ -298,6 +321,39 @@ export default function Dashboard() {
     finally { setLoadingRecipe(false); }
   };
 
+  const handleToggleRecipeFavorite = async (recipe) => {
+    const recipeFoodId = `recipe_${recipe.recipe_id}`;
+    const isFav = favoriteIds.includes(recipeFoodId);
+    try {
+      if (isFav) {
+        const favsRes = await fetch(`${API_URL}/favorites`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (favsRes.ok) {
+          const favs = await favsRes.json();
+          const match = favs.find(f => f.food_id === recipeFoodId);
+          if (match) {
+            const delRes = await fetch(`${API_URL}/favorites/${match.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            if (delRes.ok) { setFavoriteIds(favoriteIds.filter(id => id !== recipeFoodId)); }
+          }
+        }
+      } else {
+        const addRes = await fetch(`${API_URL}/favorites`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({
+            food_id: recipeFoodId,
+            food_name: recipe.recipe_name,
+            calories: recipe.calories,
+            protein: recipe.protein,
+            carbs: recipe.carbs,
+            fat: recipe.fat,
+            serving_description: '1 portion'
+          })
+        });
+        if (addRes.ok) { setFavoriteIds([...favoriteIds, recipeFoodId]); }
+      }
+    } catch (err) { console.error(err); }
+  };
+
   const toggleIngredientCheck = (index) => {
     setCheckedIngredients(prev => ({ ...prev, [index]: !prev[index] }));
   };
@@ -358,7 +414,8 @@ export default function Dashboard() {
 
       {/* ===== HEADER ===== */}
       <header className="sticky top-0 z-40 bg-[rgba(24,32,48,0.85)] backdrop-blur-md border-b border-[var(--border)]">
-        <div className="px-5 py-4 flex items-center justify-between gap-3 max-w-4xl mx-auto w-full">
+        <div className="px-5 py-4 flex flex-col gap-3 max-w-4xl mx-auto w-full">
+          <div className="flex items-center justify-between gap-3 w-full">
           {/* Logo */}
           <h1 
             onClick={() => setActiveTab('journal')} 
@@ -367,90 +424,173 @@ export default function Dashboard() {
             Nutrilib
           </h1>
 
-          {/* Search */}
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-dim)]" />
-            <input
-              type="text"
-              placeholder="Rechercher un aliment..."
-              value={headerSearchQuery}
-              onChange={(e) => setHeaderSearchQuery(e.target.value)}
-              className="brutal-input pr-8 py-2 text-xs"
-              style={{ paddingLeft: '2.5rem' }}
-            />
-            {headerSearchQuery && (
-              <button
-                onClick={() => { setHeaderSearchQuery(''); setShowHeaderSearchDropdown(false); }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-dim)] hover:text-[var(--text)] cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
+          {/* Search Container */}
+          <div className="flex-1 max-w-md flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-dim)]" />
+              <input
+                type="text"
+                placeholder="Rechercher un aliment..."
+                value={headerSearchQuery}
+                onChange={(e) => setHeaderSearchQuery(e.target.value)}
+                className="brutal-input pr-8 py-2 text-xs"
+                style={{ paddingLeft: '2.5rem' }}
+              />
+              {headerSearchQuery && (
+                <button
+                  onClick={() => { setHeaderSearchQuery(''); setShowHeaderSearchDropdown(false); }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-dim)] hover:text-[var(--text)] cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
 
-            {/* Search dropdown */}
-            {showHeaderSearchDropdown && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-[var(--surface)] border border-[var(--border)] z-50 max-h-[300px] overflow-y-auto rounded-2xl shadow-[var(--shadow-soft)]">
-                {headerSearching && (
-                  <div className="flex justify-center py-6"><div className="brutal-spinner"></div></div>
-                )}
-                {!headerSearching && headerSearchResults.length === 0 && (
-                  <p className="text-xs text-center text-[var(--text-dim)] py-6">Aucun résultat pour "{headerSearchQuery}"</p>
-                )}
-                {!headerSearching && headerSearchResults.map((food) => {
-                  const isFav = favoriteIds.includes(food.food_id);
-                  return (
-                    <div
-                      key={food.food_id}
-                      onClick={() => openPortionSelector(food, 'breakfast')}
-                      className="flex items-center justify-between p-3.5 border-b border-[var(--border-dim)] hover:bg-[var(--surface-raised)] cursor-pointer transition-colors duration-200"
-                    >
-                      <div>
-                        <span className="font-bold text-xs text-[var(--text)] block">{food.food_name}</span>
-                        <span className="text-[10px] text-[var(--text-dim)]">{food.brand_name} · {formatServing(food.serving)}</span>
-                      </div>
-                      <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                        <div className="text-right">
-                          <span className="text-xs font-bold text-[var(--accent-pistachio)] block">{food.calories}</span>
-                          <span className="text-[9px] text-[var(--text-dim)]">kcal</span>
+              {/* Search dropdown */}
+              {showHeaderSearchDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-[var(--surface)] border border-[var(--border)] z-50 max-h-[300px] overflow-y-auto rounded-2xl shadow-[var(--shadow-soft)]">
+                  {headerSearching && (
+                    <div className="flex justify-center py-6"><div className="brutal-spinner"></div></div>
+                  )}
+                  {!headerSearching && headerSearchResults.length === 0 && (
+                    <p className="text-xs text-center text-[var(--text-dim)] py-6">Aucun résultat pour "{headerSearchQuery}"</p>
+                  )}
+                  {!headerSearching && headerSearchResults.map((food) => {
+                    const isFav = favoriteIds.includes(food.food_id);
+                    return (
+                      <div
+                        key={food.food_id}
+                        onClick={() => openPortionSelector(food, 'breakfast')}
+                        className="flex items-center justify-between p-3.5 border-b border-[var(--border-dim)] hover:bg-[var(--surface-raised)] cursor-pointer transition-colors duration-200"
+                      >
+                        <div>
+                          <span className="font-bold text-xs text-[var(--text)] block">{food.food_name}</span>
+                          <span className="text-[10px] text-[var(--text-dim)]">{food.brand_name} · {formatServing(food.serving)}</span>
                         </div>
-                        <button onClick={(e) => handleToggleFavorite(e, food)} className="brutal-btn-danger">
-                          <Heart className={`w-3.5 h-3.5 ${isFav ? 'text-[var(--accent-magenta)] fill-[var(--accent-magenta)]' : ''}`} />
-                        </button>
-                        <button
-                          onClick={() => setShowListSelectorForFood(showListSelectorForFood === food.food_id ? null : food.food_id)}
-                          className="brutal-btn-danger"
-                        >
-                          <FolderOpen className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                          <div className="text-right">
+                            <span className="text-xs font-bold text-[var(--accent-pistachio)] block">{food.calories}</span>
+                            <span className="text-[9px] text-[var(--text-dim)]">kcal</span>
+                          </div>
+                          <button onClick={(e) => handleToggleFavorite(e, food)} className="brutal-btn-danger">
+                            <Heart className={`w-3.5 h-3.5 ${isFav ? 'text-[var(--accent-magenta)] fill-[var(--accent-magenta)]' : ''}`} />
+                          </button>
+                          <button
+                            onClick={() => setShowListSelectorForFood(showListSelectorForFood === food.food_id ? null : food.food_id)}
+                            className="brutal-btn-danger"
+                          >
+                            <FolderOpen className="w-3.5 h-3.5" />
+                          </button>
 
-                        {showListSelectorForFood === food.food_id && (
-                          <div className="absolute right-2 mt-1 bg-[var(--surface)] border border-[var(--border)] p-3.5 z-50 w-44 rounded-2xl shadow-[var(--shadow-soft)]" onClick={(e) => e.stopPropagation()}>
-                            <span className="brutal-label block border-b border-[var(--border-muted)] pb-1 mb-2">Ajouter à :</span>
-                            {lists.length === 0 ? (
-                              <p className="text-[10px] text-[var(--text-dim)]">Aucune liste.</p>
-                            ) : (
-                              lists.map(l => (
-                                <button key={l.id} onClick={() => handleAddToList(l.id, food)}
-                                  className="w-full text-left py-1 text-xs text-[var(--text-muted)] hover:text-[var(--accent-pistachio)] font-semibold cursor-pointer transition-colors duration-150">
-                                  → {l.list_name}
-                                </button>
-                              ))
+                          {showListSelectorForFood === food.food_id && (
+                            <div className="absolute right-2 mt-1 bg-[var(--surface)] border border-[var(--border)] p-3.5 z-50 w-44 rounded-2xl shadow-[var(--shadow-soft)]" onClick={(e) => e.stopPropagation()}>
+                              <span className="brutal-label block border-b border-[var(--border-muted)] pb-1 mb-2">Ajouter à :</span>
+                              {lists.length === 0 ? (
+                                <p className="text-[10px] text-[var(--text-dim)]">Aucune liste.</p>
+                              ) : (
+                                lists.map(l => (
+                                  <button key={l.id} onClick={() => handleAddToList(l.id, food)}
+                                    className="w-full text-left py-1 text-xs text-[var(--text-muted)] hover:text-[var(--accent-pistachio)] font-semibold cursor-pointer transition-colors duration-150">
+                                    → {l.list_name}
+                                  </button>
+                                  ))
+                                )}
+                              </div>
                             )}
                           </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-            )}
+
+              {/* Advanced filters toggle button */}
+              <button 
+                type="button"
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className={`p-2 border rounded-xl hover:bg-[var(--surface-raised)] transition-all cursor-pointer ${showAdvancedFilters ? 'border-[var(--accent-pistachio)] text-[var(--accent-pistachio)]' : 'border-[var(--border)] text-[var(--text-muted)]'}`}
+                title="Filtres avancés"
+              >
+                <SlidersHorizontal className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Logout */}
+            <button onClick={logout} className="brutal-btn-ghost text-[10px] shrink-0">
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Quitter</span>
+            </button>
           </div>
 
-          {/* Logout */}
-          <button onClick={logout} className="brutal-btn-ghost text-[10px] shrink-0">
-            <LogOut className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Quitter</span>
-          </button>
+          {/* Advanced filters panel */}
+          {showAdvancedFilters && (
+            <div className="p-4 bg-[var(--surface)] border border-[var(--border)] rounded-[20px] shadow-[var(--shadow-soft)] grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div>
+                <label className="block text-[10px] uppercase font-extrabold text-[var(--text-muted)] mb-1">Calories (Min - Max)</label>
+                <div className="flex gap-1.5">
+                  <input 
+                    type="number" 
+                    placeholder="Min" 
+                    value={caloriesMin} 
+                    onChange={(e) => setCaloriesMin(e.target.value)} 
+                    className="brutal-input py-1.5 px-2 text-[10px] w-full text-center" 
+                  />
+                  <input 
+                    type="number" 
+                    placeholder="Max" 
+                    value={caloriesMax} 
+                    onChange={(e) => setCaloriesMax(e.target.value)} 
+                    className="brutal-input py-1.5 px-2 text-[10px] w-full text-center" 
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] uppercase font-extrabold text-[var(--accent-powder)] mb-1">Protéines Min (g)</label>
+                <input 
+                  type="number" 
+                  placeholder="Ex: 20" 
+                  value={proteinMin} 
+                  onChange={(e) => setProteinMin(e.target.value)} 
+                  className="brutal-input py-1.5 px-2 text-[10px] text-center w-full" 
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] uppercase font-extrabold text-[var(--accent-powder)] mb-1">Glucides Max (g)</label>
+                <input 
+                  type="number" 
+                  placeholder="Ex: 10" 
+                  value={carbsMax} 
+                  onChange={(e) => setCarbsMax(e.target.value)} 
+                  className="brutal-input py-1.5 px-2 text-[10px] text-center w-full" 
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] uppercase font-extrabold text-[var(--accent-sand)] mb-1">Lipides Max (g)</label>
+                <input 
+                  type="number" 
+                  placeholder="Ex: 15" 
+                  value={fatMax} 
+                  onChange={(e) => setFatMax(e.target.value)} 
+                  className="brutal-input py-1.5 px-2 text-[10px] text-center w-full" 
+                />
+              </div>
+              <div className="col-span-full flex justify-end gap-2 pt-2 border-t border-[var(--border-muted)] mt-1">
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setCaloriesMin('');
+                    setCaloriesMax('');
+                    setProteinMin('');
+                    setCarbsMax('');
+                    setFatMax('');
+                  }} 
+                  className="text-[10px] font-bold text-[var(--accent-magenta)] hover:underline uppercase cursor-pointer"
+                >
+                  Réinitialiser les filtres
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </header>
 
@@ -649,8 +789,8 @@ export default function Dashboard() {
 
       {/* ===== DIRECT MEAL SEARCH MODAL ===== */}
       {showMealSearchModal && (
-        <div className="brutal-overlay">
-          <div className="brutal-modal max-w-md w-full">
+        <div className="brutal-overlay" onClick={() => { setShowMealSearchModal(false); setMealSearchQuery(''); setMealSearchResults([]); }}>
+          <div className="brutal-modal max-w-md w-full" onClick={(e) => e.stopPropagation()}>
             <div className="px-6 py-4 border-b border-[var(--border-muted)] flex items-center justify-between">
               <div>
                 <h3 className="font-bold text-sm uppercase tracking-wider text-[var(--text)]">
@@ -667,18 +807,98 @@ export default function Dashboard() {
             </div>
             
             <div className="p-6 space-y-4">
-              <div className="relative">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-dim)]" />
-                <input
-                  type="text"
-                  placeholder="Saisissez un aliment (ex: riz, œuf...)"
-                  value={mealSearchQuery}
-                  onChange={(e) => setMealSearchQuery(e.target.value)}
-                  className="brutal-input pr-8 py-2 text-xs"
-                  style={{ paddingLeft: '2.5rem' }}
-                  autoFocus
-                />
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-dim)]" />
+                  <input
+                    type="text"
+                    placeholder="Saisissez un aliment (ex: riz, œuf...)"
+                    value={mealSearchQuery}
+                    onChange={(e) => setMealSearchQuery(e.target.value)}
+                    className="brutal-input pr-8 py-2 text-xs"
+                    style={{ paddingLeft: '2.5rem' }}
+                    autoFocus
+                  />
+                </div>
+                <button 
+                  type="button"
+                  onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                  className={`p-2 border rounded-xl hover:bg-[var(--surface-raised)] transition-all cursor-pointer ${showAdvancedFilters ? 'border-[var(--accent-pistachio)] text-[var(--accent-pistachio)]' : 'border-[var(--border)] text-[var(--text-muted)]'}`}
+                  title="Filtres avancés"
+                >
+                  <SlidersHorizontal className="w-4 h-4" />
+                </button>
               </div>
+
+              {/* Advanced filters panel inside modal */}
+              {showAdvancedFilters && (
+                <div className="p-3 bg-[var(--surface-inset)] border border-[var(--border)] rounded-[20px] grid grid-cols-2 gap-2.5 text-xs">
+                  <div>
+                    <label className="block text-[9px] uppercase font-extrabold text-[var(--text-muted)] mb-1">Calories (Min - Max)</label>
+                    <div className="flex gap-1">
+                      <input 
+                        type="number" 
+                        placeholder="Min" 
+                        value={caloriesMin} 
+                        onChange={(e) => setCaloriesMin(e.target.value)} 
+                        className="brutal-input py-1 px-1.5 text-[9px] w-full text-center" 
+                      />
+                      <input 
+                        type="number" 
+                        placeholder="Max" 
+                        value={caloriesMax} 
+                        onChange={(e) => setCaloriesMax(e.target.value)} 
+                        className="brutal-input py-1 px-1.5 text-[9px] w-full text-center" 
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[9px] uppercase font-extrabold text-[var(--accent-powder)] mb-1">Protéines Min (g)</label>
+                    <input 
+                      type="number" 
+                      placeholder="Ex: 20" 
+                      value={proteinMin} 
+                      onChange={(e) => setProteinMin(e.target.value)} 
+                      className="brutal-input py-1 px-1.5 text-[9px] text-center w-full" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] uppercase font-extrabold text-[var(--accent-powder)] mb-1">Glucides Max (g)</label>
+                    <input 
+                      type="number" 
+                      placeholder="Ex: 10" 
+                      value={carbsMax} 
+                      onChange={(e) => setCarbsMax(e.target.value)} 
+                      className="brutal-input py-1 px-1.5 text-[9px] text-center w-full" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] uppercase font-extrabold text-[var(--accent-sand)] mb-1">Lipides Max (g)</label>
+                    <input 
+                      type="number" 
+                      placeholder="Ex: 15" 
+                      value={fatMax} 
+                      onChange={(e) => setFatMax(e.target.value)} 
+                      className="brutal-input py-1 px-1.5 text-[9px] text-center w-full" 
+                    />
+                  </div>
+                  <div className="col-span-full flex justify-end pt-1 border-t border-[var(--border-muted)] mt-0.5">
+                    <button 
+                      type="button" 
+                      onClick={() => {
+                        setCaloriesMin('');
+                        setCaloriesMax('');
+                        setProteinMin('');
+                        setCarbsMax('');
+                        setFatMax('');
+                      }} 
+                      className="text-[9px] font-bold text-[var(--accent-magenta)] hover:underline uppercase cursor-pointer"
+                    >
+                      Réinitialiser
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Results list */}
               <div className="max-h-[300px] overflow-y-auto space-y-2 border border-[var(--border)] rounded-2xl bg-[var(--surface-inset)] p-2">
@@ -715,8 +935,8 @@ export default function Dashboard() {
 
       {/* ===== PORTION MODAL ===== */}
       {showAddModal && selectedFood && (
-        <div className="brutal-overlay">
-          <div className="brutal-modal">
+        <div className="brutal-overlay" onClick={() => { setShowAddModal(false); setSelectedFood(null); }}>
+          <div className="brutal-modal" onClick={(e) => e.stopPropagation()}>
             {/* Modal header */}
             <div className="px-6 py-4 border-b border-[var(--border-muted)] flex items-center justify-between">
               <div>
@@ -797,17 +1017,26 @@ export default function Dashboard() {
 
       {/* ===== RECIPE DETAIL MODAL ===== */}
       {selectedRecipe && (
-        <div className="brutal-overlay">
-          <div className="bg-[var(--surface)] border border-[var(--border)] w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col rounded-[28px] shadow-[var(--shadow-soft)]">
+        <div className="brutal-overlay" onClick={() => setSelectedRecipe(null)}>
+          <div className="bg-[var(--surface)] border border-[var(--border)] w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col rounded-[28px] shadow-[var(--shadow-soft)]" onClick={(e) => e.stopPropagation()}>
             {/* Header */}
             <div className="px-6 py-4 border-b border-[var(--border-muted)] flex justify-between items-start">
               <div>
                 <h3 className="font-extrabold text-base uppercase tracking-wider text-[var(--text)]">{selectedRecipe.recipe_name}</h3>
                 <p className="text-[10px] text-[var(--text-muted)] mt-1.5 max-w-xl font-medium">{selectedRecipe.recipe_description}</p>
               </div>
-              <button onClick={() => setSelectedRecipe(null)} className="brutal-btn-ghost p-2 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => handleToggleRecipeFavorite(selectedRecipe)} 
+                  className="brutal-btn-danger p-2 cursor-pointer"
+                  title="Ajouter aux favoris"
+                >
+                  <Heart className={`w-5 h-5 ${favoriteIds.includes(`recipe_${selectedRecipe.recipe_id}`) ? 'text-[var(--accent-magenta)] fill-[var(--accent-magenta)]' : ''}`} />
+                </button>
+                <button onClick={() => setSelectedRecipe(null)} className="brutal-btn-ghost p-2 cursor-pointer">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Body */}

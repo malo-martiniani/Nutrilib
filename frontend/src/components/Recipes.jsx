@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Clock, Star, CheckCircle, ChevronRight, X, ListTodo, Flame, Info, Heart, FolderOpen } from 'lucide-react';
+import { Search, Clock, Star, CheckCircle, ChevronRight, X, ListTodo, Flame, Info, Heart, FolderOpen, SlidersHorizontal } from 'lucide-react';
 
 const API_URL = 'http://localhost:5000/api';
 
@@ -13,6 +13,14 @@ export default function Recipes({ token }) {
   const [filterKeto, setFilterKeto] = useState(false);
   const [filterHighProtein, setFilterHighProtein] = useState(false);
   const [filterLight, setFilterLight] = useState(false);
+
+  // Advanced search filters states
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [caloriesMin, setCaloriesMin] = useState('');
+  const [caloriesMax, setCaloriesMax] = useState('');
+  const [proteinMin, setProteinMin] = useState('');
+  const [carbsMax, setCarbsMax] = useState('');
+  const [fatMax, setFatMax] = useState('');
 
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [loadingRecipe, setLoadingRecipe] = useState(false);
@@ -46,6 +54,13 @@ export default function Recipes({ token }) {
     if (filterKeto) url += '&carbMaxPercent=15';
     if (filterHighProtein) url += '&proteinMinPercent=30';
 
+    // Filtres nutritionnels précis
+    if (caloriesMin) url += `&caloriesMin=${caloriesMin}`;
+    if (caloriesMax) url += `&caloriesMax=${caloriesMax}`;
+    if (proteinMin) url += `&proteinMin=${proteinMin}`;
+    if (carbsMax) url += `&carbsMax=${carbsMax}`;
+    if (fatMax) url += `&fatMax=${fatMax}`;
+
     try {
       const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
       if (response.ok) {
@@ -61,7 +76,7 @@ export default function Recipes({ token }) {
   useEffect(() => { 
     handleSearch(); 
     fetchFavoritesAndLists();
-  }, [filterKeto, filterHighProtein, filterLight, token]);
+  }, [filterKeto, filterHighProtein, filterLight, caloriesMin, caloriesMax, proteinMin, carbsMax, fatMax, token]);
 
   const handleFetchRecipeDetails = async (id) => {
     setLoadingRecipe(true);
@@ -162,10 +177,88 @@ export default function Recipes({ token }) {
               className="brutal-input pr-8 py-2 text-xs"
               style={{ paddingLeft: '2.5rem' }} />
           </div>
+          <button 
+            type="button"
+            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+            className={`p-2 border rounded-xl hover:bg-[var(--surface-raised)] transition-all cursor-pointer ${showAdvancedFilters ? 'border-[var(--accent-pistachio)] text-[var(--accent-pistachio)]' : 'border-[var(--border)] text-[var(--text-muted)]'}`}
+            title="Filtres avancés"
+          >
+            <SlidersHorizontal className="w-4 h-4" />
+          </button>
           <button type="submit" disabled={searching} className="brutal-btn-accent px-5 cursor-pointer" style={{ backgroundColor: 'var(--accent-pistachio)', color: 'var(--bg-dark-slate)' }}>
             {searching ? <div className="brutal-spinner-sm"></div> : 'Rechercher'}
           </button>
         </form>
+
+        {/* Advanced filters panel */}
+        {showAdvancedFilters && (
+          <div className="p-4 bg-[var(--surface-inset)] border border-[var(--border)] rounded-[20px] grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            <div>
+              <label className="block text-[10px] uppercase font-extrabold text-[var(--text-muted)] mb-1">Calories (Min - Max)</label>
+              <div className="flex gap-1.5">
+                <input 
+                  type="number" 
+                  placeholder="Min" 
+                  value={caloriesMin} 
+                  onChange={(e) => setCaloriesMin(e.target.value)} 
+                  className="brutal-input py-1.5 px-2 text-[10px] w-full text-center" 
+                />
+                <input 
+                  type="number" 
+                  placeholder="Max" 
+                  value={caloriesMax} 
+                  onChange={(e) => setCaloriesMax(e.target.value)} 
+                  className="brutal-input py-1.5 px-2 text-[10px] w-full text-center" 
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-[10px] uppercase font-extrabold text-[var(--accent-powder)] mb-1">Protéines Min (g)</label>
+              <input 
+                type="number" 
+                placeholder="Ex: 20" 
+                value={proteinMin} 
+                onChange={(e) => setProteinMin(e.target.value)} 
+                className="brutal-input py-1.5 px-2 text-[10px] text-center w-full" 
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] uppercase font-extrabold text-[var(--accent-powder)] mb-1">Glucides Max (g)</label>
+              <input 
+                type="number" 
+                placeholder="Ex: 10" 
+                value={carbsMax} 
+                onChange={(e) => setCarbsMax(e.target.value)} 
+                className="brutal-input py-1.5 px-2 text-[10px] text-center w-full" 
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] uppercase font-extrabold text-[var(--accent-sand)] mb-1">Lipides Max (g)</label>
+              <input 
+                type="number" 
+                placeholder="Ex: 15" 
+                value={fatMax} 
+                onChange={(e) => setFatMax(e.target.value)} 
+                className="brutal-input py-1.5 px-2 text-[10px] text-center w-full" 
+              />
+            </div>
+            <div className="col-span-full flex justify-end gap-2 pt-2 border-t border-[var(--border-muted)] mt-1">
+              <button 
+                type="button" 
+                onClick={() => {
+                  setCaloriesMin('');
+                  setCaloriesMax('');
+                  setProteinMin('');
+                  setCarbsMax('');
+                  setFatMax('');
+                }} 
+                className="text-[10px] font-bold text-[var(--accent-magenta)] hover:underline uppercase cursor-pointer"
+              >
+                Réinitialiser les filtres
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Filter toggles */}
         <div className="flex flex-wrap items-center gap-2">
@@ -290,17 +383,26 @@ export default function Recipes({ token }) {
 
       {/* Recipe Detail Modal */}
       {selectedRecipe && (
-        <div className="brutal-overlay">
-          <div className="bg-[var(--surface)] border border-[var(--border)] w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col rounded-[28px] shadow-[var(--shadow-soft)]">
+        <div className="brutal-overlay" onClick={() => setSelectedRecipe(null)}>
+          <div className="bg-[var(--surface)] border border-[var(--border)] w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col rounded-[28px] shadow-[var(--shadow-soft)]" onClick={(e) => e.stopPropagation()}>
             {/* Header */}
             <div className="px-6 py-4 border-b border-[var(--border-muted)] flex justify-between items-start">
               <div>
                 <h3 className="font-extrabold text-base uppercase tracking-wider text-[var(--text)]">{selectedRecipe.recipe_name}</h3>
                 <p className="text-[10px] text-[var(--text-muted)] mt-1.5 max-w-xl font-medium">{selectedRecipe.recipe_description}</p>
               </div>
-              <button onClick={() => setSelectedRecipe(null)} className="brutal-btn-ghost p-2 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={(e) => handleToggleFavorite(e, selectedRecipe)} 
+                  className="brutal-btn-danger p-2 cursor-pointer"
+                  title="Ajouter aux favoris"
+                >
+                  <Heart className={`w-5 h-5 ${favoriteIds.includes(`recipe_${selectedRecipe.recipe_id}`) ? 'text-[var(--accent-magenta)] fill-[var(--accent-magenta)]' : ''}`} />
+                </button>
+                <button onClick={() => setSelectedRecipe(null)} className="brutal-btn-ghost p-2 cursor-pointer">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Body */}

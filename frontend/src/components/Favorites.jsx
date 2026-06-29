@@ -75,6 +75,32 @@ export default function Favorites({ token, defaultDate }) {
     } catch (err) { console.error(err); }
   };
 
+  const handleToggleRecipeFavorite = async (recipe) => {
+    const recipeFoodId = `recipe_${recipe.recipe_id}`;
+    const match = favorites.find(f => f.food_id === recipeFoodId);
+    try {
+      if (match) {
+        const delRes = await fetch(`http://localhost:5000/api/favorites/${match.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+        if (delRes.ok) { setFavorites(favorites.filter(f => f.id !== match.id)); }
+      } else {
+        const addRes = await fetch(`http://localhost:5000/api/favorites`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({
+            food_id: recipeFoodId,
+            food_name: recipe.recipe_name,
+            calories: recipe.calories,
+            protein: recipe.protein,
+            carbs: recipe.carbs,
+            fat: recipe.fat,
+            serving_description: '1 portion'
+          })
+        });
+        if (addRes.ok) { setFavorites([...favorites, await addRes.json()]); }
+      }
+    } catch (err) { console.error(err); }
+  };
+
   const handleCreateList = async (e) => {
     e.preventDefault();
     if (!newListName.trim()) return;
@@ -387,8 +413,8 @@ export default function Favorites({ token, defaultDate }) {
 
       {/* QUICK ADD MODAL */}
       {quickAddFood && (
-        <div className="brutal-overlay">
-          <div className="brutal-modal">
+        <div className="brutal-overlay" onClick={() => setQuickAddFood(null)}>
+          <div className="brutal-modal" onClick={(e) => e.stopPropagation()}>
             <div className="px-6 py-4 border-b border-[var(--border-muted)] flex justify-between items-center">
               <div>
                 <h4 className="font-bold text-sm uppercase tracking-wider text-[var(--text)]">Ajout rapide</h4>
@@ -463,17 +489,26 @@ export default function Favorites({ token, defaultDate }) {
 
       {/* Recipe Detail Modal */}
       {selectedRecipe && (
-        <div className="brutal-overlay">
-          <div className="bg-[var(--surface)] border border-[var(--border)] w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col rounded-[28px] shadow-[var(--shadow-soft)]">
+        <div className="brutal-overlay" onClick={() => setSelectedRecipe(null)}>
+          <div className="bg-[var(--surface)] border border-[var(--border)] w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col rounded-[28px] shadow-[var(--shadow-soft)]" onClick={(e) => e.stopPropagation()}>
             {/* Header */}
             <div className="px-6 py-4 border-b border-[var(--border-muted)] flex justify-between items-start">
               <div>
                 <h3 className="font-extrabold text-base uppercase tracking-wider text-[var(--text)]">{selectedRecipe.recipe_name}</h3>
                 <p className="text-[10px] text-[var(--text-muted)] mt-1.5 max-w-xl font-medium">{selectedRecipe.recipe_description}</p>
               </div>
-              <button onClick={() => setSelectedRecipe(null)} className="brutal-btn-ghost p-2 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => handleToggleRecipeFavorite(selectedRecipe)} 
+                  className="brutal-btn-danger p-2 cursor-pointer"
+                  title="Ajouter aux favoris"
+                >
+                  <Heart className={`w-5 h-5 ${favorites.some(f => f.food_id === `recipe_${selectedRecipe.recipe_id}`) ? 'text-[var(--accent-magenta)] fill-[var(--accent-magenta)]' : ''}`} />
+                </button>
+                <button onClick={() => setSelectedRecipe(null)} className="brutal-btn-ghost p-2 cursor-pointer">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Body */}

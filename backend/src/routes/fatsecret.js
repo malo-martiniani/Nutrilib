@@ -269,15 +269,24 @@ function buildSignedUrl(method, apiParams) {
 // @access  Privé
 router.get('/search', authMiddleware, async (req, res) => {
   const query = req.query.query;
+  const { caloriesMin, caloriesMax, proteinMin, carbsMax, fatMax } = req.query;
+
   if (!query) {
     return res.status(400).json({ message: 'Veuillez spécifier un terme de recherche.' });
   }
 
   if (!areCredentialsConfigured()) {
     console.log('Utilisation des données Mockées (FatSecret non configuré).');
-    const filtered = MOCK_FOODS.filter(food => 
+    let filtered = MOCK_FOODS.filter(food => 
       food.food_name.toLowerCase().includes(query.toLowerCase())
     );
+    // Appliquer les filtres de nutriments
+    if (caloriesMin) filtered = filtered.filter(f => f.calories >= parseInt(caloriesMin));
+    if (caloriesMax) filtered = filtered.filter(f => f.calories <= parseInt(caloriesMax));
+    if (proteinMin) filtered = filtered.filter(f => f.protein >= parseFloat(proteinMin));
+    if (carbsMax) filtered = filtered.filter(f => f.carbs <= parseFloat(carbsMax));
+    if (fatMax) filtered = filtered.filter(f => f.fat <= parseFloat(fatMax));
+
     return res.json({ foods: filtered, isMock: true });
   }
 
@@ -286,7 +295,7 @@ router.get('/search', authMiddleware, async (req, res) => {
       method: 'foods.search',
       search_expression: query,
       format: 'json',
-      max_results: '15'
+      max_results: '30' // Échantillon plus grand pour un filtrage efficace
     };
 
     const signedUrl = buildSignedUrl('GET', apiParams);
@@ -329,15 +338,28 @@ router.get('/search', authMiddleware, async (req, res) => {
           serving: serving
         };
       });
+
+      // Appliquer les filtres de nutriments
+      if (caloriesMin) foods = foods.filter(f => f.calories >= parseInt(caloriesMin));
+      if (caloriesMax) foods = foods.filter(f => f.calories <= parseInt(caloriesMax));
+      if (proteinMin) foods = foods.filter(f => f.protein >= parseFloat(proteinMin));
+      if (carbsMax) foods = foods.filter(f => f.carbs <= parseFloat(carbsMax));
+      if (fatMax) foods = foods.filter(f => f.fat <= parseFloat(fatMax));
     }
 
     res.json({ foods, isMock: false });
 
   } catch (error) {
     console.error('Erreur API FatSecret:', error.message);
-    const filtered = MOCK_FOODS.filter(food => 
+    let filtered = MOCK_FOODS.filter(food => 
       food.food_name.toLowerCase().includes(query.toLowerCase())
     );
+    if (caloriesMin) filtered = filtered.filter(f => f.calories >= parseInt(caloriesMin));
+    if (caloriesMax) filtered = filtered.filter(f => f.calories <= parseInt(caloriesMax));
+    if (proteinMin) filtered = filtered.filter(f => f.protein >= parseFloat(proteinMin));
+    if (carbsMax) filtered = filtered.filter(f => f.carbs <= parseFloat(carbsMax));
+    if (fatMax) filtered = filtered.filter(f => f.fat <= parseFloat(fatMax));
+
     res.json({ foods: filtered, isMock: true, error: error.message });
   }
 });
@@ -431,7 +453,7 @@ router.get('/food/:id', authMiddleware, async (req, res) => {
 // @desc    Rechercher des recettes avec filtres avancés
 // @access  Privé
 router.get('/recipes/search', authMiddleware, async (req, res) => {
-  const { query, caloriesMax, carbMaxPercent, proteinMinPercent } = req.query;
+  const { query, caloriesMax, carbMaxPercent, proteinMinPercent, caloriesMin, proteinMin, carbsMax, fatMax } = req.query;
 
   if (!areCredentialsConfigured()) {
     console.log('Utilisation des recettes Mockées (FatSecret non configuré).');
@@ -443,13 +465,17 @@ router.get('/recipes/search', authMiddleware, async (req, res) => {
       filtered = filtered.filter(r => r.calories <= parseInt(caloriesMax));
     }
     if (carbMaxPercent) {
-      // Pourcentage de calories provenant des glucides : (carb * 4) / calories
       filtered = filtered.filter(r => ((r.carbs * 4) / r.calories) * 100 <= parseInt(carbMaxPercent));
     }
     if (proteinMinPercent) {
-      // Pourcentage de calories provenant des protéines : (protein * 4) / calories
       filtered = filtered.filter(r => ((r.protein * 4) / r.calories) * 100 >= parseInt(proteinMinPercent));
     }
+    // Nouveaux filtres précis
+    if (caloriesMin) filtered = filtered.filter(r => r.calories >= parseInt(caloriesMin));
+    if (proteinMin) filtered = filtered.filter(r => r.protein >= parseFloat(proteinMin));
+    if (carbsMax) filtered = filtered.filter(r => r.carbs <= parseFloat(carbsMax));
+    if (fatMax) filtered = filtered.filter(r => r.fat <= parseFloat(fatMax));
+
     return res.json({ recipes: filtered, isMock: true });
   }
 
@@ -457,7 +483,7 @@ router.get('/recipes/search', authMiddleware, async (req, res) => {
     const apiParams = {
       method: 'recipes.search.v3',
       format: 'json',
-      max_results: '12'
+      max_results: '24' // Plus de résultats pour filtrer précisément ensuite
     };
 
     if (query) apiParams.search_expression = query;
@@ -492,6 +518,12 @@ router.get('/recipes/search', authMiddleware, async (req, res) => {
         protein: r.recipe_nutrition ? parseFloat(r.recipe_nutrition.protein) : 0.0,
         fat: r.recipe_nutrition ? parseFloat(r.recipe_nutrition.fat) : 0.0
       }));
+
+      // Appliquer les filtres nutritionnels précis
+      if (caloriesMin) recipes = recipes.filter(r => r.calories >= parseInt(caloriesMin));
+      if (proteinMin) recipes = recipes.filter(r => r.protein >= parseFloat(proteinMin));
+      if (carbsMax) recipes = recipes.filter(r => r.carbs <= parseFloat(carbsMax));
+      if (fatMax) recipes = recipes.filter(r => r.fat <= parseFloat(fatMax));
     }
 
     res.json({ recipes, isMock: false });
@@ -503,6 +535,12 @@ router.get('/recipes/search', authMiddleware, async (req, res) => {
     if (query) {
       filtered = filtered.filter(r => r.recipe_name.toLowerCase().includes(query.toLowerCase()));
     }
+    if (caloriesMin) filtered = filtered.filter(r => r.calories >= parseInt(caloriesMin));
+    if (caloriesMax) filtered = filtered.filter(r => r.calories <= parseInt(caloriesMax));
+    if (proteinMin) filtered = filtered.filter(r => r.protein >= parseFloat(proteinMin));
+    if (carbsMax) filtered = filtered.filter(r => r.carbs <= parseFloat(carbsMax));
+    if (fatMax) filtered = filtered.filter(r => r.fat <= parseFloat(fatMax));
+
     res.json({ recipes: filtered, isMock: true, error: error.message });
   }
 });
