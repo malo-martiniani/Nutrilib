@@ -525,14 +525,18 @@ export default function Favorites({ token, defaultDate }) {
                       <Clock className="w-5 h-5 text-[var(--accent-powder)]" />
                       <div>
                         <span className="brutal-label mb-0">Préparation</span>
-                        <span className="text-xs font-bold block text-[var(--text)]">{selectedRecipe.preparation_time_min} min</span>
+                        <span className="text-xs font-bold block text-[var(--text)]">
+                          {selectedRecipe.preparation_time_min > 0 ? `${selectedRecipe.preparation_time_min} min` : '--'}
+                        </span>
                       </div>
                     </div>
                     <div className="p-3.5 border border-[var(--border)] rounded-2xl flex items-center gap-3 bg-[var(--surface-raised)]">
                       <Clock className="w-5 h-5 text-[var(--accent-sand)]" />
                       <div>
                         <span className="brutal-label mb-0">Cuisson</span>
-                        <span className="text-xs font-bold block text-[var(--text)]">{selectedRecipe.cooking_time_min} min</span>
+                        <span className="text-xs font-bold block text-[var(--text)]">
+                          {selectedRecipe.cooking_time_min > 0 ? `${selectedRecipe.cooking_time_min} min` : '--'}
+                        </span>
                       </div>
                     </div>
                   </div>

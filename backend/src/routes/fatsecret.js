@@ -605,11 +605,19 @@ router.get('/recipes/:id', authMiddleware, async (req, res) => {
       nutrition = r.recipe_nutrition;
     }
 
+    let recipeImage = null;
+    if (r.recipe_images && r.recipe_images.recipe_image) {
+      const imgData = r.recipe_images.recipe_image;
+      recipeImage = Array.isArray(imgData) ? imgData[0] : imgData;
+    } else if (r.recipe_image) {
+      recipeImage = r.recipe_image;
+    }
+
     const recipeDetails = {
       recipe_id: r.recipe_id,
       recipe_name: r.recipe_name,
       recipe_description: r.recipe_description || '',
-      recipe_image: r.recipe_image || 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400',
+      recipe_image: recipeImage || 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400',
       preparation_time_min: r.preparation_time_min ? parseInt(r.preparation_time_min) : 0,
       cooking_time_min: r.cooking_time_min ? parseInt(r.cooking_time_min) : 0,
       rating: r.rating ? parseFloat(r.rating) : 4.5,
