@@ -33,6 +33,9 @@ export default function Profile({ token, onProfileUpdate }) {
   const [height, setHeight] = useState('175');
   const [weight, setWeight] = useState('70');
   const [activityLevel, setActivityLevel] = useState('sedentary');
+  const [goalType, setGoalType] = useState('maintain');
+  const [targetWeight, setTargetWeight] = useState('');
+  const [goalSpeed, setGoalSpeed] = useState('normal');
 
   const [calcResults, setCalcResults] = useState(null);
 
@@ -52,6 +55,9 @@ export default function Profile({ token, onProfileUpdate }) {
         setHeight(data.height ? data.height.toString() : '175');
         setWeight(data.current_weight ? data.current_weight.toString() : '70');
         setActivityLevel(data.activity_level || 'sedentary');
+        setGoalType(data.goal_type || 'maintain');
+        setTargetWeight(data.target_weight ? data.target_weight.toString() : '');
+        setGoalSpeed(data.goal_speed || 'normal');
       }
     } catch (error) { console.error('Erreur chargement profil:', error); }
     finally { setLoading(false); }
@@ -70,14 +76,75 @@ export default function Profile({ token, onProfileUpdate }) {
       const activeObj = ACTIVITY_LEVELS.find(lvl => lvl.id === activityLevel);
       const mult = activeObj ? activeObj.mult : 1.2;
       const tdee = Math.round(bmr * mult);
+      
+      // Ajustement des calories et rythme selon l'objectif de poids et la vitesse
+      let calorieGoal = tdee;
+      let weeklyRate = 0.5;
+      let calorieAdjustment = 0;
+
+      if (goalType === 'lose') {
+        let deficit = 500;
+        switch (goalSpeed) {
+          case 'very_slow': deficit = 150; weeklyRate = 0.15; break;
+          case 'slow': deficit = 250; weeklyRate = 0.25; break;
+          case 'normal': deficit = 500; weeklyRate = 0.50; break;
+          case 'fast': deficit = 750; weeklyRate = 0.75; break;
+          case 'very_fast': deficit = 1000; weeklyRate = 1.00; break;
+        }
+        calorieGoal = Math.max(1200, tdee - deficit);
+        calorieAdjustment = -deficit;
+      } else if (goalType === 'gain') {
+        let surplus = 250;
+        switch (goalSpeed) {
+          case 'very_slow': surplus = 100; weeklyRate = 0.10; break;
+          case 'slow': surplus = 150; weeklyRate = 0.15; break;
+          case 'normal': surplus = 250; weeklyRate = 0.25; break;
+          case 'fast': surplus = 350; weeklyRate = 0.35; break;
+          case 'very_fast': surplus = 500; weeklyRate = 0.50; break;
+        }
+        calorieGoal = tdee + surplus;
+        calorieAdjustment = surplus;
+      }
+
+      // Calculs de poids cible, IMC et poids de forme
+      const heightM = h / 100;
+      const currentBmi = w / (heightM * heightM);
+      const healthyMinWeight = 18.5 * (heightM * heightM);
+      const healthyMaxWeight = 24.9 * (heightM * heightM);
+      
+      let idealWeightDevine = gender === 'male'
+        ? 50 + 2.3 * ((h - 152.4) / 2.54)
+        : 45.5 + 2.3 * ((h - 152.4) / 2.54);
+      if (idealWeightDevine < 40) idealWeightDevine = gender === 'male' ? 50 : 45.5;
+
+      // Calcul de la durée estimée pour atteindre l'objectif
+      let weeksToTarget = 0;
+      const targetWNum = parseFloat(targetWeight);
+      if (targetWNum && !isNaN(targetWNum)) {
+        const diff = targetWNum - w;
+        if (goalType === 'lose' && diff < 0) {
+          weeksToTarget = Math.round(Math.abs(diff) / weeklyRate);
+        } else if (goalType === 'gain' && diff > 0) {
+          weeksToTarget = Math.round(diff / weeklyRate);
+        }
+      }
+
       setCalcResults({
-        bmr: Math.round(bmr), tdee,
-        protein: Math.round((tdee * 0.25) / 4),
-        fat: Math.round((tdee * 0.25) / 9),
-        carbs: Math.round((tdee * 0.50) / 4)
+        bmr: Math.round(bmr),
+        tdee: calorieGoal,
+        tdee_raw: tdee,
+        calorieAdjustment,
+        protein: Math.round((calorieGoal * 0.25) / 4),
+        fat: Math.round((calorieGoal * 0.25) / 9),
+        carbs: Math.round((calorieGoal * 0.50) / 4),
+        currentBmi,
+        healthyMinWeight,
+        healthyMaxWeight,
+        idealWeightDevine,
+        weeksToTarget
       });
     } else { setCalcResults(null); }
-  }, [gender, age, height, weight, activityLevel]);
+  }, [gender, age, height, weight, activityLevel, goalType, targetWeight, goalSpeed]);
 
   const handleUpdateBasic = async (e) => {
     e.preventDefault();
@@ -109,12 +176,35 @@ export default function Profile({ token, onProfileUpdate }) {
       const response = await fetch('http://localhost:5000/api/profile/calculator', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ gender, age, height, current_weight: weight, activity_level: activityLevel })
+        body: JSON.stringify({
+          gender,
+          age,
+          height,
+          current_weight: weight,
+          activity_level: activityLevel,
+          goal_type: goalType,
+          target_weight: targetWeight,
+          goal_speed: goalSpeed
+        })
       });
       if (response.ok) {
         const data = await response.json();
         setMessage({ text: 'Objectifs enregistrés.', type: 'success' });
-        setProfile(prev => ({ ...prev, gender, age: parseInt(age), height: parseInt(height), current_weight: parseFloat(weight), activity_level: activityLevel, calorie_goal: data.goals.calorie_goal, protein_goal: data.goals.protein_goal, carb_goal: data.goals.carb_goal, fat_goal: data.goals.fat_goal }));
+        setProfile(prev => ({
+          ...prev,
+          gender,
+          age: parseInt(age),
+          height: parseInt(height),
+          current_weight: parseFloat(weight),
+          activity_level: activityLevel,
+          goal_type: data.goals.goal_type,
+          target_weight: data.goals.target_weight,
+          goal_speed: data.goals.goal_speed,
+          calorie_goal: data.goals.calorie_goal,
+          protein_goal: data.goals.protein_goal,
+          carb_goal: data.goals.carb_goal,
+          fat_goal: data.goals.fat_goal
+        }));
         if (onProfileUpdate) onProfileUpdate();
       } else {
         const err = await response.json();
@@ -316,17 +406,160 @@ export default function Profile({ token, onProfileUpdate }) {
             </div>
           </div>
 
+          {/* Objectif de poids */}
+          <div>
+            <label className="brutal-label">Objectif de poids</label>
+            <div className="grid grid-cols-3 gap-2">
+              <button type="button" onClick={() => setGoalType('lose')}
+                className={`py-2.5 px-1 border font-bold text-xs uppercase rounded-xl transition-all duration-200 cursor-pointer ${
+                  goalType === 'lose'
+                    ? 'border-[var(--accent-magenta)] text-[var(--accent-magenta)] bg-[var(--accent-magenta)]/5 font-extrabold shadow-[var(--shadow-subtle)]'
+                    : 'border-[var(--border-muted)] text-[var(--text-dim)] hover:border-[var(--text-muted)] bg-[var(--surface)]'
+                }`}
+              >
+                Perte de poids
+              </button>
+              <button type="button" onClick={() => { setGoalType('maintain'); setTargetWeight(''); }}
+                className={`py-2.5 px-1 border font-bold text-xs uppercase rounded-xl transition-all duration-200 cursor-pointer ${
+                  goalType === 'maintain'
+                    ? 'border-[var(--accent-pistachio)] text-[var(--accent-pistachio)] bg-[var(--accent-pistachio)]/5 font-extrabold shadow-[var(--shadow-subtle)]'
+                    : 'border-[var(--border-muted)] text-[var(--text-dim)] hover:border-[var(--text-muted)] bg-[var(--surface)]'
+                }`}
+              >
+                Maintien
+              </button>
+              <button type="button" onClick={() => setGoalType('gain')}
+                className={`py-2.5 px-1 border font-bold text-xs uppercase rounded-xl transition-all duration-200 cursor-pointer ${
+                  goalType === 'gain'
+                    ? 'border-[var(--accent-powder)] text-[var(--accent-powder)] bg-[var(--accent-powder)]/5 font-extrabold shadow-[var(--shadow-subtle)]'
+                    : 'border-[var(--border-muted)] text-[var(--text-dim)] hover:border-[var(--text-muted)] bg-[var(--surface)]'
+                }`}
+              >
+                Prise de masse
+              </button>
+            </div>
+          </div>
+
+          {/* Poids Cible */}
+          {goalType !== 'maintain' && (
+            <div className="space-y-2">
+              <label className="brutal-label">Poids cible (kg)</label>
+              <div className="flex gap-2">
+                <input type="number" step="0.1" min="20" max="300" 
+                  value={targetWeight} 
+                  onChange={(e) => setTargetWeight(e.target.value)} 
+                  placeholder={calcResults ? Math.round(calcResults.idealWeightDevine).toString() : '70'} 
+                  className="brutal-input flex-1" />
+                <button type="button" 
+                  onClick={() => calcResults && setTargetWeight(Math.round(calcResults.idealWeightDevine).toString())}
+                  className="px-3 border border-[var(--border-muted)] text-[10px] font-bold rounded-xl bg-[var(--surface-raised)] hover:border-[var(--text-dim)] text-[var(--text)] transition-colors cursor-pointer"
+                >
+                  Poids idéal
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Analyse Santé & IMC */}
+          {calcResults && (
+            <div className="border border-[var(--border-muted)] p-3.5 space-y-2 bg-[var(--surface-raised)] rounded-2xl shadow-[var(--shadow-subtle)]">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-[var(--text-dim)] block mb-1">Analyse de Santé</span>
+              
+              <div className="flex items-center justify-between text-xs font-semibold">
+                <span className="text-[var(--text-muted)]">IMC Actuel :</span>
+                <span className="flex items-center gap-1.5 font-bold text-[var(--text)]">
+                  {calcResults.currentBmi.toFixed(1)}
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded font-black border uppercase ${
+                    calcResults.currentBmi < 18.5 ? 'border-[var(--accent-powder)] text-[var(--accent-powder)] bg-[var(--accent-powder)]/5' :
+                    calcResults.currentBmi < 25 ? 'border-[var(--accent-pistachio)] text-[var(--accent-pistachio)] bg-[var(--accent-pistachio)]/5' :
+                    calcResults.currentBmi < 30 ? 'border-[var(--accent-sand)] text-[var(--accent-sand)] bg-[var(--accent-sand)]/5' :
+                    'border-[var(--accent-magenta)] text-[var(--accent-magenta)] bg-[var(--accent-magenta)]/5'
+                  }`}>
+                    {calcResults.currentBmi < 18.5 ? 'Maigreur' :
+                     calcResults.currentBmi < 25 ? 'Normal' :
+                     calcResults.currentBmi < 30 ? 'Surpoids' : 'Obésité'}
+                  </span>
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between text-xs font-semibold border-t border-[var(--border-muted)]/40 pt-2">
+                <span className="text-[var(--text-muted)]">Poids de forme (IMC 18.5 - 25) :</span>
+                <span className="text-[var(--text)] font-bold">{Math.round(calcResults.healthyMinWeight)} - {Math.round(calcResults.healthyMaxWeight)} kg</span>
+              </div>
+
+              <div className="flex items-center justify-between text-xs font-semibold border-t border-[var(--border-muted)]/40 pt-2">
+                <span className="text-[var(--text-muted)]">Poids idéal (formule de Devine) :</span>
+                <span className="text-[var(--text)] font-bold">{Math.round(calcResults.idealWeightDevine)} kg</span>
+              </div>
+
+              {goalType !== 'maintain' && parseFloat(targetWeight) > 0 && calcResults.weeksToTarget > 0 && (
+                <div className="flex items-center justify-between text-xs font-semibold border-t border-[var(--border-muted)]/40 pt-2">
+                  <span className="text-[var(--text-muted)]">Durée estimée ({Math.abs(parseFloat(targetWeight) - parseFloat(weight)).toFixed(1)} kg) :</span>
+                  <span className="text-[var(--accent-powder)] font-extrabold">{calcResults.weeksToTarget} semaines</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Rythme de progression */}
+          {goalType !== 'maintain' && (
+            <div>
+              <label className="brutal-label">Rythme de progression</label>
+              <div className="grid grid-cols-5 gap-1.5">
+                {[
+                  { id: 'very_slow', label: 'Tr. lent' },
+                  { id: 'slow', label: 'Lent' },
+                  { id: 'normal', label: 'Normal' },
+                  { id: 'fast', label: 'Rapide' },
+                  { id: 'very_fast', label: 'Tr. rapide' }
+                ].map(speed => (
+                  <button key={speed.id} type="button" onClick={() => setGoalSpeed(speed.id)}
+                    className={`py-2 px-0.5 border text-[9px] font-black uppercase rounded-xl transition-all duration-200 cursor-pointer text-center ${
+                      goalSpeed === speed.id
+                        ? 'border-[var(--accent-sand)] text-[var(--accent-sand)] bg-[var(--accent-sand)]/5 font-black shadow-[var(--shadow-subtle)]'
+                        : 'border-[var(--border-muted)] text-[var(--text-dim)] hover:border-[var(--text-muted)] bg-[var(--surface)]'
+                    }`}
+                  >
+                    {speed.label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] text-[var(--text-muted)] mt-1.5 font-semibold">
+                {goalType === 'lose'
+                  ? `Perte cible : ${
+                      goalSpeed === 'very_slow' ? '0.15 kg/semaine (-150 kcal/jour)' :
+                      goalSpeed === 'slow' ? '0.25 kg/semaine (-250 kcal/jour)' :
+                      goalSpeed === 'normal' ? '0.50 kg/semaine (-500 kcal/jour)' :
+                      goalSpeed === 'fast' ? '0.75 kg/semaine (-750 kcal/jour)' :
+                      '1.00 kg/semaine (-1000 kcal/jour, min 1200 kcal)'
+                    }`
+                  : `Gain cible : ${
+                      goalSpeed === 'very_slow' ? '0.10 kg/semaine (+100 kcal/jour)' :
+                      goalSpeed === 'slow' ? '0.15 kg/semaine (+150 kcal/jour)' :
+                      goalSpeed === 'normal' ? '0.25 kg/semaine (+250 kcal/jour)' :
+                      goalSpeed === 'fast' ? '0.35 kg/semaine (+350 kcal/jour)' :
+                      '0.50 kg/semaine (+500 kcal/jour)'
+                    }`
+                }
+              </p>
+            </div>
+          )}
+
           {/* Live results */}
           {calcResults && (
             <div className="border border-[var(--border)] p-4 space-y-4 bg-[var(--surface-inset)] rounded-2xl shadow-[var(--shadow-soft)]">
               <div className="flex items-center justify-between border-b border-[var(--border-muted)] pb-3">
                 <div>
-                  <span className="brutal-label mb-0">TDEE Quotidien</span>
+                  <span className="brutal-label mb-0">
+                    {goalType === 'lose' ? `Objectif (Déficit ${calcResults.calorieAdjustment} kcal)` :
+                     goalType === 'gain' ? `Objectif (Surplus +${calcResults.calorieAdjustment} kcal)` :
+                     'Objectif (Maintien)'}
+                  </span>
                   <span className="text-xl font-extrabold text-[var(--accent-sand)] block mt-0.5">{calcResults.tdee} kcal/jour</span>
                 </div>
                 <div className="text-right">
-                  <span className="brutal-label mb-0">BMR</span>
-                  <span className="text-sm font-bold text-[var(--text-muted)] block mt-0.5">{calcResults.bmr} kcal</span>
+                  <span className="text-[10px] text-[var(--text-dim)] font-medium block">BMR : {calcResults.bmr} kcal</span>
+                  <span className="text-[10px] text-[var(--text-dim)] font-medium block mt-0.5">TDEE Maintien : {calcResults.tdee_raw} kcal</span>
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-3 text-center">

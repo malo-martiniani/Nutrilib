@@ -11,7 +11,7 @@ router.get('/', authMiddleware, async (req, res) => {
     const users = await db.query(
       `SELECT id, username, email, display_name, avatar_url, is_private, 
               gender, age, height, current_weight, activity_level, 
-              calorie_goal, protein_goal, carb_goal, fat_goal, created_at 
+              calorie_goal, protein_goal, carb_goal, fat_goal, goal_type, target_weight, goal_speed, created_at 
        FROM users WHERE id = ?`,
       [req.user.id]
     );
@@ -57,7 +57,7 @@ router.put('/', authMiddleware, async (req, res) => {
 // @desc    Calculer et mettre à jour les besoins caloriques et les objectifs macros
 // @access  Privé
 router.put('/calculator', authMiddleware, async (req, res) => {
-  const { gender, age, height, current_weight, activity_level } = req.body;
+  const { gender, age, height, current_weight, activity_level, goal_type, target_weight, goal_speed } = req.body;
 
   // Validation
   if (!gender || !age || !height || !current_weight || !activity_level) {
@@ -67,6 +67,7 @@ router.put('/calculator', authMiddleware, async (req, res) => {
   const parsedAge = parseInt(age);
   const parsedHeight = parseInt(height);
   const parsedWeight = parseFloat(current_weight);
+  const parsedTargetWeight = target_weight ? parseFloat(target_weight) : null;
 
   if (isNaN(parsedAge) || isNaN(parsedHeight) || isNaN(parsedWeight)) {
     return res.status(400).json({ message: 'Valeurs numériques invalides.' });
@@ -107,17 +108,44 @@ router.put('/calculator', authMiddleware, async (req, res) => {
 
     const tdee = Math.round(bmr * multiplier);
 
-    // 3. Calcul des macros (Protéines : 25%, Lipides : 25%, Glucides : 50%)
-    const calorie_goal = tdee;
+    // 3. Calcul de l'objectif calorique ajusté en fonction de l'objectif de poids et du rythme
+    let calorie_goal = tdee;
+    const finalGoalType = goal_type || 'maintain';
+    const finalGoalSpeed = goal_speed || 'normal';
+
+    if (finalGoalType === 'lose') {
+      let deficit = 500;
+      switch (finalGoalSpeed) {
+        case 'very_slow': deficit = 150; break;
+        case 'slow': deficit = 250; break;
+        case 'normal': deficit = 500; break;
+        case 'fast': deficit = 750; break;
+        case 'very_fast': deficit = 1000; break;
+      }
+      calorie_goal = Math.max(1200, tdee - deficit);
+    } else if (finalGoalType === 'gain') {
+      let surplus = 250;
+      switch (finalGoalSpeed) {
+        case 'very_slow': surplus = 100; break;
+        case 'slow': surplus = 150; break;
+        case 'normal': surplus = 250; break;
+        case 'fast': surplus = 350; break;
+        case 'very_fast': surplus = 500; break;
+      }
+      calorie_goal = tdee + surplus;
+    }
+
+    // 4. Calcul des macros (Protéines : 25%, Lipides : 25%, Glucides : 50%)
     const protein_goal = Math.round((calorie_goal * 0.25) / 4);
     const fat_goal = Math.round((calorie_goal * 0.25) / 9);
     const carb_goal = Math.round((calorie_goal * 0.50) / 4);
 
-    // 4. Mettre à jour la base de données
+    // 5. Mettre à jour la base de données
     await db.query(
       `UPDATE users 
        SET gender = ?, age = ?, height = ?, current_weight = ?, activity_level = ?,
-           calorie_goal = ?, protein_goal = ?, carb_goal = ?, fat_goal = ?
+           calorie_goal = ?, protein_goal = ?, carb_goal = ?, fat_goal = ?,
+           goal_type = ?, target_weight = ?, goal_speed = ?
        WHERE id = ?`,
       [
         gender,
@@ -129,6 +157,9 @@ router.put('/calculator', authMiddleware, async (req, res) => {
         protein_goal,
         carb_goal,
         fat_goal,
+        finalGoalType,
+        parsedTargetWeight,
+        finalGoalSpeed,
         req.user.id
       ]
     );
@@ -149,6 +180,9 @@ router.put('/calculator', authMiddleware, async (req, res) => {
         protein_goal,
         carb_goal,
         fat_goal,
+        goal_type: finalGoalType,
+        target_weight: parsedTargetWeight,
+        goal_speed: finalGoalSpeed,
         bmr: Math.round(bmr)
       }
     });

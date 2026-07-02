@@ -72,7 +72,10 @@ async function createTables() {
       { name: 'calorie_goal', definition: 'INT DEFAULT 2000' },
       { name: 'protein_goal', definition: 'INT DEFAULT 130' },
       { name: 'carb_goal', definition: 'INT DEFAULT 220' },
-      { name: 'fat_goal', definition: 'INT DEFAULT 65' }
+      { name: 'fat_goal', definition: 'INT DEFAULT 65' },
+      { name: 'goal_type', definition: "VARCHAR(20) DEFAULT 'maintain'" },
+      { name: 'target_weight', definition: 'DECIMAL(5,2) DEFAULT NULL' },
+      { name: 'goal_speed', definition: "VARCHAR(20) DEFAULT 'normal'" }
     ];
 
     for (const col of columnsToAdd) {
