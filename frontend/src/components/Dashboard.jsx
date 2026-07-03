@@ -67,6 +67,7 @@ export default function Dashboard() {
   const [journalEntries, setJournalEntries] = useState([]);
   const [loadingEntries, setLoadingEntries] = useState(false);
   const [activeTab, setActiveTab] = useState('journal');
+  const [recipeSearchFilters, setRecipeSearchFilters] = useState(null);
 
   const [profileData, setProfileData] = useState(null);
   const [calorieGoal, setCalorieGoal] = useState(2000);
@@ -759,7 +760,13 @@ export default function Dashboard() {
         )}
 
         {/* TAB: RECIPES */}
-        {activeTab === 'recipes' && <Recipes token={token} />}
+        {activeTab === 'recipes' && (
+          <Recipes 
+            token={token} 
+            initialFilters={recipeSearchFilters} 
+            onClearFilters={() => setRecipeSearchFilters(null)} 
+          />
+        )}
 
         {/* TAB: WEIGHT */}
         {activeTab === 'weight' && <WeightTracker token={token} onWeightChange={fetchProfileData} />}
@@ -768,7 +775,16 @@ export default function Dashboard() {
         {activeTab === 'favorites' && <Favorites token={token} defaultDate={selectedDate} />}
 
         {/* TAB: PROFILE */}
-        {activeTab === 'profile' && <Profile token={token} onProfileUpdate={fetchProfileData} />}
+        {activeTab === 'profile' && (
+          <Profile 
+            token={token} 
+            onProfileUpdate={fetchProfileData} 
+            onRecipeSearch={(filters) => {
+              setRecipeSearchFilters(filters);
+              setActiveTab('recipes');
+            }} 
+          />
+        )}
 
       </main>
 

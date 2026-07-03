@@ -113,6 +113,15 @@ router.put('/calculator', authMiddleware, async (req, res) => {
     const finalGoalType = goal_type || 'maintain';
     const finalGoalSpeed = goal_speed || 'normal';
 
+    if (parsedTargetWeight !== null && finalGoalType !== 'maintain') {
+      const heightM = parsedHeight / 100;
+      const targetBmi = parsedTargetWeight / (heightM * heightM);
+      if (targetBmi < 18.45) {
+        const minHealthyWeight = Math.round(18.5 * (heightM * heightM));
+        return res.status(400).json({ message: `Le poids cible ne peut pas être inférieur à la limite de santé de ${minHealthyWeight} kg (IMC 18.5).` });
+      }
+    }
+
     if (finalGoalType === 'lose') {
       let deficit = 500;
       switch (finalGoalSpeed) {
@@ -122,7 +131,8 @@ router.put('/calculator', authMiddleware, async (req, res) => {
         case 'fast': deficit = 750; break;
         case 'very_fast': deficit = 1000; break;
       }
-      calorie_goal = Math.max(1200, tdee - deficit);
+      const floor = gender === 'male' ? 1500 : 1200;
+      calorie_goal = Math.max(floor, tdee - deficit);
     } else if (finalGoalType === 'gain') {
       let surplus = 250;
       switch (finalGoalSpeed) {

@@ -110,7 +110,7 @@ const MOCK_RECIPES = [
   {
     recipe_id: '101',
     recipe_name: 'Salade de Poulet Keto au Fromage Blanc',
-    recipe_description: 'Une salade fraîche, faible en glucides et très riche en protéines, avec une sauce crémeuse légère.',
+    recipe_description: 'Une salade fraîche, faible en glucides et très riche en protéines, avec une sauce crémeuse légère. [Keto, Cétogène, Sans Gluten]',
     recipe_image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400',
     preparation_time_min: 10,
     cooking_time_min: 5,
@@ -136,7 +136,7 @@ const MOCK_RECIPES = [
   {
     recipe_id: '102',
     recipe_name: 'Omelette Légère Épinards et Féta',
-    recipe_description: 'Une omelette protéinée rapide et saine pour le petit-déjeuner ou le dîner.',
+    recipe_description: 'Une omelette protéinée rapide et saine pour le petit-déjeuner ou le dîner. [Végétarien, Sans Gluten]',
     recipe_image: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400',
     preparation_time_min: 5,
     cooking_time_min: 10,
@@ -162,7 +162,7 @@ const MOCK_RECIPES = [
   {
     recipe_id: '103',
     recipe_name: 'Porridge d\'Avoine Protéiné aux Fruits Rouges',
-    recipe_description: 'Un bol de porridge réconfortant, riche en fibres et idéal pour faire le plein d\'énergie.',
+    recipe_description: 'Un bol de porridge réconfortant, riche en fibres et idéal pour faire le plein d\'énergie. [Végétarien, Vegan, Sans Gluten]',
     recipe_image: 'https://images.unsplash.com/photo-1517881917430-e70dfb3610aa?w=400',
     preparation_time_min: 5,
     cooking_time_min: 5,
@@ -183,6 +183,32 @@ const MOCK_RECIPES = [
       'Faites cuire à feu moyen en remuant constamment jusqu\'à épaississement (environ 4-5 minutes).',
       'Retirez du feu, laissez tiédir puis incorporez la whey protéine (ou servez avec le fromage blanc à côté).',
       'Versez dans un bol, décorez avec les fruits rouges frais et les graines de chia.'
+    ]
+  },
+  {
+    recipe_id: '104',
+    recipe_name: 'Mijoté de Lentilles au Curry et Coco',
+    recipe_description: 'Un mijoté de lentilles savoureux au lait de coco et épices de curry. [Végétarien, Vegan, Sans Gluten]',
+    recipe_image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400',
+    preparation_time_min: 10,
+    cooking_time_min: 20,
+    rating: 4.9,
+    calories: 350,
+    carbs: 42,
+    protein: 18,
+    fat: 12,
+    ingredients: [
+      '100g de lentilles corail',
+      '150ml de lait de coco léger',
+      '1 cuillère à café de poudre de curry',
+      '1/2 oignon émincé',
+      '1 poignée d\'épinards frais'
+    ],
+    directions: [
+      'Faites revenir l\'oignon dans une casserole.',
+      'Ajoutez les lentilles corail, la poudre de curry, le lait de coco et 100ml d\'eau.',
+      'Laissez mijoter à feu doux pendant 15-20 minutes.',
+      'Ajoutez les épinards en fin de cuisson et servez chaud.'
     ]
   }
 ];
@@ -486,7 +512,18 @@ router.get('/recipes/search', authMiddleware, async (req, res) => {
       max_results: '24' // Plus de résultats pour filtrer précisément ensuite
     };
 
-    if (query) apiParams.search_expression = query;
+    if (query) {
+      let apiQuery = query;
+      const lowerQuery = query.toLowerCase().trim();
+      if (lowerQuery === 'végétarien' || lowerQuery === 'vegetarien') {
+        apiQuery = 'vegetarian';
+      } else if (lowerQuery === 'vegan' || lowerQuery === 'végétalien') {
+        apiQuery = 'vegan';
+      } else if (lowerQuery === 'sans gluten') {
+        apiQuery = 'gluten free';
+      }
+      apiParams.search_expression = apiQuery;
+    }
     if (caloriesMax) apiParams['calories.to'] = caloriesMax;
     if (carbMaxPercent) apiParams['carb_percentage.to'] = carbMaxPercent;
     if (proteinMinPercent) apiParams['protein_percentage.from'] = proteinMinPercent;

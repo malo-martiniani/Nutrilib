@@ -18,7 +18,7 @@ const ACTIVITY_LEVELS = [
   { id: 'very_active', name: 'Extrêmement actif', desc: 'Métier physique ou double entraînement', mult: 1.9 }
 ];
 
-export default function Profile({ token, onProfileUpdate }) {
+export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
@@ -36,6 +36,11 @@ export default function Profile({ token, onProfileUpdate }) {
   const [goalType, setGoalType] = useState('maintain');
   const [targetWeight, setTargetWeight] = useState('');
   const [goalSpeed, setGoalSpeed] = useState('normal');
+
+  const [recMinCal, setRecMinCal] = useState('');
+  const [recMaxCal, setRecMaxCal] = useState('');
+  const [recDiet, setRecDiet] = useState('omnivore');
+  const [recMacroPref, setRecMacroPref] = useState('none');
 
   const [calcResults, setCalcResults] = useState(null);
 
@@ -91,7 +96,8 @@ export default function Profile({ token, onProfileUpdate }) {
           case 'fast': deficit = 750; weeklyRate = 0.75; break;
           case 'very_fast': deficit = 1000; weeklyRate = 1.00; break;
         }
-        calorieGoal = Math.max(1200, tdee - deficit);
+        const floor = gender === 'male' ? 1500 : 1200;
+        calorieGoal = Math.max(floor, tdee - deficit);
         calorieAdjustment = -deficit;
       } else if (goalType === 'gain') {
         let surplus = 250;
@@ -170,6 +176,24 @@ export default function Profile({ token, onProfileUpdate }) {
 
   const handleSaveCalculator = async (e) => {
     e.preventDefault();
+
+    if (goalType !== 'maintain' && targetWeight) {
+      const h = parseInt(height);
+      const tw = parseFloat(targetWeight);
+      if (h && tw) {
+        const heightM = h / 100;
+        const targetBmi = tw / (heightM * heightM);
+        if (targetBmi < 18.45) {
+          const minHealthyWeight = Math.round(18.5 * (heightM * heightM));
+          setMessage({
+            text: `Le poids cible ne peut pas être inférieur à la limite de santé de ${minHealthyWeight} kg (IMC 18.5).`,
+            type: 'error'
+          });
+          return;
+        }
+      }
+    }
+
     setUpdating(true);
     setMessage({ text: '', type: '' });
     try {
@@ -457,6 +481,23 @@ export default function Profile({ token, onProfileUpdate }) {
                   Poids idéal
                 </button>
               </div>
+              {(() => {
+                if (!targetWeight) return null;
+                const h = parseInt(height);
+                const tw = parseFloat(targetWeight);
+                if (h && tw) {
+                  const heightM = h / 100;
+                  const targetBmi = tw / (heightM * heightM);
+                  if (targetBmi < 18.45) {
+                    return (
+                      <p className="text-[10px] text-[var(--accent-magenta)] font-bold mt-1">
+                        ⚠️ Attention : Ce poids est inférieur au poids de forme recommandé (IMC &lt; 18.5).
+                      </p>
+                    );
+                  }
+                }
+                return null;
+              })()}
             </div>
           )}
 
@@ -588,6 +629,156 @@ export default function Profile({ token, onProfileUpdate }) {
             {updating ? 'Enregistrement...' : 'Valider les objectifs'}
           </button>
         </form>
+
+        {/* ===== CARD: SUGGESTION DE RECETTES ===== */}
+        <div className="brutal-card p-6 mt-6 border-3 shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]" style={{ borderColor: 'var(--border)' }}>
+          <div className="flex items-center gap-2.5 mb-2 border-b border-[var(--border-muted)] pb-3">
+            <span className="text-xl">🍳</span>
+            <div>
+              <h3 className="font-extrabold text-sm uppercase tracking-wider text-[var(--text)]">Recherche de recettes personnalisée</h3>
+              <p className="text-[10px] text-[var(--text-muted)] font-semibold uppercase mt-0.5">Trouvez des idées selon vos objectifs</p>
+            </div>
+          </div>
+
+          <div className="space-y-4 text-xs">
+            {/* Calorie range */}
+            <div className="space-y-2">
+              <label className="brutal-label">Objectif Calorique par Repas</label>
+              <div className="flex gap-2.5">
+                <div className="flex-1">
+                  <span className="text-[9px] uppercase font-bold text-[var(--text-dim)] block mb-1">Min Calories</span>
+                  <input 
+                    type="number" 
+                    placeholder="Ex: 300"
+                    value={recMinCal}
+                    onChange={(e) => setRecMinCal(e.target.value)}
+                    className="brutal-input text-xs w-full py-2 px-3 bg-[var(--surface-inset)]"
+                  />
+                </div>
+                <div className="flex-1">
+                  <span className="text-[9px] uppercase font-bold text-[var(--text-dim)] block mb-1">Max Calories</span>
+                  <input 
+                    type="number" 
+                    placeholder="Ex: 600"
+                    value={recMaxCal}
+                    onChange={(e) => setRecMaxCal(e.target.value)}
+                    className="brutal-input text-xs w-full py-2 px-3 bg-[var(--surface-inset)]"
+                  />
+                </div>
+              </div>
+
+              {/* Quick Fill Suggestions */}
+              {profile?.calorie_goal && (
+                <div className="mt-2.5">
+                  <span className="text-[9px] uppercase font-extrabold text-[var(--text-muted)] block mb-1.5">
+                    Raccourcis (basés sur votre objectif de {profile.calorie_goal} kcal) :
+                  </span>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                    {[
+                      { id: 'breakfast', label: 'Matin', pMin: 0.15, pMax: 0.25 },
+                      { id: 'lunch', label: 'Midi', pMin: 0.30, pMax: 0.40 },
+                      { id: 'dinner', label: 'Soir', pMin: 0.30, pMax: 0.40 },
+                      { id: 'snack', label: 'Snack', pMin: 0.05, pMax: 0.15 }
+                    ].map(meal => {
+                      const minVal = Math.round(profile.calorie_goal * meal.pMin);
+                      const maxVal = Math.round(profile.calorie_goal * meal.pMax);
+                      return (
+                        <button
+                          key={meal.id}
+                          type="button"
+                          onClick={() => { setRecMinCal(minVal); setRecMaxCal(maxVal); }}
+                          className="py-1.5 px-2 border border-[var(--border-muted)] hover:border-[var(--text-muted)] rounded-lg text-[9px] font-bold uppercase transition-all duration-200 cursor-pointer bg-[var(--surface-raised)] text-[var(--text-muted)] hover:text-[var(--text)] text-center"
+                        >
+                          {meal.label} <span className="block font-black text-[var(--text-dim)]">{minVal}-{maxVal}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Diet select */}
+            <div className="space-y-2">
+              <label className="brutal-label">Régime Alimentaire</label>
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
+                {[
+                  { id: 'omnivore', label: 'Omnivore' },
+                  { id: 'végétarien', label: 'Végétarien' },
+                  { id: 'vegan', label: 'Vegan' },
+                  { id: 'sans gluten', label: 'Sans Gluten' },
+                  { id: 'keto', label: 'Cétogène' }
+                ].map(diet => (
+                  <button
+                    key={diet.id}
+                    type="button"
+                    onClick={() => setRecDiet(diet.id)}
+                    className={`py-2 px-1 border text-[9px] font-black uppercase rounded-xl transition-all duration-200 cursor-pointer text-center ${
+                      recDiet === diet.id
+                        ? 'border-[var(--accent-pistachio)] text-[var(--accent-pistachio)] bg-[var(--accent-pistachio)]/5 shadow-[var(--shadow-subtle)]'
+                        : 'border-[var(--border-muted)] text-[var(--text-dim)] hover:border-[var(--text-muted)] bg-[var(--surface)]'
+                    }`}
+                  >
+                    {diet.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Nutrition preference */}
+            <div className="space-y-2">
+              <label className="brutal-label">Préférence Nutritionnelle</label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                {[
+                  { id: 'none', label: 'Aucune' },
+                  { id: 'high_protein', label: 'Protéines ⚡', desc: `> ${Math.round((profile?.protein_goal || 130) / 3)}g` },
+                  { id: 'low_carb', label: 'Glucides 📉', desc: `< ${Math.round((profile?.carb_goal || 220) / 8)}g` },
+                  { id: 'low_fat', label: 'Lipides 🥗', desc: `< ${Math.round((profile?.fat_goal || 65) / 4)}g` }
+                ].map(macro => (
+                  <button
+                    key={macro.id}
+                    type="button"
+                    onClick={() => setRecMacroPref(macro.id)}
+                    className={`py-2 px-1 border text-[9px] font-black uppercase rounded-xl transition-all duration-200 cursor-pointer text-center ${
+                      recMacroPref === macro.id
+                        ? 'border-[var(--accent-powder)] text-[var(--accent-powder)] bg-[var(--accent-powder)]/5 shadow-[var(--shadow-subtle)]'
+                        : 'border-[var(--border-muted)] text-[var(--text-dim)] hover:border-[var(--text-muted)] bg-[var(--surface)]'
+                    }`}
+                  >
+                    {macro.label}
+                    {macro.desc && <span className="block text-[8px] font-normal text-[var(--text-dim)] mt-0.5">{macro.desc}</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Launch search button */}
+            <button
+              type="button"
+              onClick={() => {
+                const filters = {
+                  query: recDiet === 'omnivore' ? '' : recDiet,
+                  caloriesMin: recMinCal,
+                  caloriesMax: recMaxCal,
+                  proteinMin: recMacroPref === 'high_protein' ? Math.round((profile?.protein_goal || 130) / 3) : '',
+                  carbsMax: recMacroPref === 'low_carb' ? Math.round((profile?.carb_goal || 220) / 8) : '',
+                  fatMax: recMacroPref === 'low_fat' ? Math.round((profile?.fat_goal || 65) / 4) : '',
+                  filterKeto: recMacroPref === 'low_carb' || recDiet === 'keto',
+                  filterHighProtein: recMacroPref === 'high_protein',
+                  filterLight: parseFloat(recMaxCal) <= 400 || recDiet === 'light',
+                  showAdvancedFilters: true
+                };
+                if (onRecipeSearch) {
+                  onRecipeSearch(filters);
+                }
+              }}
+              className="brutal-btn-accent w-full py-2.5 text-xs font-black uppercase tracking-wider cursor-pointer mt-2 text-center"
+              style={{ backgroundColor: 'var(--accent-pistachio)', color: 'var(--bg-dark-slate)' }}
+            >
+              Rechercher des recettes
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

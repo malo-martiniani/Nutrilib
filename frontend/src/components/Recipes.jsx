@@ -3,7 +3,7 @@ import { Search, Clock, Star, CheckCircle, ChevronRight, X, ListTodo, Flame, Inf
 
 const API_URL = 'http://localhost:5000/api';
 
-export default function Recipes({ token }) {
+export default function Recipes({ token, initialFilters, onClearFilters }) {
   const [recipes, setRecipes] = useState([]);
   const [query, setQuery] = useState('');
   const [searching, setSearching] = useState(false);
@@ -73,7 +73,59 @@ export default function Recipes({ token }) {
     finally { setSearching(false); }
   };
 
+  useEffect(() => {
+    if (initialFilters) {
+      setQuery(initialFilters.query || '');
+      setCaloriesMin(initialFilters.caloriesMin || '');
+      setCaloriesMax(initialFilters.caloriesMax || '');
+      setProteinMin(initialFilters.proteinMin || '');
+      setCarbsMax(initialFilters.carbsMax || '');
+      setFatMax(initialFilters.fatMax || '');
+      setFilterKeto(!!initialFilters.filterKeto);
+      setFilterHighProtein(!!initialFilters.filterHighProtein);
+      setFilterLight(!!initialFilters.filterLight);
+      
+      if (initialFilters.showAdvancedFilters) {
+        setShowAdvancedFilters(true);
+      }
+
+      // Execute search immediately with incoming filters
+      const executeInitialSearch = async () => {
+        setSearching(true);
+        setError('');
+        setSelectedRecipe(null);
+
+        let url = `${API_URL}/foods/recipes/search?query=${encodeURIComponent(initialFilters.query || '')}`;
+        if (initialFilters.filterLight) url += '&caloriesMax=400';
+        if (initialFilters.filterKeto) url += '&carbMaxPercent=15';
+        if (initialFilters.filterHighProtein) url += '&proteinMinPercent=30';
+
+        if (initialFilters.caloriesMin) url += `&caloriesMin=${initialFilters.caloriesMin}`;
+        if (initialFilters.caloriesMax) url += `&caloriesMax=${initialFilters.caloriesMax}`;
+        if (initialFilters.proteinMin) url += `&proteinMin=${initialFilters.proteinMin}`;
+        if (initialFilters.carbsMax) url += `&carbsMax=${initialFilters.carbsMax}`;
+        if (initialFilters.fatMax) url += `&fatMax=${initialFilters.fatMax}`;
+
+        try {
+          const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+          if (response.ok) {
+            const data = await response.json();
+            setRecipes(data.recipes || []);
+            setIsMockData(data.isMock || false);
+            if (data.recipes && data.recipes.length === 0) { setError('Aucune recette trouvée.'); }
+          } else { throw new Error('Erreur.'); }
+        } catch (err) { setError('Impossible de récupérer les recettes.'); }
+        finally { setSearching(false); }
+      };
+
+      executeInitialSearch();
+
+      if (onClearFilters) onClearFilters();
+    }
+  }, [initialFilters]);
+
   useEffect(() => { 
+    if (initialFilters) return; // Prevent double trigger when processing initialFilters
     handleSearch(); 
     fetchFavoritesAndLists();
   }, [filterKeto, filterHighProtein, filterLight, caloriesMin, caloriesMax, proteinMin, carbsMax, fatMax, token]);
