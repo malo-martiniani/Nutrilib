@@ -44,6 +44,12 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
 
   const [calcResults, setCalcResults] = useState(null);
 
+  // States for custom macro ratio allocator
+  const [macroRatioPreset, setMacroRatioPreset] = useState('balanced');
+  const [proteinPercent, setProteinPercent] = useState(20);
+  const [carbPercent, setCarbPercent] = useState(50);
+  const [fatPercent, setFatPercent] = useState(30);
+
   const fetchProfile = async () => {
     try {
       const response = await fetch('http://localhost:5000/api/profile', {
@@ -63,12 +69,67 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
         setGoalType(data.goal_type || 'maintain');
         setTargetWeight(data.target_weight ? data.target_weight.toString() : '');
         setGoalSpeed(data.goal_speed || 'normal');
+
+        if (data.calorie_goal && data.protein_goal && data.carb_goal && data.fat_goal) {
+          const pG = data.protein_goal * 4;
+          const fG = data.fat_goal * 9;
+          const cG = data.carb_goal * 4;
+          const totalCalories = pG + fG + cG;
+          if (totalCalories > 0) {
+            const pP = Math.round((pG / totalCalories) * 100);
+            const fP = Math.round((fG / totalCalories) * 100);
+            const cP = 100 - pP - fP;
+            setProteinPercent(pP);
+            setFatPercent(fP);
+            setCarbPercent(cP);
+
+            // Match preset
+            if (pP === 20 && cP === 50 && fP === 30) setMacroRatioPreset('balanced');
+            else if (pP === 30 && cP === 40 && fP === 30) setMacroRatioPreset('hyper');
+            else if (pP === 35 && cP === 25 && fP === 40) setMacroRatioPreset('lowcarb');
+            else if (pP === 25 && cP === 5 && fP === 70) setMacroRatioPreset('keto');
+            else setMacroRatioPreset('custom');
+          }
+        }
       }
     } catch (error) { console.error('Erreur chargement profil:', error); }
     finally { setLoading(false); }
   };
 
   useEffect(() => { fetchProfile(); }, [token]);
+
+  const handlePresetChange = (preset) => {
+    setMacroRatioPreset(preset);
+    if (preset === 'balanced') {
+      setCarbPercent(50);
+      setProteinPercent(20);
+      setFatPercent(30);
+    } else if (preset === 'hyper') {
+      setCarbPercent(40);
+      setProteinPercent(30);
+      setFatPercent(30);
+    } else if (preset === 'lowcarb') {
+      setCarbPercent(25);
+      setProteinPercent(35);
+      setFatPercent(40);
+    } else if (preset === 'keto') {
+      setCarbPercent(5);
+      setProteinPercent(25);
+      setFatPercent(70);
+    }
+  };
+
+  const handlePercentChange = (macro, val) => {
+    setMacroRatioPreset('custom');
+    const parsed = Math.max(0, Math.min(100, parseInt(val) || 0));
+    if (macro === 'protein') {
+      setProteinPercent(parsed);
+    } else if (macro === 'carb') {
+      setCarbPercent(parsed);
+    } else if (macro === 'fat') {
+      setFatPercent(parsed);
+    }
+  };
 
   useEffect(() => {
     const a = parseInt(age);
@@ -140,9 +201,9 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
         tdee: calorieGoal,
         tdee_raw: tdee,
         calorieAdjustment,
-        protein: Math.round((calorieGoal * 0.25) / 4),
-        fat: Math.round((calorieGoal * 0.25) / 9),
-        carbs: Math.round((calorieGoal * 0.50) / 4),
+        protein: Math.round((calorieGoal * (proteinPercent / 100)) / 4),
+        fat: Math.round((calorieGoal * (fatPercent / 100)) / 9),
+        carbs: Math.round((calorieGoal * (carbPercent / 100)) / 4),
         currentBmi,
         healthyMinWeight,
         healthyMaxWeight,
@@ -150,7 +211,7 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
         weeksToTarget
       });
     } else { setCalcResults(null); }
-  }, [gender, age, height, weight, activityLevel, goalType, targetWeight, goalSpeed]);
+  }, [gender, age, height, weight, activityLevel, goalType, targetWeight, goalSpeed, proteinPercent, carbPercent, fatPercent]);
 
   const handleUpdateBasic = async (e) => {
     e.preventDefault();
@@ -208,7 +269,10 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
           activity_level: activityLevel,
           goal_type: goalType,
           target_weight: targetWeight,
-          goal_speed: goalSpeed
+          goal_speed: goalSpeed,
+          protein_percent: proteinPercent,
+          carb_percent: carbPercent,
+          fat_percent: fatPercent
         })
       });
       if (response.ok) {
@@ -586,6 +650,86 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
             </div>
           )}
 
+          {/* Répartition des Macronutriments */}
+          {calcResults && (
+            <div className="space-y-3 pt-3 border-t border-[var(--border-muted)]/40">
+              <label className="brutal-label block mb-2">Répartition des Macronutriments</label>
+              
+              {/* Presets Grid */}
+              <div className="grid grid-cols-4 gap-1.5">
+                {[
+                  { id: 'balanced', label: 'Équilibré', desc: '50% G · 20% P · 30% L' },
+                  { id: 'hyper', label: 'Hyper Protéiné', desc: '40% G · 30% P · 30% L' },
+                  { id: 'lowcarb', label: 'Low Carb', desc: '25% G · 35% P · 40% L' },
+                  { id: 'keto', label: 'Keto', desc: '5% G · 25% P · 70% L' }
+                ].map(preset => (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => handlePresetChange(preset.id)}
+                    className={`py-2 px-1 border text-[9px] font-black uppercase rounded-xl transition-all duration-200 cursor-pointer text-center flex flex-col justify-center gap-0.5 ${
+                      macroRatioPreset === preset.id
+                        ? 'border-[var(--accent-powder)] text-[var(--accent-powder)] bg-[var(--accent-powder)]/5 font-black shadow-[var(--shadow-subtle)]'
+                        : 'border-[var(--border-muted)] text-[var(--text-dim)] hover:border-[var(--text-muted)] bg-[var(--surface)]'
+                    }`}
+                    title={preset.desc}
+                  >
+                    <span>{preset.label}</span>
+                    <span className="text-[7px] text-[var(--text-muted)] font-medium normal-case block">
+                      {preset.id === 'balanced' ? '50/20/30' : preset.id === 'hyper' ? '40/30/30' : preset.id === 'lowcarb' ? '25/35/40' : '5/25/70'}
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Custom percentages inputs */}
+              <div className="grid grid-cols-3 gap-2.5 pt-1.5">
+                {/* Protéines % */}
+                <div className="space-y-1">
+                  <span className="text-[9px] font-bold text-[var(--accent-powder)] block uppercase text-center">Protéines (%)</span>
+                  <div className="flex items-center border border-[var(--border)] rounded-xl bg-[var(--surface)] overflow-hidden">
+                    <button type="button" onClick={() => handlePercentChange('protein', proteinPercent - 5)} className="px-2.5 py-1.5 text-xs font-extrabold hover:bg-[var(--surface-raised)] border-r border-[var(--border)] cursor-pointer text-[var(--text)]">-</button>
+                    <span className="flex-1 text-center text-xs font-bold text-[var(--text)]">{proteinPercent}%</span>
+                    <button type="button" onClick={() => handlePercentChange('protein', proteinPercent + 5)} className="px-2.5 py-1.5 text-xs font-extrabold hover:bg-[var(--surface-raised)] border-l border-[var(--border)] cursor-pointer text-[var(--text)]">+</button>
+                  </div>
+                </div>
+
+                {/* Glucides % */}
+                <div className="space-y-1">
+                  <span className="text-[9px] font-bold text-[var(--accent-powder)] block uppercase text-center">Glucides (%)</span>
+                  <div className="flex items-center border border-[var(--border)] rounded-xl bg-[var(--surface)] overflow-hidden">
+                    <button type="button" onClick={() => handlePercentChange('carb', carbPercent - 5)} className="px-2.5 py-1.5 text-xs font-extrabold hover:bg-[var(--surface-raised)] border-r border-[var(--border)] cursor-pointer text-[var(--text)]">-</button>
+                    <span className="flex-1 text-center text-xs font-bold text-[var(--text)]">{carbPercent}%</span>
+                    <button type="button" onClick={() => handlePercentChange('carb', carbPercent + 5)} className="px-2.5 py-1.5 text-xs font-extrabold hover:bg-[var(--surface-raised)] border-l border-[var(--border)] cursor-pointer text-[var(--text)]">+</button>
+                  </div>
+                </div>
+
+                {/* Lipides % */}
+                <div className="space-y-1">
+                  <span className="text-[9px] font-bold text-[var(--accent-sand)] block uppercase text-center">Lipides (%)</span>
+                  <div className="flex items-center border border-[var(--border)] rounded-xl bg-[var(--surface)] overflow-hidden">
+                    <button type="button" onClick={() => handlePercentChange('fat', fatPercent - 5)} className="px-2.5 py-1.5 text-xs font-extrabold hover:bg-[var(--surface-raised)] border-r border-[var(--border)] cursor-pointer text-[var(--text)]">-</button>
+                    <span className="flex-1 text-center text-xs font-bold text-[var(--text)]">{fatPercent}%</span>
+                    <button type="button" onClick={() => handlePercentChange('fat', fatPercent + 5)} className="px-2.5 py-1.5 text-xs font-extrabold hover:bg-[var(--surface-raised)] border-l border-[var(--border)] cursor-pointer text-[var(--text)]">+</button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Validation of sum */}
+              {(() => {
+                const totalPct = proteinPercent + carbPercent + fatPercent;
+                if (totalPct !== 100) {
+                  return (
+                    <p className="text-[10px] text-[var(--accent-magenta)] font-bold mt-1 text-center animate-pulse">
+                      ⚠️ La somme des macros doit être égale à 100% (Actuel : {totalPct}%)
+                    </p>
+                  );
+                }
+                return null;
+              })()}
+            </div>
+          )}
+
           {/* Live results */}
           {calcResults && (
             <div className="border border-[var(--border)] p-4 space-y-4 bg-[var(--surface-inset)] rounded-2xl shadow-[var(--shadow-soft)]">
@@ -607,23 +751,23 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
                 <div className="p-2 border border-[var(--accent-powder)]/20 rounded-xl bg-[var(--accent-powder)]/5">
                   <span className="text-[9px] font-bold text-[var(--accent-powder)] block uppercase">Protéines</span>
                   <span className="text-base font-extrabold text-[var(--text)]">{calcResults.protein}g</span>
-                  <span className="text-[9px] text-[var(--text-dim)] block mt-0.5">25% · 4kcal/g</span>
+                  <span className="text-[9px] text-[var(--text-dim)] block mt-0.5">{proteinPercent}% · 4kcal/g</span>
                 </div>
                 <div className="p-2 border border-[var(--accent-powder)]/20 rounded-xl bg-[var(--accent-powder)]/5">
                   <span className="text-[9px] font-bold text-[var(--accent-powder)] block uppercase">Glucides</span>
                   <span className="text-base font-extrabold text-[var(--text)]">{calcResults.carbs}g</span>
-                  <span className="text-[9px] text-[var(--text-dim)] block mt-0.5">50% · 4kcal/g</span>
+                  <span className="text-[9px] text-[var(--text-dim)] block mt-0.5">{carbPercent}% · 4kcal/g</span>
                 </div>
                 <div className="p-2 border border-[var(--accent-sand)]/20 rounded-xl bg-[var(--accent-sand)]/5">
                   <span className="text-[9px] font-bold text-[var(--accent-sand)] block uppercase">Lipides</span>
                   <span className="text-base font-extrabold text-[var(--text)]">{calcResults.fat}g</span>
-                  <span className="text-[9px] text-[var(--text-dim)] block mt-0.5">25% · 9kcal/g</span>
+                  <span className="text-[9px] text-[var(--text-dim)] block mt-0.5">{fatPercent}% · 9kcal/g</span>
                 </div>
               </div>
             </div>
           )}
 
-          <button type="submit" disabled={updating || !calcResults}
+          <button type="submit" disabled={updating || !calcResults || (proteinPercent + carbPercent + fatPercent !== 100)}
             className="brutal-btn w-full disabled:opacity-30 cursor-pointer"
             style={{ background: 'var(--accent-sand)', borderColor: 'var(--accent-sand)', color: 'var(--bg-dark-slate)' }}>
             {updating ? 'Enregistrement...' : 'Valider les objectifs'}

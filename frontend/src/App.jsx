@@ -1,5 +1,6 @@
 import React from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
 import LoginRegister from './components/LoginRegister';
 import Dashboard from './components/Dashboard';
 import './App.css';
@@ -24,7 +25,9 @@ function MainApp() {
 export default function App() {
   return (
     <AuthProvider>
-      <MainApp />
+      <NotificationProvider>
+        <MainApp />
+      </NotificationProvider>
     </AuthProvider>
   );
 }

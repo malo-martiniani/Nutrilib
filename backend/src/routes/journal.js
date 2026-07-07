@@ -40,7 +40,13 @@ router.post('/', authMiddleware, async (req, res) => {
     meal_type,
     serving_amount,
     serving_unit,
-    entry_date
+    entry_date,
+    sugar,
+    fiber,
+    sodium,
+    potassium,
+    cholesterol,
+    saturated_fat
   } = req.body;
 
   // Validation
@@ -56,8 +62,8 @@ router.post('/', authMiddleware, async (req, res) => {
   try {
     const result = await db.query(
       `INSERT INTO journal_entries 
-      (user_id, food_id, food_name, calories, protein, carbs, fat, meal_type, serving_amount, serving_unit, entry_date) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      (user_id, food_id, food_name, calories, protein, carbs, fat, meal_type, serving_amount, serving_unit, entry_date, sugar, fiber, sodium, potassium, cholesterol, saturated_fat) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         req.user.id,
         food_id || null,
@@ -69,7 +75,13 @@ router.post('/', authMiddleware, async (req, res) => {
         meal_type,
         parseFloat(serving_amount),
         serving_unit || 'g',
-        entry_date
+        entry_date,
+        parseFloat(sugar || 0),
+        parseFloat(fiber || 0),
+        parseFloat(sodium || 0),
+        parseFloat(potassium || 0),
+        parseFloat(cholesterol || 0),
+        parseFloat(saturated_fat || 0)
       ]
     );
 
@@ -85,7 +97,13 @@ router.post('/', authMiddleware, async (req, res) => {
       meal_type,
       serving_amount,
       serving_unit,
-      entry_date
+      entry_date,
+      sugar: sugar || 0,
+      fiber: fiber || 0,
+      sodium: sodium || 0,
+      potassium: potassium || 0,
+      cholesterol: cholesterol || 0,
+      saturated_fat: saturated_fat || 0
     };
 
     res.status(201).json(newEntry);

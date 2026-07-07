@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
 const authMiddleware = require('../middleware/auth');
+const db = require('../database');
 
 // ============================================================
 // DONNÉES MOCKÉES (Fallback si clés API FatSecret absentes)
@@ -663,7 +664,8 @@ router.get('/recipes/:id', authMiddleware, async (req, res) => {
       protein: nutrition.protein ? parseFloat(nutrition.protein) : 0.0,
       fat: nutrition.fat ? parseFloat(nutrition.fat) : 0.0,
       ingredients,
-      directions
+      directions,
+      number_of_servings: r.number_of_servings ? parseInt(r.number_of_servings) : null
     };
 
     res.json({ recipe: recipeDetails, isMock: false });
@@ -675,6 +677,91 @@ router.get('/recipes/:id', authMiddleware, async (req, res) => {
       return res.status(404).json({ message: 'Recette non trouvée.' });
     }
     res.json({ recipe, isMock: true, error: error.message });
+  }
+});
+
+// @route   GET api/foods/custom-recipes
+// @desc    Obtenir les recettes personnalisées de l'utilisateur
+// @access  Privé
+router.get('/custom-recipes', authMiddleware, async (req, res) => {
+  try {
+    const recipes = await db.query(
+      'SELECT * FROM custom_recipes WHERE user_id = ? ORDER BY id DESC',
+      [req.user.id]
+    );
+    // Récupérer les ingrédients de chaque recette
+    for (let r of recipes) {
+      r.ingredients = await db.query(
+        'SELECT * FROM custom_recipe_ingredients WHERE recipe_id = ?',
+        [r.id]
+      );
+    }
+    res.json(recipes);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erreur serveur.' });
+  }
+});
+
+// @route   POST api/foods/custom-recipes
+// @desc    Créer une recette personnalisée
+// @access  Privé
+router.post('/custom-recipes', authMiddleware, async (req, res) => {
+  const { recipe_name, recipe_description, recipe_image, servings, calories, protein, carbs, fat, ingredients } = req.body;
+  if (!recipe_name || !ingredients || ingredients.length === 0) {
+    return res.status(400).json({ message: 'Veuillez renseigner un nom et au moins un ingrédient.' });
+  }
+  const cleanServings = Math.max(1, parseInt(servings) || 1);
+  try {
+    const result = await db.query(
+      `INSERT INTO custom_recipes (user_id, recipe_name, recipe_description, recipe_image, servings, calories, protein, carbs, fat) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [req.user.id, recipe_name, recipe_description || '', recipe_image || null, cleanServings, calories, protein || 0, carbs || 0, fat || 0]
+    );
+    const recipeId = result.insertId;
+
+    for (let ing of ingredients) {
+      await db.query(
+        `INSERT INTO custom_recipe_ingredients (recipe_id, food_id, food_name, calories, protein, carbs, fat, serving_amount, serving_unit) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          recipeId,
+          ing.food_id || null,
+          ing.food_name,
+          ing.calories,
+          ing.protein || 0,
+          ing.carbs || 0,
+          ing.fat || 0,
+          ing.serving_amount || 100,
+          ing.serving_unit || 'g'
+        ]
+      );
+    }
+
+    res.status(201).json({ id: recipeId, message: 'Recette personnalisée créée avec succès.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erreur serveur.' });
+  }
+});
+
+// @route   DELETE api/foods/custom-recipes/:id
+// @desc    Supprimer une recette personnalisée
+// @access  Privé
+router.delete('/custom-recipes/:id', authMiddleware, async (req, res) => {
+  try {
+    const recipes = await db.query(
+      'SELECT id FROM custom_recipes WHERE id = ? AND user_id = ?',
+      [req.params.id, req.user.id]
+    );
+    if (recipes.length === 0) {
+      return res.status(404).json({ message: 'Recette introuvable.' });
+    }
+    await db.query('DELETE FROM custom_recipes WHERE id = ?', [req.params.id]);
+    res.json({ message: 'Recette supprimée avec succès.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erreur serveur.' });
   }
 });
 

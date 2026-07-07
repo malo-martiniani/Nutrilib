@@ -145,10 +145,14 @@ router.put('/calculator', authMiddleware, async (req, res) => {
       calorie_goal = tdee + surplus;
     }
 
-    // 4. Calcul des macros (Protéines : 25%, Lipides : 25%, Glucides : 50%)
-    const protein_goal = Math.round((calorie_goal * 0.25) / 4);
-    const fat_goal = Math.round((calorie_goal * 0.25) / 9);
-    const carb_goal = Math.round((calorie_goal * 0.50) / 4);
+    // 4. Calcul des macros (Utilise les pourcentages fournis ou les valeurs par défaut)
+    const pPct = req.body.protein_percent !== undefined ? parseFloat(req.body.protein_percent) : 25;
+    const cPct = req.body.carb_percent !== undefined ? parseFloat(req.body.carb_percent) : 50;
+    const fPct = req.body.fat_percent !== undefined ? parseFloat(req.body.fat_percent) : 25;
+
+    const protein_goal = Math.round((calorie_goal * (pPct / 100)) / 4);
+    const fat_goal = Math.round((calorie_goal * (fPct / 100)) / 9);
+    const carb_goal = Math.round((calorie_goal * (cPct / 100)) / 4);
 
     // 5. Mettre à jour la base de données
     await db.query(

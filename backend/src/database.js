@@ -97,13 +97,31 @@ async function createTables() {
         carbs DECIMAL(6,2) DEFAULT 0.00,
         fat DECIMAL(6,2) DEFAULT 0.00,
         meal_type ENUM('breakfast', 'lunch', 'dinner', 'snack') NOT NULL,
-        serving_amount DECIMAL(6,2) NOT NULL DEFAULT 100.00,
+        serving_amount DECIMAL(10,2) NOT NULL DEFAULT 100.00,
         serving_unit VARCHAR(50) DEFAULT 'g',
         entry_date DATE NOT NULL,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       ) ENGINE=InnoDB;
     `);
     console.log('Table "journal_entries" vérifiée/créée.');
+
+    // Ajouter les colonnes de micronutrition si elles n'existent pas
+    const [journalColumns] = await connection.query('SHOW COLUMNS FROM journal_entries');
+    const journalColumnNames = journalColumns.map(c => c.Field);
+    const journalColumnsToAdd = [
+      { name: 'sugar', definition: 'DECIMAL(6,2) DEFAULT 0.00' },
+      { name: 'fiber', definition: 'DECIMAL(6,2) DEFAULT 0.00' },
+      { name: 'sodium', definition: 'DECIMAL(6,2) DEFAULT 0.00' },
+      { name: 'potassium', definition: 'DECIMAL(6,2) DEFAULT 0.00' },
+      { name: 'cholesterol', definition: 'DECIMAL(6,2) DEFAULT 0.00' },
+      { name: 'saturated_fat', definition: 'DECIMAL(6,2) DEFAULT 0.00' }
+    ];
+    for (const col of journalColumnsToAdd) {
+      if (!journalColumnNames.includes(col.name)) {
+        await connection.query(`ALTER TABLE journal_entries ADD COLUMN \`${col.name}\` ${col.definition}`);
+        console.log(`Colonne "${col.name}" ajoutée à la table "journal_entries".`);
+      }
+    }
 
     // 3. Table de suivi du poids
     await connection.query(`
@@ -166,6 +184,59 @@ async function createTables() {
       ) ENGINE=InnoDB;
     `);
     console.log('Table "custom_list_items" vérifiée/créée.');
+
+    // 7. Table des recettes personnalisées
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS custom_recipes (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        recipe_name VARCHAR(255) NOT NULL,
+        recipe_description TEXT NULL,
+        recipe_image VARCHAR(500) DEFAULT NULL,
+        servings INT NOT NULL DEFAULT 1,
+        calories INT NOT NULL,
+        protein DECIMAL(6,2) DEFAULT 0.00,
+        carbs DECIMAL(6,2) DEFAULT 0.00,
+        fat DECIMAL(6,2) DEFAULT 0.00,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB;
+    `);
+    console.log('Table "custom_recipes" vérifiée/créée.');
+
+    // 8. Table des ingrédients de recettes personnalisées
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS custom_recipe_ingredients (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        recipe_id INT NOT NULL,
+        food_id VARCHAR(100) DEFAULT NULL,
+        food_name VARCHAR(255) NOT NULL,
+        calories INT NOT NULL,
+        protein DECIMAL(6,2) DEFAULT 0.00,
+        carbs DECIMAL(6,2) DEFAULT 0.00,
+        fat DECIMAL(6,2) DEFAULT 0.00,
+        serving_amount DECIMAL(10,2) NOT NULL DEFAULT 100.00,
+        serving_unit VARCHAR(50) DEFAULT 'g',
+        FOREIGN KEY (recipe_id) REFERENCES custom_recipes(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB;
+    `);
+    console.log('Table "custom_recipe_ingredients" vérifiée/créée.');
+
+    // Modifier serving_amount pour supporter des quantités plus grandes sans erreur out-of-range
+    await connection.query(`ALTER TABLE journal_entries MODIFY COLUMN serving_amount DECIMAL(10,2) NOT NULL DEFAULT 100.00`);
+    await connection.query(`ALTER TABLE custom_recipe_ingredients MODIFY COLUMN serving_amount DECIMAL(10,2) NOT NULL DEFAULT 100.00`);
+
+    // Ajouter les colonnes servings et recipe_image à la table custom_recipes si elles n'existent pas
+    const [customRecipesColumns] = await connection.query('SHOW COLUMNS FROM custom_recipes');
+    const customRecipesColumnNames = customRecipesColumns.map(c => c.Field);
+    if (!customRecipesColumnNames.includes('recipe_image')) {
+      await connection.query('ALTER TABLE custom_recipes ADD COLUMN recipe_image VARCHAR(500) DEFAULT NULL');
+      console.log('Colonne "recipe_image" ajoutée à "custom_recipes".');
+    }
+    if (!customRecipesColumnNames.includes('servings')) {
+      await connection.query('ALTER TABLE custom_recipes ADD COLUMN servings INT NOT NULL DEFAULT 1');
+      console.log('Colonne "servings" ajoutée à "custom_recipes".');
+    }
 
   } catch (error) {
     console.error('Erreur lors de la création des tables:', error.message);

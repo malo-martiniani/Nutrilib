@@ -61,8 +61,11 @@ const MEALS = [
   }
 ];
 
+import { useNotification } from '../context/NotificationContext';
+
 export default function Dashboard() {
   const { user, token, logout } = useAuth();
+  const { showToast, askConfirmation } = useNotification();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [journalEntries, setJournalEntries] = useState([]);
   const [loadingEntries, setLoadingEntries] = useState(false);
@@ -88,6 +91,7 @@ export default function Dashboard() {
   const [servingUnit, setServingUnit] = useState('g');
   const [activeMealType, setActiveMealType] = useState('breakfast');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showMicroDetails, setShowMicroDetails] = useState(false);
 
   // Meal search modal state
   const [showMealSearchModal, setShowMealSearchModal] = useState(false);
@@ -249,15 +253,38 @@ export default function Dashboard() {
         body: JSON.stringify({ food_id: food.food_id, food_name: food.food_name, calories: food.calories, protein: food.protein, carbs: food.carbs, fat: food.fat, serving_description: food.serving })
       });
       if (response.ok) {
-        alert('Aliment ajouté à la liste !');
+        showToast('Aliment ajouté à la liste !');
         fetchFavoritesAndLists();
         setShowListSelectorForFood(null);
       }
     } catch (err) { console.error(err); }
   };
 
-  const openPortionSelector = (food, mealType = 'breakfast') => {
-    setSelectedFood(food);
+  const openPortionSelector = async (food, mealType = 'breakfast') => {
+    let detailedFood = { ...food };
+    if (food.food_id && !food.food_id.toString().startsWith('recipe_')) {
+      try {
+        const res = await fetch(`${API_URL}/foods/food/${food.food_id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (res.ok) {
+          const detailData = await res.json();
+          if (detailData.food && detailData.food.servings && detailData.food.servings.length > 0) {
+            const s = detailData.food.servings[0];
+            detailedFood = {
+              ...food,
+              sugar: s.sugar ? parseFloat(s.sugar) : 0,
+              fiber: s.fiber ? parseFloat(s.fiber) : 0,
+              sodium: s.sodium ? parseFloat(s.sodium) : 0,
+              potassium: s.potassium ? parseFloat(s.potassium) : 0,
+              cholesterol: s.cholesterol ? parseFloat(s.cholesterol) : 0,
+              saturated_fat: s.saturated_fat ? parseFloat(s.saturated_fat) : 0
+            };
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching food detail:', err);
+      }
+    }
+    setSelectedFood(detailedFood);
     setServingAmount(100);
     setServingUnit('g');
     setActiveMealType(mealType);
@@ -284,7 +311,13 @@ export default function Dashboard() {
       meal_type: activeMealType,
       serving_amount: servingAmount,
       serving_unit: servingUnit,
-      entry_date: selectedDate
+      entry_date: selectedDate,
+      sugar: ((selectedFood.sugar || 0) * ratio).toFixed(2),
+      fiber: ((selectedFood.fiber || 0) * ratio).toFixed(2),
+      sodium: ((selectedFood.sodium || 0) * ratio).toFixed(2),
+      potassium: ((selectedFood.potassium || 0) * ratio).toFixed(2),
+      cholesterol: ((selectedFood.cholesterol || 0) * ratio).toFixed(2),
+      saturated_fat: ((selectedFood.saturated_fat || 0) * ratio).toFixed(2)
     };
     try {
       const response = await fetch(`${API_URL}/journal`, {
@@ -292,17 +325,35 @@ export default function Dashboard() {
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(payload)
       });
-      if (response.ok) { fetchJournalEntries(); setShowAddModal(false); setSelectedFood(null); }
-      else { const err = await response.json(); alert(err.message || 'Erreur.'); }
-    } catch (err) { console.error(err); }
+      if (response.ok) {
+        showToast('Aliment ajouté au journal !');
+        fetchJournalEntries();
+        setShowAddModal(false);
+        setSelectedFood(null);
+      }
+      else {
+        const err = await response.json();
+        showToast(err.message || 'Erreur.', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Erreur réseau.', 'error');
+    }
   };
 
   const deleteJournalEntry = async (id) => {
-    if (!window.confirm('Retirer cet aliment du journal ?')) return;
+    const confirmed = await askConfirmation('Retirer cet aliment du journal ?');
+    if (!confirmed) return;
     try {
       const response = await fetch(`${API_URL}/journal/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
-      if (response.ok) { setJournalEntries(journalEntries.filter(entry => entry.id !== id)); }
-    } catch (error) { console.error(error); }
+      if (response.ok) { 
+        setJournalEntries(journalEntries.filter(entry => entry.id !== id)); 
+        showToast('Aliment retiré du journal.');
+      }
+    } catch (error) { 
+      console.error(error); 
+      showToast('Erreur réseau.', 'error');
+    }
   };
 
   const adjustDate = (days) => {
@@ -317,8 +368,11 @@ export default function Dashboard() {
     try {
       const response = await fetch(`${API_URL}/foods/recipes/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
       if (response.ok) { setSelectedRecipe((await response.json()).recipe); }
-      else { alert('Erreur chargement recette.'); }
-    } catch (err) { console.error(err); }
+      else { showToast('Erreur chargement recette.', 'error'); }
+    } catch (err) { 
+      console.error(err); 
+      showToast('Erreur réseau.', 'error');
+    }
     finally { setLoadingRecipe(false); }
   };
 
@@ -377,12 +431,29 @@ export default function Dashboard() {
   const totals = journalEntries.reduce(
     (acc, cur) => {
       acc.calories += cur.calories;
-      acc.protein += parseFloat(cur.protein);
-      acc.carbs += parseFloat(cur.carbs);
-      acc.fat += parseFloat(cur.fat);
+      acc.protein += parseFloat(cur.protein || 0);
+      acc.carbs += parseFloat(cur.carbs || 0);
+      acc.fat += parseFloat(cur.fat || 0);
+      acc.sugar += parseFloat(cur.sugar || 0);
+      acc.fiber += parseFloat(cur.fiber || 0);
+      acc.sodium += parseFloat(cur.sodium || 0);
+      acc.potassium += parseFloat(cur.potassium || 0);
+      acc.cholesterol += parseFloat(cur.cholesterol || 0);
+      acc.saturated_fat += parseFloat(cur.saturated_fat || 0);
       return acc;
     },
-    { calories: 0, protein: 0, carbs: 0, fat: 0 }
+    { 
+      calories: 0, 
+      protein: 0, 
+      carbs: 0, 
+      fat: 0, 
+      sugar: 0, 
+      fiber: 0, 
+      sodium: 0, 
+      potassium: 0, 
+      cholesterol: 0, 
+      saturated_fat: 0 
+    }
   );
 
   const calPercent = Math.min(Math.round((totals.calories / calorieGoal) * 100), 100);
@@ -406,6 +477,53 @@ export default function Dashboard() {
     { id: 'favorites', label: 'Favoris', icon: Heart },
     { id: 'profile', label: 'Profil', icon: User },
   ];
+
+  const renderMicroCircle = (current, target, isMax = false) => {
+    const percent = Math.min((current / target) * 100, 100);
+    const radius = 6;
+    const circumference = 2 * Math.PI * radius;
+    const strokeDashoffset = circumference - (percent / 100) * circumference;
+    
+    let strokeColor = 'var(--accent-pistachio)';
+    if (isMax) {
+      if (current > target) {
+        strokeColor = 'var(--accent-magenta)';
+      } else if (current > target * 0.8) {
+        strokeColor = 'var(--accent-sand)';
+      } else {
+        strokeColor = 'var(--accent-pistachio)';
+      }
+    } else {
+      if (current >= target) {
+        strokeColor = 'var(--accent-pistachio)';
+      } else {
+        strokeColor = 'var(--accent-powder)';
+      }
+    }
+
+    return (
+      <svg className="w-4 h-4 -rotate-90 shrink-0" viewBox="0 0 16 16">
+        <circle
+          cx="8"
+          cy="8"
+          r={radius}
+          className="stroke-[var(--border)] fill-transparent"
+          strokeWidth="2"
+        />
+        <circle
+          cx="8"
+          cy="8"
+          r={radius}
+          stroke={strokeColor}
+          strokeWidth="2"
+          className="fill-transparent transition-all duration-300"
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+        />
+      </svg>
+    );
+  };
 
   const unitMultiplier = servingUnit === 'cl' ? 10 : 1;
   const computedGrams = servingAmount * unitMultiplier;
@@ -667,6 +785,56 @@ export default function Dashboard() {
                     <div className="brutal-progress-fill bg-[var(--accent-sand)]" style={{ width: `${fatPercent}%` }}></div>
                   </div>
                 </div>
+              </div>
+
+              {/* Collapsable Micronutrients Panel */}
+              <div className="brutal-card p-4 transition-all duration-300">
+                <button
+                  type="button"
+                  onClick={() => setShowMicroDetails(!showMicroDetails)}
+                  className="w-full flex items-center justify-between font-extrabold text-[10px] uppercase tracking-wider text-[var(--accent-sand)] cursor-pointer"
+                >
+                  <span>🔬 Détails Micronutriments du jour</span>
+                  <span className="text-[10px]">{showMicroDetails ? 'Masquer ▲' : 'Afficher ▼'}</span>
+                </button>
+
+                {showMicroDetails && (
+                  <div className="grid grid-cols-2 gap-3 pt-3.5 mt-3 border-t border-[var(--border-muted)]/40 text-xs font-semibold animate-fadeIn">
+                    <div className="flex justify-between items-center p-2 bg-[var(--surface-inset)] rounded-xl border border-[var(--border-muted)]/30">
+                      <div className="flex items-center gap-1.5">
+                        {renderMicroCircle(totals.fiber, 25, false)}
+                        <span className="text-[var(--text-muted)]">Fibres :</span>
+                      </div>
+                      <span className="font-bold text-[var(--text)]">{totals.fiber.toFixed(1)}g <span className="text-[9px] text-[var(--text-dim)] font-medium">/ 25g+</span></span>
+                    </div>
+                    <div className="flex justify-between items-center p-2 bg-[var(--surface-inset)] rounded-xl border border-[var(--border-muted)]/30">
+                      <div className="flex items-center gap-1.5">
+                        {renderMicroCircle(totals.sugar, 50, true)}
+                        <span className="text-[var(--text-muted)]">Sucres :</span>
+                      </div>
+                      <span className="font-bold text-[var(--text)]">{totals.sugar.toFixed(1)}g <span className="text-[9px] text-[var(--text-dim)] font-medium">/ &lt;50g</span></span>
+                    </div>
+                    <div className="flex justify-between items-center p-2 bg-[var(--surface-inset)] rounded-xl border border-[var(--border-muted)]/30">
+                      <span className="text-[var(--text-muted)] pl-5.5">Graisses saturées :</span>
+                      <span className="font-bold text-[var(--text)]">{totals.saturated_fat.toFixed(1)}g</span>
+                    </div>
+                    <div className="flex justify-between items-center p-2 bg-[var(--surface-inset)] rounded-xl border border-[var(--border-muted)]/30">
+                      <div className="flex items-center gap-1.5">
+                        {renderMicroCircle(totals.sodium, 2300, true)}
+                        <span className="text-[var(--text-muted)]">Sodium :</span>
+                      </div>
+                      <span className="font-bold text-[var(--text)]">{Math.round(totals.sodium)}mg <span className="text-[9px] text-[var(--text-dim)] font-medium">/ &lt;2300mg</span></span>
+                    </div>
+                    <div className="flex justify-between items-center p-2 bg-[var(--surface-inset)] rounded-xl border border-[var(--border-muted)]/30">
+                      <span className="text-[var(--text-muted)] pl-5.5">Potassium :</span>
+                      <span className="font-bold text-[var(--text)]">{Math.round(totals.potassium)}mg</span>
+                    </div>
+                    <div className="flex justify-between items-center p-2 bg-[var(--surface-inset)] rounded-xl border border-[var(--border-muted)]/30">
+                      <span className="text-[var(--text-muted)] pl-5.5">Cholestérol :</span>
+                      <span className="font-bold text-[var(--text)]">{Math.round(totals.cholesterol)}mg</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

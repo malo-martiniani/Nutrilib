@@ -423,3 +423,18 @@ html, body {
   border-radius: 50%;
   animation: nature-spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
+
+@keyframes slide-down {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-down {
+  animation: slide-down 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

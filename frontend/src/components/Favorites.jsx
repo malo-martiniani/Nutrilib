@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Heart, FolderPlus, Trash2, Plus, Calendar, ShoppingBag, Search, Folder, X, Clock, Star, ListTodo, Flame, CheckCircle } from 'lucide-react';
+import { useNotification } from '../context/NotificationContext';
 
 const MEALS = [
   { id: 'breakfast', name: 'Petit-déjeuner', label: 'MATIN' },
@@ -9,6 +10,7 @@ const MEALS = [
 ];
 
 export default function Favorites({ token, defaultDate }) {
+  const { showToast, askConfirmation } = useNotification();
   const [favorites, setFavorites] = useState([]);
   const [lists, setLists] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -117,11 +119,18 @@ export default function Favorites({ token, defaultDate }) {
   };
 
   const handleDeleteList = async (listId) => {
-    if (!window.confirm('Supprimer cette liste ?')) return;
+    const confirmed = await askConfirmation('Supprimer cette liste ?');
+    if (!confirmed) return;
     try {
       const response = await fetch(`http://localhost:5000/api/lists/${listId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
-      if (response.ok) { setLists(lists.filter(l => l.id !== listId)); }
-    } catch (err) { console.error(err); }
+      if (response.ok) { 
+        setLists(lists.filter(l => l.id !== listId)); 
+        showToast('Liste supprimée.');
+      }
+    } catch (err) { 
+      console.error(err); 
+      showToast('Erreur réseau.', 'error');
+    }
   };
 
   const handleRemoveItemFromList = async (itemId, listId) => {
@@ -163,9 +172,17 @@ export default function Favorites({ token, defaultDate }) {
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(payload)
       });
-      if (response.ok) { alert(`${quickAddFood.food_name} ajouté au journal !`); setQuickAddFood(null); }
-      else { const err = await response.json(); alert(err.message || 'Erreur.'); }
-    } catch (err) { alert('Erreur réseau.'); }
+      if (response.ok) { 
+        showToast(`${quickAddFood.food_name} ajouté au journal !`); 
+        setQuickAddFood(null); 
+      }
+      else { 
+        const err = await response.json(); 
+        showToast(err.message || 'Erreur.', 'error'); 
+      }
+    } catch (err) { 
+      showToast('Erreur réseau.', 'error'); 
+    }
     finally { setAddingToJournal(false); }
   };
 
@@ -185,13 +202,16 @@ export default function Favorites({ token, defaultDate }) {
         })
       });
       if (response.ok) {
-        alert(`${food.food_name} ajouté à la liste !`);
+        showToast(`${food.food_name} ajouté à la liste !`);
         fetchData();
         setListSearchQuery('');
         setListSearchResults([]);
         setActiveListSearchId(null);
       }
-    } catch (err) { console.error(err); }
+    } catch (err) { 
+      console.error(err); 
+      showToast('Erreur réseau.', 'error');
+    }
   };
 
   const handleFetchRecipeDetails = async (id) => {
@@ -200,8 +220,11 @@ export default function Favorites({ token, defaultDate }) {
     try {
       const response = await fetch(`http://localhost:5000/api/foods/recipes/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
       if (response.ok) { setSelectedRecipe((await response.json()).recipe); }
-      else { alert('Erreur chargement recette.'); }
-    } catch (err) { console.error(err); }
+      else { showToast('Erreur chargement recette.', 'error'); }
+    } catch (err) { 
+      console.error(err); 
+      showToast('Erreur réseau.', 'error');
+    }
     finally { setLoadingRecipe(false); }
   };
 
@@ -545,7 +568,10 @@ export default function Favorites({ token, defaultDate }) {
                   <div className="border border-[var(--border)] p-4 space-y-3 rounded-2xl bg-[var(--surface-inset)]">
                     <div className="flex items-center justify-between border-b border-[var(--border-muted)] pb-2">
                       <span className="brutal-label mb-0">Nutrition</span>
-                      <span className="text-xs font-extrabold text-[var(--accent-pistachio)]">{selectedRecipe.calories} kcal/portion</span>
+                      <span className="text-xs font-extrabold text-[var(--accent-pistachio)]">
+                        {selectedRecipe.calories} kcal/portion
+                        {selectedRecipe.number_of_servings ? ` (Recette de ${selectedRecipe.number_of_servings} portions)` : ''}
+                      </span>
                     </div>
                     <div className="grid grid-cols-3 gap-3 text-center">
                       <div className="p-2 border border-[var(--accent-powder)]/20 rounded-xl bg-[var(--accent-powder)]/5">
