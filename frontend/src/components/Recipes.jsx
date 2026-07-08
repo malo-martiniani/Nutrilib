@@ -298,29 +298,29 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
         setShowCreateModal(false);
         fetchCustomRecipes();
       } else {
-        showToast('Erreur lors de la création.', 'error');
+        showToast(t('error_creating_recipe'), 'error');
       }
     } catch (err) {
       console.error(err);
-      showToast('Erreur réseau.', 'error');
+      showToast(t('errorNetwork'), 'error');
     }
   };
 
-  const handleDeleteCustomRecipe = async (id) => {
-    const confirmed = await askConfirmation('Supprimer cette recette ?');
+  const handleDeleteCustomRecipe = async (recipeId) => {
+    const confirmed = await askConfirmation(t('confirm_delete_recipe') || 'Supprimer cette recette ?');
     if (!confirmed) return;
     try {
-      const response = await fetch(`${API_URL}/foods/custom-recipes/${id}`, {
+      const response = await fetch(`${API_URL}/custom-recipes/${recipeId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
-        showToast('Recette supprimée.');
-        setCustomRecipes(customRecipes.filter(r => r.id !== id));
+        setCustomRecipes(customRecipes.filter(r => r.id !== recipeId));
+        showToast(t('recipe_deleted') || 'Recette supprimée.');
       }
     } catch (err) {
       console.error(err);
-      showToast('Erreur réseau.', 'error');
+      showToast(t('errorServer'), 'error');
     }
   };
 
@@ -473,7 +473,7 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
               : 'border border-transparent text-[var(--text-muted)] hover:text-[var(--text)]'
           }`}
         >
-          <Search className="w-3.5 h-3.5" /> Recettes API
+          <Search className="w-3.5 h-3.5" /> {t('discover_recipes')}
         </button>
         <button
           type="button"
@@ -484,7 +484,7 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
               : 'border border-transparent text-[var(--text-muted)] hover:text-[var(--text)]'
           }`}
         >
-          <Sparkles className="w-3.5 h-3.5" /> Mes Créations
+          <Sparkles className="w-3.5 h-3.5" /> {t('custom_recipes_title')}
         </button>
       </div>
 
@@ -705,18 +705,17 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
           </div>
         </>
       ) : (
-        /* CUSTOM RECIPES SUB-TAB */
         <div className="space-y-6 animate-fadeIn">
           <div className="flex items-center justify-between border-b border-[var(--border-muted)] pb-3">
             <div>
-              <h2 className="text-base font-extrabold uppercase tracking-wider text-[var(--text)]">Mes Recettes Personnalisées</h2>
-              <p className="text-[10px] text-[var(--text-muted)] mt-1 font-medium">Composez vos propres créations culinaires et calculez leurs macros.</p>
+              <h2 className="text-base font-extrabold uppercase tracking-wider text-[var(--text)]">{t('custom_recipes_title')}</h2>
+              <p className="text-[10px] text-[var(--text-muted)] mt-1 font-medium">{t('compose_creations_desc') || 'Composez vos propres créations culinaires et calculez leurs macros.'}</p>
             </div>
             <button
               onClick={() => setShowCreateModal(true)}
               className="brutal-btn-accent flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-extrabold uppercase bg-[var(--accent-pistachio)] text-[var(--bg-dark-slate)]"
             >
-              <Plus className="w-3.5 h-3.5" /> Créer
+              <Plus className="w-3.5 h-3.5" /> {t('create') || 'Créer'}
             </button>
           </div>
 
@@ -726,14 +725,14 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
                 <ChefHat className="w-6 h-6 text-[var(--text-dim)]" />
               </div>
               <div>
-                <p className="text-xs font-bold text-[var(--text)]">Aucune recette personnalisée</p>
-                <p className="text-[10px] text-[var(--text-muted)] mt-1 font-semibold">Créez votre première recette pour l'ajouter facilement à vos repas.</p>
+                <p className="text-xs font-bold text-[var(--text)]">{t('no_custom_recipes')}</p>
+                <p className="text-[10px] text-[var(--text-muted)] mt-1 font-semibold">{t('create_first_recipe_desc') || "Créez votre première recette pour l'ajouter facilement à vos repas."}</p>
               </div>
               <button
                 onClick={() => setShowCreateModal(true)}
                 className="brutal-btn-ghost px-4 py-2 text-[10px] font-extrabold uppercase text-[var(--accent-pistachio)]"
               >
-                Créer une recette
+                {t('create_recipe')}
               </button>
             </div>
           ) : (
@@ -968,7 +967,7 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
 
             <form onSubmit={handleCreateCustomRecipe} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
               <div className="space-y-1">
-                <label className="brutal-label">Nom de la recette</label>
+                <label className="brutal-label">{language === 'fr' ? 'Nom de la recette' : 'Recipe name'}</label>
                 <input
                   type="text"
                   placeholder="Ex: Riz sauté poulet curry"
@@ -980,7 +979,7 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
               </div>
 
               <div className="space-y-1">
-                <label className="brutal-label">Description (facultatif)</label>
+                <label className="brutal-label">{language === 'fr' ? 'Description (facultatif)' : 'Description (optional)'}</label>
                 <textarea
                   placeholder="Ex: Idéal après une séance d'entraînement."
                   value={newRecipeDesc}
@@ -990,7 +989,7 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
               </div>
 
               <div className="space-y-1">
-                <label className="brutal-label">URL de l'image (facultatif)</label>
+                <label className="brutal-label">{language === 'fr' ? "URL de l'image (facultatif)" : 'Image URL (optional)'}</label>
                 <input
                   type="url"
                   placeholder="https://images.unsplash.com/... (ou vide)"
@@ -1001,7 +1000,7 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
               </div>
 
               <div className="space-y-1">
-                <label className="brutal-label">Nombre de portions</label>
+                <label className="brutal-label">{language === 'fr' ? 'Nombre de portions' : 'Number of servings'}</label>
                 <input
                   type="number"
                   min="1"
@@ -1014,10 +1013,10 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
 
               {/* Ingredients chosen list */}
               <div className="space-y-2">
-                <label className="brutal-label block">Ingrédients ajoutés ({newRecipeIngredients.length})</label>
+                <label className="brutal-label block">{(t('ingredients') || 'Ingrédients') + ' (' + newRecipeIngredients.length + ')'}</label>
                 {newRecipeIngredients.length === 0 ? (
                   <p className="text-[10px] text-[var(--text-muted)] bg-[var(--surface-inset)] p-3 rounded-xl border border-dashed border-[var(--border)] text-center font-medium">
-                    Aucun ingrédient pour le moment. Recherchez ci-dessous pour en ajouter.
+                    {language === 'fr' ? 'Aucun ingrédient pour le moment. Recherchez ci-dessous pour en ajouter.' : 'No ingredients yet. Search below to add.'}
                   </p>
                 ) : (
                   <div className="space-y-1.5 max-h-40 overflow-y-auto">
@@ -1049,15 +1048,15 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
               {newRecipeIngredients.length > 0 && (
                 <div className="p-3 border border-[var(--border)] bg-[var(--surface-inset)] rounded-xl space-y-1.5 text-[10px] font-extrabold">
                   <div className="flex justify-between text-[var(--text)]">
-                    <span>Total Calories :</span>
+                    <span>{language === 'fr' ? 'Total Calories :' : 'Total Calories:'}</span>
                     <span className="text-[var(--accent-pistachio)]">{computedNewRecipeTotals.calories} kcal</span>
                   </div>
                   <div className="flex justify-between text-[var(--text-muted)] pt-1 border-t border-[var(--border-muted)]/30">
-                    <span>Macronutriments :</span>
+                    <span>{t('macro_split') || 'Macronutrients:'}</span>
                     <span>
                       P: {computedNewRecipeTotals.protein.toFixed(1)}g · 
-                      G: {computedNewRecipeTotals.carbs.toFixed(1)}g · 
-                      L: {computedNewRecipeTotals.fat.toFixed(1)}g
+                      {language === 'fr' ? 'G' : 'C'}: {computedNewRecipeTotals.carbs.toFixed(1)}g · 
+                      {language === 'fr' ? 'L' : 'F'}: {computedNewRecipeTotals.fat.toFixed(1)}g
                     </span>
                   </div>
                 </div>
@@ -1065,12 +1064,12 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
 
               {/* Ingredients search panel inside Creator */}
               <div className="space-y-2 pt-2 border-t border-[var(--border-muted)]/40">
-                <label className="brutal-label block">Rechercher un ingrédient</label>
+                <label className="brutal-label block">{language === 'fr' ? 'Rechercher un ingrédient' : 'Search for an ingredient'}</label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-dim)]" />
                   <input
                     type="text"
-                    placeholder="Saisissez un aliment (ex: avocat, riz...)"
+                    placeholder={t('food_placeholder') || (language === 'fr' ? 'Saisissez un aliment (ex: avocat, riz...)' : 'Enter food...')}
                     value={ingSearchQuery}
                     onChange={(e) => setIngSearchQuery(e.target.value)}
                     className="brutal-input pl-8 py-1.5 text-xs"
@@ -1106,7 +1105,7 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
                 disabled={newRecipeIngredients.length === 0}
                 className="brutal-btn-accent w-full py-2 bg-[var(--accent-pistachio)] text-[var(--bg-dark-slate)]"
               >
-                Créer la Recette
+                {language === 'fr' ? 'Créer la Recette' : 'Create Recipe'}
               </button>
             </form>
           </div>
@@ -1118,8 +1117,8 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
         <div className="brutal-overlay z-[60]" onClick={() => setSelectedIngForAmount(null)}>
           <div className="brutal-modal max-w-xs w-full z-[70]" onClick={(e) => e.stopPropagation()}>
             <div className="px-5 py-3 border-b border-[var(--border-muted)] flex justify-between items-center">
-              <span className="text-xs font-black uppercase text-[var(--text)]">Quantité ingrédient</span>
-              <button onClick={() => setSelectedIngForAmount(null)} className="text-[10px] text-[var(--text-muted)] font-bold uppercase hover:text-[var(--text)]">Annuler</button>
+              <span className="text-xs font-black uppercase text-[var(--text)]">{language === 'fr' ? 'Quantité ingrédient' : 'Ingredient quantity'}</span>
+              <button onClick={() => setSelectedIngForAmount(null)} className="text-[10px] text-[var(--text-muted)] font-bold uppercase hover:text-[var(--text)]">{t('cancel')}</button>
             </div>
             
             <div className="p-5 space-y-4">
@@ -1149,7 +1148,7 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
                 onClick={handleAddIngSubmit}
                 className="brutal-btn-accent w-full py-1.5 text-xs font-extrabold uppercase bg-[var(--accent-pistachio)] text-[var(--bg-dark-slate)]"
               >
-                Confirmer l'ajout
+                {language === 'fr' ? "Confirmer l'ajout" : 'Confirm addition'}
               </button>
             </div>
           </div>
@@ -1161,20 +1160,20 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
         <div className="brutal-overlay" onClick={() => setSelectedCustomRecipeForJournal(null)}>
           <div className="brutal-modal max-w-xs w-full" onClick={(e) => e.stopPropagation()}>
             <div className="px-5 py-3 border-b border-[var(--border-muted)] flex justify-between items-center">
-              <span className="text-xs font-black uppercase text-[var(--text)]">Ajouter au journal</span>
-              <button onClick={() => setSelectedCustomRecipeForJournal(null)} className="text-[10px] text-[var(--text-muted)] font-bold uppercase">Annuler</button>
+              <span className="text-xs font-black uppercase text-[var(--text)]">{t('add_to_journal')}</span>
+              <button onClick={() => setSelectedCustomRecipeForJournal(null)} className="text-[10px] text-[var(--text-muted)] font-bold uppercase">{t('cancel')}</button>
             </div>
 
             <div className="p-5 space-y-4">
               <div>
                 <span className="text-xs font-bold text-[var(--text)] block">{selectedCustomRecipeForJournal.recipe_name}</span>
                 <span className="text-[9px] text-[var(--text-dim)]">
-                  {Math.round(selectedCustomRecipeForJournal.calories / (selectedCustomRecipeForJournal.servings || 1))} kcal par portion (Recette de {selectedCustomRecipeForJournal.servings || 1} portion(s))
+                  {Math.round(selectedCustomRecipeForJournal.calories / (selectedCustomRecipeForJournal.servings || 1))} kcal {language === 'fr' ? 'par portion' : 'per serving'} ({language === 'fr' ? 'Recette de' : 'Recipe has'} {selectedCustomRecipeForJournal.servings || 1} {language === 'fr' ? 'portion(s)' : 'serving(s)'})
                 </span>
               </div>
 
               <div className="space-y-1">
-                <label className="text-[9px] uppercase font-extrabold text-[var(--text-muted)]">Nombre de portions consommées</label>
+                <label className="text-[9px] uppercase font-extrabold text-[var(--text-muted)]">{language === 'fr' ? 'Nombre de portions consommées' : 'Number of servings eaten'}</label>
                 <input
                   type="number"
                   min="0.25"
@@ -1186,21 +1185,21 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[9px] uppercase font-extrabold text-[var(--text-muted)]">Type de repas</label>
+                <label className="text-[9px] uppercase font-extrabold text-[var(--text-muted)]">{language === 'fr' ? 'Type de repas' : 'Meal type'}</label>
                 <select
                   value={quickAddMeal}
                   onChange={(e) => setQuickAddMeal(e.target.value)}
                   className="brutal-input w-full py-1.5 text-xs font-bold bg-[var(--surface)] text-[var(--text)]"
                 >
-                  <option value="breakfast">Petit-déjeuner</option>
-                  <option value="lunch">Déjeuner</option>
-                  <option value="dinner">Dîner</option>
-                  <option value="snack">Collation</option>
+                  <option value="breakfast">{t('breakfast')}</option>
+                  <option value="lunch">{t('lunch')}</option>
+                  <option value="dinner">{t('dinner')}</option>
+                  <option value="snack">{t('snack')}</option>
                 </select>
               </div>
 
               <div className="space-y-1">
-                <label className="text-[9px] uppercase font-extrabold text-[var(--text-muted)]">Date de consommation</label>
+                <label className="text-[9px] uppercase font-extrabold text-[var(--text-muted)]">{language === 'fr' ? 'Date de consommation' : 'Consumption date'}</label>
                 <input
                   type="date"
                   value={quickAddDate}
@@ -1214,7 +1213,7 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
                 onClick={handleQuickAddCustomRecipeSubmit}
                 className="brutal-btn-accent w-full py-2 text-xs font-extrabold bg-[var(--accent-pistachio)] text-[var(--bg-dark-slate)]"
               >
-                Ajouter au repas
+                {t('add_to_meal_btn')}
               </button>
             </div>
           </div>
@@ -1228,7 +1227,7 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
             <div className="px-6 py-4 border-b border-[var(--border-muted)] flex justify-between items-start">
               <div>
                 <h3 className="font-extrabold text-base uppercase tracking-wider text-[var(--text)]">{selectedCustomRecipeDetail.recipe_name}</h3>
-                <p className="text-[10px] text-[var(--text-muted)] mt-1.5 font-medium">{selectedCustomRecipeDetail.recipe_description || 'Pas de description.'}</p>
+                <p className="text-[10px] text-[var(--text-muted)] mt-1.5 font-medium">{selectedCustomRecipeDetail.recipe_description || (language === 'fr' ? 'Pas de description.' : 'No description.')}</p>
               </div>
               <button onClick={() => setSelectedCustomRecipeDetail(null)} className="brutal-btn-ghost p-2 cursor-pointer">
                 <X className="w-5 h-5" />
@@ -1251,8 +1250,8 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
                 <div className="flex-1 space-y-4">
                   <div className="border border-[var(--border)] p-4 space-y-3 rounded-2xl bg-[var(--surface-inset)]">
                     <div className="flex items-center justify-between border-b border-[var(--border-muted)] pb-2">
-                      <span className="brutal-label mb-0">Nutrition (par portion)</span>
-                      <span className="text-[10px] text-[var(--accent-pistachio)] font-extrabold">{selectedCustomRecipeDetail.servings || 1} portion(s)</span>
+                      <span className="brutal-label mb-0">{language === 'fr' ? 'Nutrition (par portion)' : 'Nutrition (per serving)'}</span>
+                      <span className="text-[10px] text-[var(--accent-pistachio)] font-extrabold">{selectedCustomRecipeDetail.servings || 1} {language === 'fr' ? 'portion(s)' : 'serving(s)'}</span>
                     </div>
                     <div className="grid grid-cols-4 gap-1 text-center">
                       <div className="p-1.5 border border-[var(--accent-powder)]/20 rounded-xl bg-[var(--accent-powder)]/5">
@@ -1264,23 +1263,23 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
                         <span className="text-[10px] font-extrabold text-[var(--text)]">{parseFloat((selectedCustomRecipeDetail.protein / (selectedCustomRecipeDetail.servings || 1)).toFixed(1))}g</span>
                       </div>
                       <div className="p-1.5 border border-[var(--accent-powder)]/20 rounded-xl bg-[var(--accent-powder)]/5">
-                        <span className="text-[8px] font-bold text-[var(--accent-powder)] block uppercase">Gluc.</span>
+                        <span className="text-[8px] font-bold text-[var(--accent-powder)] block uppercase">{language === 'fr' ? 'Gluc.' : 'Carb.'}</span>
                         <span className="text-[10px] font-extrabold text-[var(--text)]">{parseFloat((selectedCustomRecipeDetail.carbs / (selectedCustomRecipeDetail.servings || 1)).toFixed(1))}g</span>
                       </div>
                       <div className="p-1.5 border border-[var(--accent-sand)]/20 rounded-xl bg-[var(--accent-sand)]/5">
-                        <span className="text-[8px] font-bold text-[var(--accent-sand)] block uppercase">Lip.</span>
+                        <span className="text-[8px] font-bold text-[var(--accent-sand)] block uppercase">{language === 'fr' ? 'Lip.' : 'Fat.'}</span>
                         <span className="text-[10px] font-extrabold text-[var(--text)]">{parseFloat((selectedCustomRecipeDetail.fat / (selectedCustomRecipeDetail.servings || 1)).toFixed(1))}g</span>
                       </div>
                     </div>
                     <div className="text-[9px] text-[var(--text-dim)] font-bold text-center border-t border-[var(--border-muted)] pt-1.5 mt-1">
-                      Total recette : {selectedCustomRecipeDetail.calories} kcal · P: {selectedCustomRecipeDetail.protein}g · G: {selectedCustomRecipeDetail.carbs}g · L: {selectedCustomRecipeDetail.fat}g
+                      {language === 'fr' ? 'Total recette :' : 'Total recipe:'} {selectedCustomRecipeDetail.calories} kcal · P: {selectedCustomRecipeDetail.protein}g · {language === 'fr' ? 'G' : 'C'}: {selectedCustomRecipeDetail.carbs}g · {language === 'fr' ? 'L' : 'F'}: {selectedCustomRecipeDetail.fat}g
                     </div>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <h4 className="font-extrabold text-xs uppercase tracking-wider text-[var(--text)]">Ingrédients ({selectedCustomRecipeDetail.ingredients?.length})</h4>
+                <h4 className="font-extrabold text-xs uppercase tracking-wider text-[var(--text)]">{t('ingredients')} ({selectedCustomRecipeDetail.ingredients?.length})</h4>
                 <div className="space-y-1.5">
                   {selectedCustomRecipeDetail.ingredients?.map((ing, idx) => (
                     <div key={idx} className="flex justify-between items-center p-2.5 bg-[var(--surface-inset)] border border-[var(--border-muted)] rounded-xl text-xs">
@@ -1297,7 +1296,7 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
                 onClick={() => { setSelectedCustomRecipeDetail(null); setSelectedCustomRecipeForJournal(selectedCustomRecipeDetail); }}
                 className="brutal-btn-accent flex-1 py-2 bg-[var(--accent-pistachio)] text-[var(--bg-dark-slate)]"
               >
-                Ajouter au repas
+                {t('add_to_meal_btn')}
               </button>
             </div>
           </div>

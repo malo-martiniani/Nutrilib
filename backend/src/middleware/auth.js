@@ -17,7 +17,7 @@ module.exports = function(req, res, next) {
   const token = parts[1];
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'generer_un_secret_tres_long_et_securise_ici');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded; // Ajoute l'utilisateur décodé à l'objet de requête (contient id et username)
     next();
   } catch (error) {

@@ -30,8 +30,8 @@ router.post('/', authMiddleware, async (req, res) => {
   }
 
   const parsedWeight = parseFloat(weight);
-  if (isNaN(parsedWeight) || parsedWeight <= 0) {
-    return res.status(400).json({ message: 'Poids invalide.' });
+  if (isNaN(parsedWeight) || parsedWeight <= 0 || parsedWeight > 500) {
+    return res.status(400).json({ message: 'Poids invalide (doit être compris entre 0.1 et 500 kg).' });
   }
 
   try {

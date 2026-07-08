@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Scale, Calendar, Trash2, Plus, TrendingDown, TrendingUp } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { useNotification } from '../context/NotificationContext';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -16,6 +18,7 @@ import { Line } from 'react-chartjs-2';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler, Legend);
 
 export default function WeightTracker({ token, onWeightChange }) {
+  const { showToast, askConfirmation } = useNotification();
   const [weightHistory, setWeightHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -23,6 +26,8 @@ export default function WeightTracker({ token, onWeightChange }) {
   const [weight, setWeight] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [error, setError] = useState('');
+
+  const { language, t } = useAuth();
 
   const fetchWeightHistory = async () => {
     try {
@@ -51,16 +56,22 @@ export default function WeightTracker({ token, onWeightChange }) {
         setWeight('');
         fetchWeightHistory();
         if (onWeightChange) onWeightChange();
+        showToast(language === 'fr' ? 'Poids enregistré !' : 'Weight logged!');
       } else {
         const err = await response.json();
         setError(err.message || 'Erreur.');
+        showToast(err.message || 'Erreur.', 'error');
       }
-    } catch (err) { setError('Erreur réseau.'); }
+    } catch (err) {
+      setError('Erreur réseau.');
+      showToast(language === 'fr' ? 'Erreur réseau.' : 'Network error.', 'error');
+    }
     finally { setSaving(false); }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Supprimer cette mesure ?')) return;
+    const confirmed = await askConfirmation(t('confirm_delete_weight'));
+    if (!confirmed) return;
     try {
       const response = await fetch(`http://localhost:5000/api/weight/${id}`, {
         method: 'DELETE',
@@ -69,8 +80,12 @@ export default function WeightTracker({ token, onWeightChange }) {
       if (response.ok) {
         setWeightHistory(weightHistory.filter(w => w.id !== id));
         if (onWeightChange) onWeightChange();
+        showToast(language === 'fr' ? 'Mesure de poids supprimée.' : 'Weight measurement deleted.');
       }
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      console.error(err);
+      showToast(language === 'fr' ? 'Erreur réseau.' : 'Network error.', 'error');
+    }
   };
 
   const getWeightChangeStats = () => {
@@ -86,10 +101,10 @@ export default function WeightTracker({ token, onWeightChange }) {
   const chartData = {
     labels: weightHistory.map(w => {
       const d = new Date(w.entry_date);
-      return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+      return d.toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short' });
     }),
     datasets: [{
-      label: 'Poids (kg)',
+      label: t('weight_placeholder'),
       data: weightHistory.map(w => parseFloat(w.weight)),
       borderColor: '#d2f0c0', // Pistachio
       backgroundColor: 'rgba(210, 240, 192, 0.06)',
@@ -147,23 +162,23 @@ export default function WeightTracker({ token, onWeightChange }) {
       {/* Input form */}
       <div className="brutal-card space-y-4">
         <h3 className="font-extrabold text-sm uppercase tracking-wider flex items-center gap-2 text-[var(--text)]">
-          <Scale className="w-4 h-4 text-[var(--accent-powder)]" /> Saisie du poids
+          <Scale className="w-4 h-4 text-[var(--accent-powder)]" /> {t('weight_input_title')}
         </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="brutal-label">Poids (kg)</label>
+              <label className="brutal-label">{t('weight_placeholder')}</label>
               <input type="number" step="0.1" min="20" max="300" required value={weight}
                 onChange={(e) => setWeight(e.target.value)} placeholder="78.5" className="brutal-input" />
             </div>
             <div>
-              <label className="brutal-label">Date</label>
+              <label className="brutal-label">{t('date')}</label>
               <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} className="brutal-input" />
             </div>
           </div>
           {error && <p className="text-xs text-[var(--accent-magenta)] font-bold">{error}</p>}
           <button type="submit" disabled={saving} className="brutal-btn-accent w-full cursor-pointer" style={{ backgroundColor: 'var(--accent-pistachio)', color: 'var(--bg-dark-slate)' }}>
-            <Plus className="w-4 h-4" /> Enregistrer
+            <Plus className="w-4 h-4" /> {t('save')}
           </button>
         </form>
       </div>
@@ -172,8 +187,8 @@ export default function WeightTracker({ token, onWeightChange }) {
       <div className="brutal-card space-y-4">
         <div className="flex items-start justify-between border-b border-[var(--border-muted)] pb-3">
           <div>
-            <h3 className="font-extrabold text-sm uppercase tracking-wider">Courbe d'évolution</h3>
-            <p className="text-[10px] text-[var(--text-dim)]">Variations de poids au fil du temps</p>
+            <h3 className="font-extrabold text-sm uppercase tracking-wider">{t('evolution_chart')}</h3>
+            <p className="text-[10px] text-[var(--text-dim)]">{t('weight_variations')}</p>
           </div>
           {changeStats && (
             <span className={`brutal-tag text-[10px] ${
@@ -190,7 +205,7 @@ export default function WeightTracker({ token, onWeightChange }) {
           {weightHistory.length < 2 ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center text-[var(--text-dim)] space-y-3">
               <Scale className="w-10 h-10" />
-              <p className="text-sm font-bold uppercase tracking-wider">Min. 2 mesures requises</p>
+              <p className="text-sm font-bold uppercase tracking-wider">{t('min_weights_required')}</p>
             </div>
           ) : (
             <Line data={chartData} options={chartOptions} />
@@ -201,14 +216,14 @@ export default function WeightTracker({ token, onWeightChange }) {
       {/* History list */}
       <div className="brutal-card space-y-3">
         <h3 className="font-extrabold text-sm uppercase tracking-wider flex items-center gap-2 border-b border-[var(--border-muted)] pb-3">
-          <Calendar className="w-4 h-4 text-[var(--accent-powder)]" /> Historique
+          <Calendar className="w-4 h-4 text-[var(--accent-powder)]" /> {t('weight_history')}
         </h3>
         <div className="max-h-[300px] overflow-y-auto space-y-2">
           {weightHistory.length === 0 ? (
-            <p className="text-xs text-[var(--text-dim)] text-center py-8 font-medium">Aucun historique.</p>
+            <p className="text-xs text-[var(--text-dim)] text-center py-8 font-medium">{t('no_history')}</p>
           ) : (
             [...weightHistory].reverse().map((w) => {
-              const displayDate = new Date(w.entry_date).toLocaleDateString('fr-FR', {
+              const displayDate = new Date(w.entry_date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
                 day: 'numeric', month: 'long', year: 'numeric'
               });
               return (

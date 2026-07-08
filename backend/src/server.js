@@ -1,7 +1,13 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const crypto = require('crypto');
 require('dotenv').config();
+
+if (!process.env.JWT_SECRET) {
+  process.env.JWT_SECRET = crypto.randomBytes(32).toString('hex');
+  console.log('JWT_SECRET non défini dans l\'environnement. Clé aléatoire sécurisée générée pour cette session.');
+}
 
 const rateLimit = require('express-rate-limit');
 

@@ -121,17 +121,17 @@ export default function Favorites({ token, defaultDate }) {
   };
 
   const handleDeleteList = async (listId) => {
-    const confirmed = await askConfirmation('Supprimer cette liste ?');
+    const confirmed = await askConfirmation(t('confirm_delete_list') || 'Supprimer cette liste ?');
     if (!confirmed) return;
     try {
       const response = await fetch(`http://localhost:5000/api/lists/${listId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
       if (response.ok) { 
         setLists(lists.filter(l => l.id !== listId)); 
-        showToast('Liste supprimée.');
+        showToast(t('list_deleted') || 'Liste supprimée.');
       }
     } catch (err) { 
       console.error(err); 
-      showToast('Erreur réseau.', 'error');
+      showToast(t('errorServer'), 'error');
     }
   };
 
@@ -256,14 +256,14 @@ export default function Favorites({ token, defaultDate }) {
       {/* FAVORITES */}
       <div className="brutal-card space-y-4">
         <h2 className="text-base font-extrabold uppercase tracking-wider border-b border-[var(--border-muted)] pb-3 flex items-center gap-2 text-[var(--text)]">
-          <Heart className="w-5 h-5 text-[var(--accent-magenta)] fill-[var(--accent-magenta)]/10" /> Mes Favoris
+          <Heart className="w-5 h-5 text-[var(--accent-magenta)] fill-[var(--accent-magenta)]/10" /> {t('favorites_title')}
         </h2>
 
         {favorites.length === 0 ? (
           <div className="text-center py-12 text-[var(--text-dim)]">
             <Heart className="w-10 h-10 mx-auto mb-3 text-[var(--border-muted)] opacity-50" />
-            <p className="text-xs font-bold uppercase tracking-wider">Aucun favori</p>
-            <p className="text-[10px] mt-1">Cliquez sur le cœur lors de vos recherches.</p>
+            <p className="text-xs font-bold uppercase tracking-wider">{t('no_favorites')}</p>
+            <p className="text-[10px] mt-1">{t('click_heart_to_favorite')}</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -277,7 +277,7 @@ export default function Favorites({ token, defaultDate }) {
                         onClick={() => handleFetchRecipeDetails(fav.food_id.replace('recipe_', ''))}
                         className="font-bold text-sm text-[var(--accent-powder)] hover:underline text-left cursor-pointer"
                       >
-                        {fav.food_name} (Recette)
+                        {fav.food_name} ({t('tab_recipes')})
                       </button>
                     ) : (
                       <h4 className="font-bold text-sm text-[var(--text)]">{fav.food_name}</h4>
@@ -309,10 +309,10 @@ export default function Favorites({ token, defaultDate }) {
       <div className="brutal-card space-y-4">
         <div className="border-b border-[var(--border-muted)] pb-3 space-y-3">
           <h2 className="text-base font-extrabold uppercase tracking-wider flex items-center gap-2 text-[var(--text)]">
-            <ShoppingBag className="w-5 h-5 text-[var(--accent-powder)]" /> Mes Listes
+            <ShoppingBag className="w-5 h-5 text-[var(--accent-powder)]" /> {t('my_lists')}
           </h2>
           <form onSubmit={handleCreateList} className="flex gap-2">
-            <input type="text" required placeholder="Nom de la liste..."
+            <input type="text" required placeholder={t('list_name_placeholder') || "Nom de la liste..."}
               value={newListName} onChange={(e) => setNewListName(e.target.value)}
               className="brutal-input flex-1 py-2 text-xs" />
             <button type="submit" disabled={creatingList} className="brutal-btn-accent py-2 px-3 text-[10px] cursor-pointer" style={{ backgroundColor: 'var(--accent-pistachio)', color: 'var(--bg-dark-slate)', boxShadow: 'none' }}>
@@ -324,8 +324,8 @@ export default function Favorites({ token, defaultDate }) {
         {lists.length === 0 ? (
           <div className="text-center py-12 text-[var(--text-dim)]">
             <ShoppingBag className="w-10 h-10 mx-auto mb-3 text-[var(--border-muted)] opacity-50" />
-            <p className="text-xs font-bold uppercase tracking-wider">Aucune liste</p>
-            <p className="text-[10px] mt-1">Créez une liste ci-dessus.</p>
+            <p className="text-xs font-bold uppercase tracking-wider">{t('no_lists')}</p>
+            <p className="text-[10px] mt-1">{t('create_list_above')}</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -334,14 +334,14 @@ export default function Favorites({ token, defaultDate }) {
                 <div className="flex items-center justify-between border-b border-[var(--border-muted)] pb-2.5">
                   <div>
                     <h3 className="font-bold text-sm text-[var(--text)]">{list.list_name}</h3>
-                    <span className="text-[10px] text-[var(--text-muted)] font-medium">{list.items.length} aliment(s)</span>
+                    <span className="text-[10px] text-[var(--text-muted)] font-medium">{list.items.length} {t('items_count')}</span>
                   </div>
                   <button onClick={() => handleDeleteList(list.id)} className="brutal-btn-danger">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
                 {list.items.length === 0 ? (
-                  <p className="text-[10px] text-[var(--text-dim)] py-2 text-center font-medium">Liste vide.</p>
+                  <p className="text-[10px] text-[var(--text-dim)] py-2 text-center font-medium">{t('empty_list_text') || 'Liste vide.'}</p>
                 ) : (
                   <div className="space-y-2">
                     {list.items.map((item) => {
@@ -354,7 +354,7 @@ export default function Favorites({ token, defaultDate }) {
                                 onClick={() => handleFetchRecipeDetails(item.food_id.replace('recipe_', ''))}
                                 className="font-bold text-xs text-[var(--accent-powder)] hover:underline text-left cursor-pointer"
                               >
-                                {item.food_name} (Recette)
+                                {item.food_name} ({t('tab_recipes')})
                               </button>
                             ) : (
                               <span className="font-bold text-xs text-[var(--text)] block">{item.food_name}</span>
@@ -385,7 +385,7 @@ export default function Favorites({ token, defaultDate }) {
                         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-dim)]" />
                         <input 
                           type="text" 
-                          placeholder="Rechercher aliment/recette..." 
+                          placeholder={t('search_food_or_recipe') || "Rechercher aliment/recette..."}
                           value={listSearchQuery}
                           onChange={(e) => setListSearchQuery(e.target.value)}
                           className="brutal-input flex-1 py-1 text-xs"
@@ -395,15 +395,15 @@ export default function Favorites({ token, defaultDate }) {
                           onClick={() => { setActiveListSearchId(null); setListSearchQuery(''); setListSearchResults([]); }}
                           className="brutal-btn-ghost p-1 py-1 text-[10px]"
                         >
-                          Annuler
+                          {t('cancel')}
                         </button>
                       </div>
 
                       {/* Search Results in small dropdown list */}
                       {listSearchQuery && (
                         <div className="bg-[var(--surface-raised)] border border-[var(--border)] max-h-40 overflow-y-auto rounded-xl shadow-md p-1 space-y-1">
-                          {listSearching && <p className="text-[10px] text-center py-2 text-[var(--text-dim)]">Recherche...</p>}
-                          {!listSearching && listSearchResults.length === 0 && <p className="text-[10px] text-center py-2 text-[var(--text-dim)]">Aucun aliment.</p>}
+                          {listSearching && <p className="text-[10px] text-center py-2 text-[var(--text-dim)]">{t('loading')}...</p>}
+                          {!listSearching && listSearchResults.length === 0 && <p className="text-[10px] text-center py-2 text-[var(--text-dim)]">{t('no_food_found')}...</p>}
                           {!listSearching && listSearchResults.map((food) => (
                             <div 
                               key={food.food_id}
@@ -425,7 +425,7 @@ export default function Favorites({ token, defaultDate }) {
                       onClick={() => setActiveListSearchId(list.id)}
                       className="w-full text-center py-1.5 text-[10px] font-bold text-[var(--accent-pistachio)] border border-dashed border-[var(--border)] rounded-xl hover:bg-[var(--surface-raised)] transition-all cursor-pointer"
                     >
-                      + Ajouter directement un aliment / recette
+                      + {t('add_food_to_list') || 'Ajouter directement un aliment / recette'}
                     </button>
                   )}
                 </div>
@@ -442,17 +442,17 @@ export default function Favorites({ token, defaultDate }) {
           <div className="brutal-modal" onClick={(e) => e.stopPropagation()}>
             <div className="px-6 py-4 border-b border-[var(--border-muted)] flex justify-between items-center">
               <div>
-                <h4 className="font-bold text-sm uppercase tracking-wider text-[var(--text)]">Ajout rapide</h4>
+                <h4 className="font-bold text-sm uppercase tracking-wider text-[var(--text)]">{t('add_food') || 'Ajout rapide'}</h4>
                 <span className="text-[10px] text-[var(--text-dim)]">{quickAddFood.food_name}</span>
               </div>
               <button onClick={() => setQuickAddFood(null)}
                 className="text-xs text-[var(--text-muted)] hover:text-[var(--text)] cursor-pointer font-bold uppercase transition-colors duration-150">
-                Fermer
+                {t('close')}
               </button>
             </div>
             <div className="p-6 space-y-5">
               <div>
-                <label className="brutal-label">Repas</label>
+                <label className="brutal-label">{t('choose_meal') || 'Repas'}</label>
                 <div className="grid grid-cols-2 gap-2">
                   {MEALS.map((meal) => (
                     <button key={meal.id} type="button" onClick={() => setQuickAddMeal(meal.id)}
@@ -462,14 +462,14 @@ export default function Favorites({ token, defaultDate }) {
                           : 'border-[var(--border-muted)] text-[var(--text-dim)] hover:border-[var(--text-muted)]'
                       }`}
                     >
-                      {meal.label}
+                      {t(meal.id)}
                     </button>
                   ))}
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="brutal-label">Quantité ({quickAddUnit})</label>
+                  <label className="brutal-label">{t('amount') || 'Quantité'} ({quickAddUnit})</label>
                   <div className="flex gap-2">
                     <input type="number" min="1" value={quickAddAmount}
                       onChange={(e) => setQuickAddAmount(Math.max(1, parseInt(e.target.value) || 0))}
@@ -486,7 +486,7 @@ export default function Favorites({ token, defaultDate }) {
                   </div>
                 </div>
                 <div>
-                  <label className="brutal-label">Date</label>
+                  <label className="brutal-label">{t('date')}</label>
                   <input type="date" value={quickAddDate} onChange={(e) => setQuickAddDate(e.target.value)} className="brutal-input" />
                 </div>
               </div>
@@ -505,7 +505,7 @@ export default function Favorites({ token, defaultDate }) {
                 </div>
               </div>
               <button onClick={handleQuickAddSubmit} disabled={addingToJournal} className="brutal-btn-accent w-full" style={{ backgroundColor: 'var(--accent-pistachio)', color: 'var(--bg-dark-slate)' }}>
-                {addingToJournal ? 'Ajout...' : 'Ajouter au journal'}
+                {addingToJournal ? `${t('loading')}...` : t('add_to_journal')}
               </button>
             </div>
           </div>
@@ -549,7 +549,7 @@ export default function Favorites({ token, defaultDate }) {
                     <div className="p-3.5 border border-[var(--border)] rounded-2xl flex items-center gap-3 bg-[var(--surface-raised)]">
                       <Clock className="w-5 h-5 text-[var(--accent-powder)]" />
                       <div>
-                        <span className="brutal-label mb-0">Préparation</span>
+                        <span className="brutal-label mb-0">{t('prep_time')}</span>
                         <span className="text-xs font-bold block text-[var(--text)]">
                           {selectedRecipe.preparation_time_min > 0 ? `${selectedRecipe.preparation_time_min} min` : '--'}
                         </span>
@@ -558,7 +558,7 @@ export default function Favorites({ token, defaultDate }) {
                     <div className="p-3.5 border border-[var(--border)] rounded-2xl flex items-center gap-3 bg-[var(--surface-raised)]">
                       <Clock className="w-5 h-5 text-[var(--accent-sand)]" />
                       <div>
-                        <span className="brutal-label mb-0">Cuisson</span>
+                        <span className="brutal-label mb-0">{t('cook_time')}</span>
                         <span className="text-xs font-bold block text-[var(--text)]">
                           {selectedRecipe.cooking_time_min > 0 ? `${selectedRecipe.cooking_time_min} min` : '--'}
                         </span>
@@ -569,23 +569,23 @@ export default function Favorites({ token, defaultDate }) {
                   {/* Nutrition */}
                   <div className="border border-[var(--border)] p-4 space-y-3 rounded-2xl bg-[var(--surface-inset)]">
                     <div className="flex items-center justify-between border-b border-[var(--border-muted)] pb-2">
-                      <span className="brutal-label mb-0">Nutrition</span>
+                      <span className="brutal-label mb-0">{t('nutrition')}</span>
                       <span className="text-xs font-extrabold text-[var(--accent-pistachio)]">
-                        {selectedRecipe.calories} kcal/portion
-                        {selectedRecipe.number_of_servings ? ` (Recette de ${selectedRecipe.number_of_servings} portions)` : ''}
+                        {selectedRecipe.calories} {t('kcal_per_serving') || 'kcal/portion'}
+                        {selectedRecipe.number_of_servings ? ` (${t('servings')}: ${selectedRecipe.number_of_servings})` : ''}
                       </span>
                     </div>
                     <div className="grid grid-cols-3 gap-3 text-center">
                       <div className="p-2 border border-[var(--accent-powder)]/20 rounded-xl bg-[var(--accent-powder)]/5">
-                        <span className="text-[9px] font-bold text-[var(--accent-powder)] block uppercase">Protéines</span>
+                        <span className="text-[9px] font-bold text-[var(--accent-powder)] block uppercase">{t('protein')}</span>
                         <span className="text-sm font-extrabold text-[var(--text)]">{selectedRecipe.protein}g</span>
                       </div>
                       <div className="p-2 border border-[var(--accent-powder)]/20 rounded-xl bg-[var(--accent-powder)]/5">
-                        <span className="text-[9px] font-bold text-[var(--accent-powder)] block uppercase">Glucides</span>
+                        <span className="text-[9px] font-bold text-[var(--accent-powder)] block uppercase">{t('carbs')}</span>
                         <span className="text-sm font-extrabold text-[var(--text)]">{selectedRecipe.carbs}g</span>
                       </div>
                       <div className="p-2 border border-[var(--accent-sand)]/20 rounded-xl bg-[var(--accent-sand)]/5">
-                        <span className="text-[9px] font-bold text-[var(--accent-sand)] block uppercase">Lipides</span>
+                        <span className="text-[9px] font-bold text-[var(--accent-sand)] block uppercase">{t('fat')}</span>
                         <span className="text-sm font-extrabold text-[var(--text)]">{selectedRecipe.fat}g</span>
                       </div>
                     </div>
@@ -598,7 +598,7 @@ export default function Favorites({ token, defaultDate }) {
                 {/* Ingredients */}
                 <div className="space-y-3">
                   <h4 className="font-extrabold text-sm uppercase tracking-wider flex items-center gap-2 text-[var(--text)]">
-                    <ListTodo className="w-4 h-4 text-[var(--accent-powder)]" /> Ingrédients
+                    <ListTodo className="w-4 h-4 text-[var(--accent-powder)]" /> {t('ingredients')}
                   </h4>
                   <div className="space-y-2 max-h-[300px] overflow-y-auto">
                     {selectedRecipe.ingredients.map((ing, index) => {
@@ -621,7 +621,7 @@ export default function Favorites({ token, defaultDate }) {
                 {/* Instructions */}
                 <div className="space-y-3">
                   <h4 className="font-extrabold text-sm uppercase tracking-wider flex items-center gap-2 text-[var(--text)]">
-                    <CheckCircle className="w-4 h-4 text-[var(--accent-sand)]" /> Instructions
+                    <CheckCircle className="w-4 h-4 text-[var(--accent-sand)]" /> {t('directions')}
                   </h4>
                   <div className="space-y-2.5 max-h-[300px] overflow-y-auto">
                     {selectedRecipe.directions.map((step, index) => (

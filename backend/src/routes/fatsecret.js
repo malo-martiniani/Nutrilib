@@ -857,11 +857,16 @@ router.post('/custom-recipes', authMiddleware, async (req, res) => {
     return res.status(400).json({ message: 'Veuillez renseigner un nom et au moins un ingrédient.' });
   }
   const cleanServings = Math.max(1, parseInt(servings) || 1);
+  const cleanCalories = Math.max(0, parseInt(calories) || 0);
+  const cleanProtein = Math.max(0, parseFloat(protein) || 0);
+  const cleanCarbs = Math.max(0, parseFloat(carbs) || 0);
+  const cleanFat = Math.max(0, parseFloat(fat) || 0);
+
   try {
     const result = await db.query(
       `INSERT INTO custom_recipes (user_id, recipe_name, recipe_description, recipe_image, servings, calories, protein, carbs, fat) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [req.user.id, recipe_name, recipe_description || '', recipe_image || null, cleanServings, calories, protein || 0, carbs || 0, fat || 0]
+      [req.user.id, recipe_name, recipe_description || '', recipe_image || null, cleanServings, cleanCalories, cleanProtein, cleanCarbs, cleanFat]
     );
     const recipeId = result.insertId;
 
@@ -872,12 +877,12 @@ router.post('/custom-recipes', authMiddleware, async (req, res) => {
         [
           recipeId,
           ing.food_id || null,
-          ing.food_name,
-          ing.calories,
-          ing.protein || 0,
-          ing.carbs || 0,
-          ing.fat || 0,
-          ing.serving_amount || 100,
+          ing.food_name || 'Ingrédient',
+          Math.max(0, parseInt(ing.calories) || 0),
+          Math.max(0, parseFloat(ing.protein) || 0),
+          Math.max(0, parseFloat(ing.carbs) || 0),
+          Math.max(0, parseFloat(ing.fat) || 0),
+          Math.max(0, parseFloat(ing.serving_amount) || 100),
           ing.serving_unit || 'g'
         ]
       );

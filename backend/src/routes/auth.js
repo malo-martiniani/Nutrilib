@@ -67,7 +67,7 @@ router.post('/register', async (req, res) => {
 
     jwt.sign(
       payload,
-      process.env.JWT_SECRET || 'generer_un_secret_tres_long_et_securise_ici',
+      process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '7d' },
       (err, token) => {
         if (err) throw err;
@@ -116,7 +116,7 @@ router.post('/login', async (req, res) => {
 
     jwt.sign(
       payload,
-      process.env.JWT_SECRET || 'generer_un_secret_tres_long_et_securise_ici',
+      process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '7d' },
       (err, token) => {
         if (err) throw err;

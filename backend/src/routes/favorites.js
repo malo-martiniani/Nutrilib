@@ -40,6 +40,11 @@ router.post('/', authMiddleware, async (req, res) => {
       return res.status(400).json({ message: 'Cet aliment est déjà dans vos favoris.' });
     }
 
+    const cleanCalories = Math.max(0, parseInt(calories) || 0);
+    const cleanProtein = Math.max(0, parseFloat(protein) || 0);
+    const cleanCarbs = Math.max(0, parseFloat(carbs) || 0);
+    const cleanFat = Math.max(0, parseFloat(fat) || 0);
+
     const result = await db.query(
       `INSERT INTO favorites 
        (user_id, food_id, food_name, calories, protein, carbs, fat, serving_description) 
@@ -48,10 +53,10 @@ router.post('/', authMiddleware, async (req, res) => {
         req.user.id,
         food_id,
         food_name,
-        parseInt(calories),
-        parseFloat(protein || 0),
-        parseFloat(carbs || 0),
-        parseFloat(fat || 0),
+        cleanCalories,
+        cleanProtein,
+        cleanCarbs,
+        cleanFat,
         serving_description || '100g'
       ]
     );
@@ -60,11 +65,11 @@ router.post('/', authMiddleware, async (req, res) => {
       id: result.insertId,
       food_id,
       food_name,
-      calories,
-      protein,
-      carbs,
-      fat,
-      serving_description
+      calories: cleanCalories,
+      protein: cleanProtein,
+      carbs: cleanCarbs,
+      fat: cleanFat,
+      serving_description: serving_description || '100g'
     });
   } catch (error) {
     console.error('Erreur ajout favori:', error.message);

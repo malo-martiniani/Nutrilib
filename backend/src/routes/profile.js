@@ -73,6 +73,22 @@ router.put('/calculator', authMiddleware, async (req, res) => {
     return res.status(400).json({ message: 'Valeurs numériques invalides.' });
   }
 
+  if (parsedAge < 1 || parsedAge > 120) {
+    return res.status(400).json({ message: "L'âge doit être compris entre 1 et 120 ans." });
+  }
+
+  if (parsedHeight < 50 || parsedHeight > 280) {
+    return res.status(400).json({ message: "La taille doit être comprise entre 50 et 280 cm." });
+  }
+
+  if (parsedWeight < 10 || parsedWeight > 500) {
+    return res.status(400).json({ message: "Le poids doit être compris entre 10 et 500 kg." });
+  }
+
+  if (parsedTargetWeight !== null && (parsedTargetWeight < 10 || parsedTargetWeight > 500)) {
+    return res.status(400).json({ message: "Le poids cible doit être compris entre 10 et 500 kg." });
+  }
+
   try {
     // 1. Calcul du BMR selon Mifflin-St Jeor
     let bmr = 0;

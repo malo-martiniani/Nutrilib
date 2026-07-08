@@ -59,6 +59,18 @@ router.post('/', authMiddleware, async (req, res) => {
     return res.status(400).json({ message: 'Type de repas invalide (doit être breakfast, lunch, dinner ou snack).' });
   }
 
+  const cleanCalories = Math.max(0, parseInt(calories) || 0);
+  const cleanProtein = Math.max(0, parseFloat(protein) || 0);
+  const cleanCarbs = Math.max(0, parseFloat(carbs) || 0);
+  const cleanFat = Math.max(0, parseFloat(fat) || 0);
+  const cleanAmount = Math.max(0, parseFloat(serving_amount) || 100);
+  const cleanSugar = Math.max(0, parseFloat(sugar) || 0);
+  const cleanFiber = Math.max(0, parseFloat(fiber) || 0);
+  const cleanSodium = Math.max(0, parseFloat(sodium) || 0);
+  const cleanPotassium = Math.max(0, parseFloat(potassium) || 0);
+  const cleanCholesterol = Math.max(0, parseFloat(cholesterol) || 0);
+  const cleanSaturatedFat = Math.max(0, parseFloat(saturated_fat) || 0);
+
   try {
     const result = await db.query(
       `INSERT INTO journal_entries 
@@ -68,20 +80,20 @@ router.post('/', authMiddleware, async (req, res) => {
         req.user.id,
         food_id || null,
         food_name,
-        parseInt(calories),
-        parseFloat(protein || 0),
-        parseFloat(carbs || 0),
-        parseFloat(fat || 0),
+        cleanCalories,
+        cleanProtein,
+        cleanCarbs,
+        cleanFat,
         meal_type,
-        parseFloat(serving_amount),
+        cleanAmount,
         serving_unit || 'g',
         entry_date,
-        parseFloat(sugar || 0),
-        parseFloat(fiber || 0),
-        parseFloat(sodium || 0),
-        parseFloat(potassium || 0),
-        parseFloat(cholesterol || 0),
-        parseFloat(saturated_fat || 0)
+        cleanSugar,
+        cleanFiber,
+        cleanSodium,
+        cleanPotassium,
+        cleanCholesterol,
+        cleanSaturatedFat
       ]
     );
 
@@ -90,20 +102,20 @@ router.post('/', authMiddleware, async (req, res) => {
       user_id: req.user.id,
       food_id,
       food_name,
-      calories,
-      protein,
-      carbs,
-      fat,
+      calories: cleanCalories,
+      protein: cleanProtein,
+      carbs: cleanCarbs,
+      fat: cleanFat,
       meal_type,
-      serving_amount,
-      serving_unit,
+      serving_amount: cleanAmount,
+      serving_unit: serving_unit || 'g',
       entry_date,
-      sugar: sugar || 0,
-      fiber: fiber || 0,
-      sodium: sodium || 0,
-      potassium: potassium || 0,
-      cholesterol: cholesterol || 0,
-      saturated_fat: saturated_fat || 0
+      sugar: cleanSugar,
+      fiber: cleanFiber,
+      sodium: cleanSodium,
+      potassium: cleanPotassium,
+      cholesterol: cleanCholesterol,
+      saturated_fat: cleanSaturatedFat
     };
 
     res.status(201).json(newEntry);

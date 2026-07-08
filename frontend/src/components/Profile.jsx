@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, Shield, Flame, ChevronRight, Check } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const AVATARS = [
   { emoji: '🍏', label: 'Pomme' },
@@ -23,6 +24,8 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
+
+  const { language, t } = useAuth();
 
   const [displayName, setDisplayName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
@@ -335,25 +338,27 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
 
   return (
     <div className="space-y-6">
-
-      {/* SECTION 1: Basic Profile */}
+      {/* SECTION 1: Personal Info */}
       <div className="brutal-card space-y-6">
         <h2 className="text-base font-extrabold uppercase tracking-wider border-b border-[var(--border-muted)] pb-3 flex items-center gap-2 text-[var(--text)]">
-          <User className="w-5 h-5 text-[var(--accent-powder)]" /> Mon Compte
+          <User className="w-5 h-5 text-[var(--accent-pistachio)]" /> {t('profile_title')}
         </h2>
 
-        <form onSubmit={handleUpdateBasic} className="space-y-5">
-          <div className="flex items-center gap-4">
-            {renderCurrentAvatar()}
+        <form onSubmit={handleSaveProfile} className="space-y-5">
+          {/* Profile header with avatar */}
+          <div className="flex items-center gap-4 p-4 border border-[var(--border-muted)] bg-[var(--surface-raised)] rounded-[20px]">
+            <div className="w-16 h-16 rounded-full border border-[var(--border)] bg-[var(--surface-inset)] flex items-center justify-center text-3xl shrink-0">
+              {avatarUrl.startsWith('preset:') ? avatarUrl.split(':')[1] : '👤'}
+            </div>
             <div>
-              <span className="brutal-label mb-0">Photo de profil</span>
-              <p className="text-[10px] text-[var(--text-muted)] mt-0.5 font-medium">Choisissez un avatar ou insérez une URL.</p>
+              <h3 className="font-extrabold text-sm text-[var(--text)]">{profile?.username}</h3>
+              <p className="text-[10px] text-[var(--text-muted)] mt-0.5 font-medium">{t('choose_avatar')}</p>
             </div>
           </div>
 
           {/* Avatar presets */}
           <div>
-            <label className="brutal-label">Avatars</label>
+            <label className="brutal-label">{t('avatars')}</label>
             <div className="grid grid-cols-6 gap-2">
               {AVATARS.map((preset, index) => {
                 const presetUrl = `preset:${preset.emoji}:none`;
@@ -380,7 +385,7 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
 
           {/* Custom URL */}
           <div>
-            <label className="brutal-label">URL personnalisée</label>
+            <label className="brutal-label">{t('custom_url')}</label>
             <input type="text" value={avatarUrl.startsWith('preset:') ? '' : avatarUrl}
               onChange={(e) => setAvatarUrl(e.target.value)}
               placeholder="https://example.com/photo.jpg"
@@ -389,7 +394,7 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
 
           {/* Display name */}
           <div>
-            <label className="brutal-label">Nom affiché</label>
+            <label className="brutal-label">{t('display_name')}</label>
             <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)}
               placeholder={profile?.username}
               className="brutal-input" />
@@ -399,9 +404,9 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
           <div className="flex items-center justify-between p-4 border border-[var(--border-muted)] bg-[var(--surface-raised)] rounded-[20px]">
             <div>
               <span className="text-sm font-bold flex items-center gap-2 text-[var(--text)]">
-                <Shield className="w-4 h-4 text-[var(--accent-powder)]" /> Profil Privé
+                <Shield className="w-4 h-4 text-[var(--accent-powder)]" /> {t('private_profile')}
               </span>
-              <p className="text-[10px] text-[var(--text-muted)] mt-0.5 font-medium">Masque vos informations aux autres.</p>
+              <p className="text-[10px] text-[var(--text-muted)] mt-0.5 font-medium">{t('private_profile_desc')}</p>
             </div>
             <button type="button" onClick={() => setIsPrivate(!isPrivate)}
               className={`w-12 h-7 rounded-full cursor-pointer flex items-center px-1 border transition-colors duration-200 ${
@@ -420,7 +425,7 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
           )}
 
           <button type="submit" disabled={updating} className="brutal-btn-accent w-full cursor-pointer" style={{ backgroundColor: 'var(--accent-pistachio)', color: 'var(--bg-dark-slate)' }}>
-            {updating ? 'Enregistrement...' : 'Enregistrer mon profil'}
+            {updating ? t('saving_profile') : t('save_profile')}
           </button>
         </form>
       </div>
@@ -428,7 +433,7 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
       {/* SECTION 2: Calculator */}
       <div className="brutal-card space-y-6">
         <h2 className="text-base font-extrabold uppercase tracking-wider border-b border-[var(--border-muted)] pb-3 flex items-center gap-2 text-[var(--text)]">
-          <Flame className="w-5 h-5 text-[var(--accent-sand)]" /> Calculateur TDEE
+          <Flame className="w-5 h-5 text-[var(--accent-sand)]" /> {t('tdee_calculator')}
         </h2>
 
         <form onSubmit={handleSaveCalculator} className="space-y-5">
@@ -441,7 +446,7 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
                   : 'border-[var(--border-muted)] text-[var(--text-dim)] hover:border-[var(--text-muted)]'
               }`}
             >
-              Homme
+              {t('male')}
             </button>
             <button type="button" onClick={() => setGender('female')}
               className={`py-3 border font-bold text-sm uppercase rounded-2xl transition-all duration-200 cursor-pointer ${
@@ -450,53 +455,57 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
                   : 'border-[var(--border-muted)] text-[var(--text-dim)] hover:border-[var(--text-muted)]'
               }`}
             >
-              Femme
+              {t('female')}
             </button>
           </div>
 
           {/* Age, Height, Weight */}
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="brutal-label">Âge</label>
+              <label className="brutal-label">{t('age')}</label>
               <input type="number" min="1" max="120" value={age} onChange={(e) => setAge(e.target.value)} placeholder="25" className="brutal-input" />
             </div>
             <div>
-              <label className="brutal-label">Taille (cm)</label>
+              <label className="brutal-label">{t('height')}</label>
               <input type="number" min="50" max="250" value={height} onChange={(e) => setHeight(e.target.value)} placeholder="175" className="brutal-input" />
             </div>
             <div>
-              <label className="brutal-label">Poids (kg)</label>
+              <label className="brutal-label">{t('weight_label')}</label>
               <input type="number" step="0.1" min="20" max="300" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="70" className="brutal-input" />
             </div>
           </div>
 
           {/* Activity Level */}
           <div>
-            <label className="brutal-label">Niveau d'activité</label>
+            <label className="brutal-label">{t('activity_level')}</label>
             <div className="space-y-2">
-              {ACTIVITY_LEVELS.map((lvl) => (
-                <button key={lvl.id} type="button" onClick={() => setActivityLevel(lvl.id)}
-                  className={`w-full text-left p-3.5 border flex items-center justify-between rounded-2xl transition-all duration-200 cursor-pointer bg-[var(--surface)] ${
-                    activityLevel === lvl.id
-                      ? 'border-[var(--accent-sand)] bg-[var(--surface-raised)] shadow-[var(--shadow-subtle)]'
-                      : 'border-[var(--border-muted)] hover:border-[var(--text-muted)]'
-                  }`}
-                >
-                  <div>
-                    <span className={`text-sm font-bold block ${activityLevel === lvl.id ? 'text-[var(--accent-sand)]' : 'text-[var(--text)]'}`}>
-                      {lvl.name}
-                    </span>
-                    <span className="text-[10px] text-[var(--text-muted)] mt-0.5 block font-medium">{lvl.desc}</span>
-                  </div>
-                  <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${activityLevel === lvl.id ? 'text-[var(--accent-sand)] translate-x-1' : 'text-[var(--text-dim)]'}`} />
-                </button>
-              ))}
+              {ACTIVITY_LEVELS.map((lvl) => {
+                const actName = lvl.id === 'sedentary' ? t('sedentary') : lvl.id === 'light' ? t('lightly_active') : lvl.id === 'moderate' ? t('moderately_active') : t('very_active');
+                const actDesc = lvl.id === 'sedentary' ? t('sedentary_desc') : lvl.id === 'light' ? t('light_desc') : lvl.id === 'moderate' ? t('moderate_desc') : lvl.id === 'active' ? t('active_desc') : t('very_active_desc');
+                return (
+                  <button key={lvl.id} type="button" onClick={() => setActivityLevel(lvl.id)}
+                    className={`w-full text-left p-3.5 border flex items-center justify-between rounded-2xl transition-all duration-200 cursor-pointer bg-[var(--surface)] ${
+                      activityLevel === lvl.id
+                        ? 'border-[var(--accent-sand)] bg-[var(--surface-raised)] shadow-[var(--shadow-subtle)]'
+                        : 'border-[var(--border-muted)] hover:border-[var(--text-muted)]'
+                    }`}
+                  >
+                    <div>
+                      <span className={`text-sm font-bold block ${activityLevel === lvl.id ? 'text-[var(--accent-sand)]' : 'text-[var(--text)]'}`}>
+                        {actName}
+                      </span>
+                      <span className="text-[10px] text-[var(--text-muted)] mt-0.5 block font-medium">{actDesc}</span>
+                    </div>
+                    <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${activityLevel === lvl.id ? 'text-[var(--accent-sand)] translate-x-1' : 'text-[var(--text-dim)]'}`} />
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           {/* Objectif de poids */}
           <div>
-            <label className="brutal-label">Objectif de poids</label>
+            <label className="brutal-label">{t('goal_type')}</label>
             <div className="grid grid-cols-3 gap-2">
               <button type="button" onClick={() => setGoalType('lose')}
                 className={`py-2.5 px-1 border font-bold text-xs uppercase rounded-xl transition-all duration-200 cursor-pointer ${
@@ -505,7 +514,7 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
                     : 'border-[var(--border-muted)] text-[var(--text-dim)] hover:border-[var(--text-muted)] bg-[var(--surface)]'
                 }`}
               >
-                Perte de poids
+                {t('lose_weight')}
               </button>
               <button type="button" onClick={() => { setGoalType('maintain'); setTargetWeight(''); }}
                 className={`py-2.5 px-1 border font-bold text-xs uppercase rounded-xl transition-all duration-200 cursor-pointer ${
@@ -514,7 +523,7 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
                     : 'border-[var(--border-muted)] text-[var(--text-dim)] hover:border-[var(--text-muted)] bg-[var(--surface)]'
                 }`}
               >
-                Maintien
+                {t('maintain_weight')}
               </button>
               <button type="button" onClick={() => setGoalType('gain')}
                 className={`py-2.5 px-1 border font-bold text-xs uppercase rounded-xl transition-all duration-200 cursor-pointer ${
@@ -523,7 +532,7 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
                     : 'border-[var(--border-muted)] text-[var(--text-dim)] hover:border-[var(--text-muted)] bg-[var(--surface)]'
                 }`}
               >
-                Prise de masse
+                {t('gain_weight')}
               </button>
             </div>
           </div>
@@ -531,7 +540,7 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
           {/* Poids Cible */}
           {goalType !== 'maintain' && (
             <div className="space-y-2">
-              <label className="brutal-label">Poids cible (kg)</label>
+              <label className="brutal-label">{t('target_weight_label')}</label>
               <div className="flex gap-2">
                 <input type="number" step="0.1" min="20" max="300" 
                   value={targetWeight} 
@@ -542,7 +551,7 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
                   onClick={() => calcResults && setTargetWeight(Math.round(calcResults.idealWeightDevine).toString())}
                   className="px-3 border border-[var(--border-muted)] text-[10px] font-bold rounded-xl bg-[var(--surface-raised)] hover:border-[var(--text-dim)] text-[var(--text)] transition-colors cursor-pointer"
                 >
-                  Poids idéal
+                  {language === 'fr' ? 'Poids idéal' : 'Ideal weight'}
                 </button>
               </div>
               {(() => {
@@ -609,14 +618,14 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
           {/* Rythme de progression */}
           {goalType !== 'maintain' && (
             <div>
-              <label className="brutal-label">Rythme de progression</label>
+              <label className="brutal-label">{t('goal_speed')}</label>
               <div className="grid grid-cols-5 gap-1.5">
                 {[
-                  { id: 'very_slow', label: 'Tr. lent' },
-                  { id: 'slow', label: 'Lent' },
-                  { id: 'normal', label: 'Normal' },
-                  { id: 'fast', label: 'Rapide' },
-                  { id: 'very_fast', label: 'Tr. rapide' }
+                  { id: 'very_slow', label: language === 'fr' ? 'Tr. lent' : 'V. slow' },
+                  { id: 'slow', label: t('slow') },
+                  { id: 'normal', label: t('normal') },
+                  { id: 'fast', label: t('fast') },
+                  { id: 'very_fast', label: language === 'fr' ? 'Tr. rapide' : 'V. fast' }
                 ].map(speed => (
                   <button key={speed.id} type="button" onClick={() => setGoalSpeed(speed.id)}
                     className={`py-2 px-0.5 border text-[9px] font-black uppercase rounded-xl transition-all duration-200 cursor-pointer text-center ${
@@ -653,15 +662,15 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
           {/* Répartition des Macronutriments */}
           {calcResults && (
             <div className="space-y-3 pt-3 border-t border-[var(--border-muted)]/40">
-              <label className="brutal-label block mb-2">Répartition des Macronutriments</label>
+              <label className="brutal-label block mb-2">{t('macro_split')}</label>
               
               {/* Presets Grid */}
               <div className="grid grid-cols-4 gap-1.5">
                 {[
-                  { id: 'balanced', label: 'Équilibré', desc: '50% G · 20% P · 30% L' },
-                  { id: 'hyper', label: 'Hyper Protéiné', desc: '40% G · 30% P · 30% L' },
-                  { id: 'lowcarb', label: 'Low Carb', desc: '25% G · 35% P · 40% L' },
-                  { id: 'keto', label: 'Keto', desc: '5% G · 25% P · 70% L' }
+                  { id: 'balanced', label: language === 'fr' ? 'Équilibré' : 'Balanced', desc: language === 'fr' ? '50% G · 20% P · 30% L' : '50% C · 20% P · 30% F' },
+                  { id: 'hyper', label: language === 'fr' ? 'Hyper Protéiné' : 'High Protein', desc: language === 'fr' ? '40% G · 30% P · 30% L' : '40% C · 30% P · 30% F' },
+                  { id: 'lowcarb', label: 'Low Carb', desc: language === 'fr' ? '25% G · 35% P · 40% L' : '25% C · 35% P · 40% F' },
+                  { id: 'keto', label: 'Keto', desc: language === 'fr' ? '5% G · 25% P · 70% L' : '5% C · 25% P · 70% F' }
                 ].map(preset => (
                   <button
                     key={preset.id}
@@ -686,7 +695,7 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
               <div className="grid grid-cols-3 gap-2.5 pt-1.5">
                 {/* Protéines % */}
                 <div className="space-y-1">
-                  <span className="text-[9px] font-bold text-[var(--accent-powder)] block uppercase text-center">Protéines (%)</span>
+                  <span className="text-[9px] font-bold text-[var(--accent-powder)] block uppercase text-center">{t('protein')} (%)</span>
                   <div className="flex items-center border border-[var(--border)] rounded-xl bg-[var(--surface)] overflow-hidden">
                     <button type="button" onClick={() => handlePercentChange('protein', proteinPercent - 5)} className="px-2.5 py-1.5 text-xs font-extrabold hover:bg-[var(--surface-raised)] border-r border-[var(--border)] cursor-pointer text-[var(--text)]">-</button>
                     <span className="flex-1 text-center text-xs font-bold text-[var(--text)]">{proteinPercent}%</span>
@@ -696,7 +705,7 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
 
                 {/* Glucides % */}
                 <div className="space-y-1">
-                  <span className="text-[9px] font-bold text-[var(--accent-powder)] block uppercase text-center">Glucides (%)</span>
+                  <span className="text-[9px] font-bold text-[var(--accent-powder)] block uppercase text-center">{t('carbs')} (%)</span>
                   <div className="flex items-center border border-[var(--border)] rounded-xl bg-[var(--surface)] overflow-hidden">
                     <button type="button" onClick={() => handlePercentChange('carb', carbPercent - 5)} className="px-2.5 py-1.5 text-xs font-extrabold hover:bg-[var(--surface-raised)] border-r border-[var(--border)] cursor-pointer text-[var(--text)]">-</button>
                     <span className="flex-1 text-center text-xs font-bold text-[var(--text)]">{carbPercent}%</span>
@@ -706,7 +715,7 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
 
                 {/* Lipides % */}
                 <div className="space-y-1">
-                  <span className="text-[9px] font-bold text-[var(--accent-sand)] block uppercase text-center">Lipides (%)</span>
+                  <span className="text-[9px] font-bold text-[var(--accent-sand)] block uppercase text-center">{t('fat')} (%)</span>
                   <div className="flex items-center border border-[var(--border)] rounded-xl bg-[var(--surface)] overflow-hidden">
                     <button type="button" onClick={() => handlePercentChange('fat', fatPercent - 5)} className="px-2.5 py-1.5 text-xs font-extrabold hover:bg-[var(--surface-raised)] border-r border-[var(--border)] cursor-pointer text-[var(--text)]">-</button>
                     <span className="flex-1 text-center text-xs font-bold text-[var(--text)]">{fatPercent}%</span>
@@ -721,7 +730,9 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
                 if (totalPct !== 100) {
                   return (
                     <p className="text-[10px] text-[var(--accent-magenta)] font-bold mt-1 text-center animate-pulse">
-                      ⚠️ La somme des macros doit être égale à 100% (Actuel : {totalPct}%)
+                      {language === 'fr' 
+                        ? `⚠️ La somme des macros doit être égale à 100% (Actuel : ${totalPct}%)` 
+                        : `⚠️ Macro percentages must sum to 100% (Current: ${totalPct}%)`}
                     </p>
                   );
                 }
@@ -736,30 +747,30 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
               <div className="flex items-center justify-between border-b border-[var(--border-muted)] pb-3">
                 <div>
                   <span className="brutal-label mb-0">
-                    {goalType === 'lose' ? `Objectif (Déficit ${calcResults.calorieAdjustment} kcal)` :
-                     goalType === 'gain' ? `Objectif (Surplus +${calcResults.calorieAdjustment} kcal)` :
-                     'Objectif (Maintien)'}
+                    {goalType === 'lose' ? `${t('target')} (${language === 'fr' ? 'Déficit' : 'Deficit'} ${calcResults.calorieAdjustment} kcal)` :
+                     goalType === 'gain' ? `${t('target')} (${language === 'fr' ? 'Surplus' : 'Surplus'} +${calcResults.calorieAdjustment} kcal)` :
+                     `${t('target')} (${t('maintain_weight')})`}
                   </span>
-                  <span className="text-xl font-extrabold text-[var(--accent-sand)] block mt-0.5">{calcResults.tdee} kcal/jour</span>
+                  <span className="text-xl font-extrabold text-[var(--accent-sand)] block mt-0.5">{calcResults.tdee} kcal/{language === 'fr' ? 'jour' : 'day'}</span>
                 </div>
                 <div className="text-right">
                   <span className="text-[10px] text-[var(--text-dim)] font-medium block">BMR : {calcResults.bmr} kcal</span>
-                  <span className="text-[10px] text-[var(--text-dim)] font-medium block mt-0.5">TDEE Maintien : {calcResults.tdee_raw} kcal</span>
+                  <span className="text-[10px] text-[var(--text-dim)] font-medium block mt-0.5">TDEE {language === 'fr' ? 'Maintien' : 'Maintain'} : {calcResults.tdee_raw} kcal</span>
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-3 text-center">
                 <div className="p-2 border border-[var(--accent-powder)]/20 rounded-xl bg-[var(--accent-powder)]/5">
-                  <span className="text-[9px] font-bold text-[var(--accent-powder)] block uppercase">Protéines</span>
+                  <span className="text-[9px] font-bold text-[var(--accent-powder)] block uppercase">{t('protein')}</span>
                   <span className="text-base font-extrabold text-[var(--text)]">{calcResults.protein}g</span>
                   <span className="text-[9px] text-[var(--text-dim)] block mt-0.5">{proteinPercent}% · 4kcal/g</span>
                 </div>
                 <div className="p-2 border border-[var(--accent-powder)]/20 rounded-xl bg-[var(--accent-powder)]/5">
-                  <span className="text-[9px] font-bold text-[var(--accent-powder)] block uppercase">Glucides</span>
+                  <span className="text-[9px] font-bold text-[var(--accent-powder)] block uppercase">{t('carbs')}</span>
                   <span className="text-base font-extrabold text-[var(--text)]">{calcResults.carbs}g</span>
                   <span className="text-[9px] text-[var(--text-dim)] block mt-0.5">{carbPercent}% · 4kcal/g</span>
                 </div>
                 <div className="p-2 border border-[var(--accent-sand)]/20 rounded-xl bg-[var(--accent-sand)]/5">
-                  <span className="text-[9px] font-bold text-[var(--accent-sand)] block uppercase">Lipides</span>
+                  <span className="text-[9px] font-bold text-[var(--accent-sand)] block uppercase">{t('fat')}</span>
                   <span className="text-base font-extrabold text-[var(--text)]">{calcResults.fat}g</span>
                   <span className="text-[9px] text-[var(--text-dim)] block mt-0.5">{fatPercent}% · 9kcal/g</span>
                 </div>
@@ -770,7 +781,7 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
           <button type="submit" disabled={updating || !calcResults || (proteinPercent + carbPercent + fatPercent !== 100)}
             className="brutal-btn w-full disabled:opacity-30 cursor-pointer"
             style={{ background: 'var(--accent-sand)', borderColor: 'var(--accent-sand)', color: 'var(--bg-dark-slate)' }}>
-            {updating ? 'Enregistrement...' : 'Valider les objectifs'}
+            {updating ? `${t('saving_profile')}...` : t('update_goals')}
           </button>
         </form>
 
@@ -779,15 +790,15 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
           <div className="flex items-center gap-2.5 mb-2 border-b border-[var(--border-muted)] pb-3">
             <span className="text-xl">🍳</span>
             <div>
-              <h3 className="font-extrabold text-sm uppercase tracking-wider text-[var(--text)]">Recherche de recettes personnalisée</h3>
-              <p className="text-[10px] text-[var(--text-muted)] font-semibold uppercase mt-0.5">Trouvez des idées selon vos objectifs</p>
+              <h3 className="font-extrabold text-sm uppercase tracking-wider text-[var(--text)]">{t('search_recipe_placeholder')}</h3>
+              <p className="text-[10px] text-[var(--text-muted)] font-semibold uppercase mt-0.5">{language === 'fr' ? 'Trouvez des idées selon vos objectifs' : 'Find ideas based on your goals'}</p>
             </div>
           </div>
 
           <div className="space-y-4 text-xs">
             {/* Calorie range */}
             <div className="space-y-2">
-              <label className="brutal-label">Objectif Calorique par Repas</label>
+              <label className="brutal-label">{t('meal_calorie_goals')}</label>
               <div className="flex gap-2.5">
                 <div className="flex-1">
                   <span className="text-[9px] uppercase font-bold text-[var(--text-dim)] block mb-1">Min Calories</span>
@@ -815,13 +826,15 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
               {profile?.calorie_goal && (
                 <div className="mt-2.5">
                   <span className="text-[9px] uppercase font-extrabold text-[var(--text-muted)] block mb-1.5">
-                    Raccourcis (basés sur votre objectif de {profile.calorie_goal} kcal) :
+                    {language === 'fr' 
+                      ? `Raccourcis (basés sur votre objectif de ${profile.calorie_goal} kcal) :` 
+                      : `Shortcuts (based on your goal of ${profile.calorie_goal} kcal):`}
                   </span>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                     {[
-                      { id: 'breakfast', label: 'Matin', pMin: 0.15, pMax: 0.25 },
-                      { id: 'lunch', label: 'Midi', pMin: 0.30, pMax: 0.40 },
-                      { id: 'dinner', label: 'Soir', pMin: 0.30, pMax: 0.40 },
+                      { id: 'breakfast', label: language === 'fr' ? 'Matin' : 'Morning', pMin: 0.15, pMax: 0.25 },
+                      { id: 'lunch', label: language === 'fr' ? 'Midi' : 'Noon', pMin: 0.30, pMax: 0.40 },
+                      { id: 'dinner', label: language === 'fr' ? 'Soir' : 'Evening', pMin: 0.30, pMax: 0.40 },
                       { id: 'snack', label: 'Snack', pMin: 0.05, pMax: 0.15 }
                     ].map(meal => {
                       const minVal = Math.round(profile.calorie_goal * meal.pMin);
@@ -844,14 +857,14 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
 
             {/* Diet select */}
             <div className="space-y-2">
-              <label className="brutal-label">Régime Alimentaire</label>
+              <label className="brutal-label">{t('diet_type')}</label>
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
                 {[
                   { id: 'omnivore', label: 'Omnivore' },
-                  { id: 'végétarien', label: 'Végétarien' },
+                  { id: 'végétarien', label: language === 'fr' ? 'Végétarien' : 'Vegetarian' },
                   { id: 'vegan', label: 'Vegan' },
-                  { id: 'sans gluten', label: 'Sans Gluten' },
-                  { id: 'keto', label: 'Cétogène' }
+                  { id: 'sans gluten', label: language === 'fr' ? 'Sans Gluten' : 'Gluten Free' },
+                  { id: 'keto', label: language === 'fr' ? 'Cétogène' : 'Ketogenic' }
                 ].map(diet => (
                   <button
                     key={diet.id}
@@ -871,13 +884,13 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
 
             {/* Nutrition preference */}
             <div className="space-y-2">
-              <label className="brutal-label">Préférence Nutritionnelle</label>
+              <label className="brutal-label">{t('nutrition_preference')}</label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                 {[
-                  { id: 'none', label: 'Aucune' },
-                  { id: 'high_protein', label: 'Protéines ⚡', desc: `> ${Math.round((profile?.protein_goal || 130) / 3)}g` },
-                  { id: 'low_carb', label: 'Glucides 📉', desc: `< ${Math.round((profile?.carb_goal || 220) / 8)}g` },
-                  { id: 'low_fat', label: 'Lipides 🥗', desc: `< ${Math.round((profile?.fat_goal || 65) / 4)}g` }
+                  { id: 'none', label: language === 'fr' ? 'Aucune' : 'None' },
+                  { id: 'high_protein', label: language === 'fr' ? 'Protéines ⚡' : 'Protein ⚡', desc: language === 'fr' ? `> ${Math.round((profile?.protein_goal || 130) / 3)}g` : `> ${Math.round((profile?.protein_goal || 130) / 3)}g` },
+                  { id: 'low_carb', label: language === 'fr' ? 'Glucides 📉' : 'Carbs 📉', desc: language === 'fr' ? `< ${Math.round((profile?.carb_goal || 220) / 8)}g` : `< ${Math.round((profile?.carb_goal || 220) / 8)}g` },
+                  { id: 'low_fat', label: language === 'fr' ? 'Lipides 🥗' : 'Fat 🥗', desc: language === 'fr' ? `< ${Math.round((profile?.fat_goal || 65) / 4)}g` : `< ${Math.round((profile?.fat_goal || 65) / 4)}g` }
                 ].map(macro => (
                   <button
                     key={macro.id}
@@ -919,7 +932,7 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
               className="brutal-btn-accent w-full py-2.5 text-xs font-black uppercase tracking-wider cursor-pointer mt-2 text-center"
               style={{ backgroundColor: 'var(--accent-pistachio)', color: 'var(--bg-dark-slate)' }}
             >
-              Rechercher des recettes
+              {t('search_recipe_placeholder')}
             </button>
           </div>
         </div>

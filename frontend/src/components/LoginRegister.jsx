@@ -10,7 +10,7 @@ export default function LoginRegister() {
   const [submitting, setSubmitting] = useState(false);
   const [validationError, setValidationError] = useState('');
 
-  const { login, register, error, setError } = useAuth();
+  const { login, register, error, setError, t } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,23 +21,24 @@ export default function LoginRegister() {
     try {
       if (isLogin) {
         if (!email || !password) {
-          throw new Error('Veuillez remplir tous les champs.');
+          throw new Error(t('validation_fill_fields'));
         }
         await login(email, password);
       } else {
         if (!username || !email || !password) {
-          throw new Error('Veuillez remplir tous les champs.');
+          throw new Error(t('validation_fill_fields'));
         }
         if (username.length < 3) {
-          throw new Error('Le nom d\'utilisateur doit faire au moins 3 caractères.');
+          throw new Error(t('validation_username_len'));
         }
         if (password.length < 6) {
-          throw new Error('Le mot de passe doit faire au moins 6 caractères.');
+          throw new Error(t('validation_password_len'));
         }
         await register(username, email, password);
       }
     } catch (err) {
       console.error(err);
+      setValidationError(err.message);
     } finally {
       setSubmitting(false);
     }
@@ -63,7 +64,7 @@ export default function LoginRegister() {
               Nutrilib
             </h1>
             <p className="text-[var(--text-muted)] text-xs font-medium mt-1">
-              {isLogin ? 'Connectez-vous pour accéder à votre journal.' : 'Créez votre compte nutritionnel.'}
+              {isLogin ? t('login_title_login') : t('login_title_register')}
             </p>
           </div>
         </div>
@@ -84,7 +85,7 @@ export default function LoginRegister() {
               
               {!isLogin && (
                 <div>
-                  <label className="brutal-label">Nom d'utilisateur</label>
+                  <label className="brutal-label">{t('username')}</label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-dim)]" />
                     <input
@@ -101,7 +102,7 @@ export default function LoginRegister() {
               )}
 
               <div>
-                <label className="brutal-label">Adresse Email</label>
+                <label className="brutal-label">{t('email')}</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-dim)]" />
                   <input
@@ -117,7 +118,7 @@ export default function LoginRegister() {
               </div>
 
               <div>
-                <label className="brutal-label">Mot de passe</label>
+                <label className="brutal-label">{t('password')}</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-dim)]" />
                   <input
@@ -143,11 +144,11 @@ export default function LoginRegister() {
                 <div className="brutal-spinner-sm"></div>
               ) : isLogin ? (
                 <>
-                  <ArrowRight className="w-4 h-4" /> Connexion
+                  <ArrowRight className="w-4 h-4" /> {t('login')}
                 </>
               ) : (
                 <>
-                  <UserPlus className="w-4 h-4" /> Créer mon compte
+                  <UserPlus className="w-4 h-4" /> {t('create_account')}
                 </>
               )}
             </button>
@@ -157,22 +158,22 @@ export default function LoginRegister() {
           <div className="pt-4 border-t border-[var(--border-muted)] text-center">
             {isLogin ? (
               <p className="text-xs text-[var(--text-muted)]">
-                Pas encore de compte ?{' '}
+                {t('no_account_yet')}{' '}
                 <button
                   onClick={toggleMode}
                   className="text-[var(--accent-pistachio)] font-bold uppercase text-xs tracking-wider underline underline-offset-4 decoration-1 cursor-pointer hover:text-[var(--text)] transition-colors duration-200"
                 >
-                  Inscrivez-vous
+                  {t('sign_up_action')}
                 </button>
               </p>
             ) : (
               <p className="text-xs text-[var(--text-muted)]">
-                Vous avez déjà un compte ?{' '}
+                {t('already_account_link')}{' '}
                 <button
                   onClick={toggleMode}
                   className="text-[var(--accent-pistachio)] font-bold uppercase text-xs tracking-wider underline underline-offset-4 decoration-1 cursor-pointer hover:text-[var(--text)] transition-colors duration-200"
                 >
-                  Connectez-vous
+                  {t('sign_in_action')}
                 </button>
               </p>
             )}

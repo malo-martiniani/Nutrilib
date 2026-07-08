@@ -664,7 +664,7 @@ export default function Dashboard() {
           {showAdvancedFilters && (
             <div className="p-4 bg-[var(--surface)] border border-[var(--border)] rounded-[20px] shadow-[var(--shadow-soft)] grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
               <div>
-                <label className="block text-[10px] uppercase font-extrabold text-[var(--text-muted)] mb-1">Calories (Min - Max)</label>
+                <label className="block text-[10px] uppercase font-extrabold text-[var(--text-muted)] mb-1">{t('cal_min_max')}</label>
                 <div className="flex gap-1.5">
                   <input 
                     type="number" 
@@ -683,7 +683,7 @@ export default function Dashboard() {
                 </div>
               </div>
               <div>
-                <label className="block text-[10px] uppercase font-extrabold text-[var(--accent-powder)] mb-1">Protéines Min (g)</label>
+                <label className="block text-[10px] uppercase font-extrabold text-[var(--accent-powder)] mb-1">{t('prot_min')}</label>
                 <input 
                   type="number" 
                   placeholder="Ex: 20" 
@@ -693,7 +693,7 @@ export default function Dashboard() {
                 />
               </div>
               <div>
-                <label className="block text-[10px] uppercase font-extrabold text-[var(--accent-powder)] mb-1">Glucides Max (g)</label>
+                <label className="block text-[10px] uppercase font-extrabold text-[var(--accent-powder)] mb-1">{t('carbs_max')}</label>
                 <input 
                   type="number" 
                   placeholder="Ex: 10" 
@@ -703,7 +703,7 @@ export default function Dashboard() {
                 />
               </div>
               <div>
-                <label className="block text-[10px] uppercase font-extrabold text-[var(--accent-sand)] mb-1">Lipides Max (g)</label>
+                <label className="block text-[10px] uppercase font-extrabold text-[var(--accent-sand)] mb-1">{t('fat_max')}</label>
                 <input 
                   type="number" 
                   placeholder="Ex: 15" 
@@ -724,7 +724,7 @@ export default function Dashboard() {
                   }} 
                   className="text-[10px] font-bold text-[var(--accent-magenta)] hover:underline uppercase cursor-pointer"
                 >
-                  Réinitialiser les filtres
+                  {t('reset_filters')}
                 </button>
               </div>
             </div>
@@ -746,7 +746,7 @@ export default function Dashboard() {
               </button>
               <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-[var(--accent-pistachio)]">
                 <Calendar className="w-4 h-4 text-[var(--accent-pistachio)]" />
-                <span className="capitalize">{formattedDisplayDate}</span>
+                <span className="capitalize">{new Date(selectedDate).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
               </div>
               <button onClick={() => adjustDate(1)} className="brutal-btn-ghost p-2 text-[var(--accent-pistachio)] hover:text-[var(--text)]">
                 <ChevronRight className="w-5 h-5" />
@@ -759,7 +759,7 @@ export default function Dashboard() {
               <div className="brutal-card">
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <span className="brutal-label text-[var(--text-muted)]">Calories consommées</span>
+                    <span className="brutal-label text-[var(--text-muted)]">{t('calories_consumed')}</span>
                     <p className="text-3xl font-extrabold text-[var(--text)]">
                       {totals.calories} <span className="text-sm font-semibold text-[var(--text-dim)]">/ {calorieGoal} kcal</span>
                     </p>
@@ -770,8 +770,8 @@ export default function Dashboard() {
                   <div className="brutal-progress-fill bg-[var(--accent-pistachio)]" style={{ width: `${calPercent}%` }}></div>
                 </div>
                 <div className="flex justify-between mt-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
-                  <span>Consommé : {totals.calories} kcal</span>
-                  <span>Restant : {Math.max(calorieGoal - totals.calories, 0)} kcal</span>
+                  <span>{t('consumed')} : {totals.calories} kcal</span>
+                  <span>{t('remaining')} : {Math.max(calorieGoal - totals.calories, 0)} kcal</span>
                 </div>
               </div>
 
@@ -779,7 +779,7 @@ export default function Dashboard() {
               <div className="grid grid-cols-3 gap-3">
                 {/* Protein */}
                 <div className="brutal-card p-4 transition-all duration-300">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-powder)]">Protéines</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-powder)]">{t('protein')}</span>
                   <p className="text-xl font-extrabold mt-1 text-[var(--text)]">{totals.protein.toFixed(1)}g</p>
                   <span className="text-[10px] text-[var(--text-dim)]">/ {proteinGoal}g</span>
                   <div className="brutal-progress-track mt-2">
@@ -788,7 +788,7 @@ export default function Dashboard() {
                 </div>
                 {/* Carbs */}
                 <div className="brutal-card p-4 transition-all duration-300">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-powder)]">Glucides</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-powder)]">{t('carbs')}</span>
                   <p className="text-xl font-extrabold mt-1 text-[var(--text)]">{totals.carbs.toFixed(1)}g</p>
                   <span className="text-[10px] text-[var(--text-dim)]">/ {carbGoal}g</span>
                   <div className="brutal-progress-track mt-2">
@@ -797,7 +797,7 @@ export default function Dashboard() {
                 </div>
                 {/* Fat */}
                 <div className="brutal-card p-4 transition-all duration-300">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-sand)]">Lipides</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-sand)]">{t('fat')}</span>
                   <p className="text-xl font-extrabold mt-1 text-[var(--text)]">{totals.fat.toFixed(1)}g</p>
                   <span className="text-[10px] text-[var(--text-dim)]">/ {fatGoal}g</span>
                   <div className="brutal-progress-track mt-2">
@@ -813,8 +813,8 @@ export default function Dashboard() {
                   onClick={() => setShowMicroDetails(!showMicroDetails)}
                   className="w-full flex items-center justify-between font-extrabold text-[10px] uppercase tracking-wider text-[var(--accent-sand)] cursor-pointer"
                 >
-                  <span>🔬 Détails Micronutriments du jour</span>
-                  <span className="text-[10px]">{showMicroDetails ? 'Masquer ▲' : 'Afficher ▼'}</span>
+                  <span>{t('micro_details_today')}</span>
+                  <span className="text-[10px]">{showMicroDetails ? `${t('hide')} ▲` : `${t('show')} ▼`}</span>
                 </button>
 
                 {showMicroDetails && (
@@ -822,34 +822,34 @@ export default function Dashboard() {
                     <div className="flex justify-between items-center p-2 bg-[var(--surface-inset)] rounded-xl border border-[var(--border-muted)]/30">
                       <div className="flex items-center gap-1.5">
                         {renderMicroCircle(totals.fiber, 25, false)}
-                        <span className="text-[var(--text-muted)]">Fibres :</span>
+                        <span className="text-[var(--text-muted)]">{t('fiber')} :</span>
                       </div>
                       <span className="font-bold text-[var(--text)]">{totals.fiber.toFixed(1)}g <span className="text-[9px] text-[var(--text-dim)] font-medium">/ 25g+</span></span>
                     </div>
                     <div className="flex justify-between items-center p-2 bg-[var(--surface-inset)] rounded-xl border border-[var(--border-muted)]/30">
                       <div className="flex items-center gap-1.5">
                         {renderMicroCircle(totals.sugar, 50, true)}
-                        <span className="text-[var(--text-muted)]">Sucres :</span>
+                        <span className="text-[var(--text-muted)]">{t('sugar')} :</span>
                       </div>
                       <span className="font-bold text-[var(--text)]">{totals.sugar.toFixed(1)}g <span className="text-[9px] text-[var(--text-dim)] font-medium">/ &lt;50g</span></span>
                     </div>
                     <div className="flex justify-between items-center p-2 bg-[var(--surface-inset)] rounded-xl border border-[var(--border-muted)]/30">
-                      <span className="text-[var(--text-muted)] pl-5.5">Graisses saturées :</span>
+                      <span className="text-[var(--text-muted)] pl-5.5">{t('sat_fat')} :</span>
                       <span className="font-bold text-[var(--text)]">{totals.saturated_fat.toFixed(1)}g</span>
                     </div>
                     <div className="flex justify-between items-center p-2 bg-[var(--surface-inset)] rounded-xl border border-[var(--border-muted)]/30">
                       <div className="flex items-center gap-1.5">
                         {renderMicroCircle(totals.sodium, 2300, true)}
-                        <span className="text-[var(--text-muted)]">Sodium :</span>
+                        <span className="text-[var(--text-muted)]">{t('sodium')} :</span>
                       </div>
                       <span className="font-bold text-[var(--text)]">{Math.round(totals.sodium)}mg <span className="text-[9px] text-[var(--text-dim)] font-medium">/ &lt;2300mg</span></span>
                     </div>
                     <div className="flex justify-between items-center p-2 bg-[var(--surface-inset)] rounded-xl border border-[var(--border-muted)]/30">
-                      <span className="text-[var(--text-muted)] pl-5.5">Potassium :</span>
+                      <span className="text-[var(--text-muted)] pl-5.5">{t('potassium')} :</span>
                       <span className="font-bold text-[var(--text)]">{Math.round(totals.potassium)}mg</span>
                     </div>
                     <div className="flex justify-between items-center p-2 bg-[var(--surface-inset)] rounded-xl border border-[var(--border-muted)]/30">
-                      <span className="text-[var(--text-muted)] pl-5.5">Cholestérol :</span>
+                      <span className="text-[var(--text-muted)] pl-5.5">{t('cholesterol')} :</span>
                       <span className="font-bold text-[var(--text)]">{Math.round(totals.cholesterol)}mg</span>
                     </div>
                   </div>
@@ -874,8 +874,8 @@ export default function Dashboard() {
                     <div className="relative px-5 py-4 border-b border-[var(--border-muted)] bg-[var(--surface)]">
                       <div className="flex items-center justify-between relative z-10">
                         <div>
-                          <h3 className="font-bold text-sm uppercase tracking-wider text-[var(--text)]">{meal.name}</h3>
-                          <p className="text-[10px] text-[var(--text-muted)] font-semibold">{mealEntries.length} aliment(s)</p>
+                          <h3 className="font-bold text-sm uppercase tracking-wider text-[var(--text)]">{t(meal.id)}</h3>
+                          <p className="text-[10px] text-[var(--text-muted)] font-semibold">{mealEntries.length} {t('items_count')}</p>
                         </div>
                         <div className="flex items-center gap-3">
                           {mealCalories > 0 && (
@@ -891,7 +891,7 @@ export default function Dashboard() {
                             className="brutal-btn-accent py-1.5 px-3 text-[10px] cursor-pointer"
                             style={{ backgroundColor: meal.btnColor, color: 'var(--bg-dark-slate)', boxShadow: 'none' }}
                           >
-                            <Plus className="w-3 h-3 stroke-[3]" /> Ajouter
+                            <Plus className="w-3 h-3 stroke-[3]" /> {t('add')}
                           </button>
                         </div>
                       </div>
@@ -900,7 +900,7 @@ export default function Dashboard() {
                     {/* Food entries */}
                     <div className="p-4 bg-[var(--surface)]">
                       {mealEntries.length === 0 ? (
-                        <p className="text-xs text-[var(--text-muted)] text-center py-4 font-medium">Aucun aliment enregistré.</p>
+                        <p className="text-xs text-[var(--text-muted)] text-center py-4 font-medium">{t('no_food_logged')}</p>
                       ) : (
                         <div className="space-y-2">
                           {mealEntries.map((entry) => {
@@ -997,15 +997,15 @@ export default function Dashboard() {
             <div className="px-6 py-4 border-b border-[var(--border-muted)] flex items-center justify-between">
               <div>
                 <h3 className="font-bold text-sm uppercase tracking-wider text-[var(--text)]">
-                  Ajouter au {MEALS.find(m => m.id === activeMealType)?.name}
+                  {t('add_to_meal')} {t(activeMealType)}
                 </h3>
-                <span className="text-[10px] text-[var(--text-dim)] font-semibold">Rechercher un aliment ou une recette</span>
+                <span className="text-[10px] text-[var(--text-dim)] font-semibold">{t('search_food_or_recipe')}</span>
               </div>
               <button 
                 onClick={() => { setShowMealSearchModal(false); setMealSearchQuery(''); setMealSearchResults([]); }}
                 className="text-xs text-[var(--text-muted)] hover:text-[var(--text)] cursor-pointer font-bold uppercase transition-colors"
               >
-                Fermer
+                {t('close')}
               </button>
             </div>
             
@@ -1015,7 +1015,7 @@ export default function Dashboard() {
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-dim)]" />
                   <input
                     type="text"
-                    placeholder="Saisissez un aliment (ex: riz, œuf...)"
+                    placeholder={t('food_placeholder')}
                     value={mealSearchQuery}
                     onChange={(e) => setMealSearchQuery(e.target.value)}
                     className="brutal-input pr-8 py-2 text-xs"
@@ -1027,7 +1027,7 @@ export default function Dashboard() {
                   type="button"
                   onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
                   className={`p-2 border rounded-xl hover:bg-[var(--surface-raised)] transition-all cursor-pointer ${showAdvancedFilters ? 'border-[var(--accent-pistachio)] text-[var(--accent-pistachio)]' : 'border-[var(--border)] text-[var(--text-muted)]'}`}
-                  title="Filtres avancés"
+                  title={t('advanced_filters')}
                 >
                   <SlidersHorizontal className="w-4 h-4" />
                 </button>
@@ -1037,7 +1037,7 @@ export default function Dashboard() {
               {showAdvancedFilters && (
                 <div className="p-3 bg-[var(--surface-inset)] border border-[var(--border)] rounded-[20px] grid grid-cols-2 gap-2.5 text-xs">
                   <div>
-                    <label className="block text-[9px] uppercase font-extrabold text-[var(--text-muted)] mb-1">Calories (Min - Max)</label>
+                    <label className="block text-[9px] uppercase font-extrabold text-[var(--text-muted)] mb-1">{t('cal_min_max')}</label>
                     <div className="flex gap-1">
                       <input 
                         type="number" 
@@ -1056,7 +1056,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-[9px] uppercase font-extrabold text-[var(--accent-powder)] mb-1">Protéines Min (g)</label>
+                    <label className="block text-[9px] uppercase font-extrabold text-[var(--accent-powder)] mb-1">{t('prot_min')}</label>
                     <input 
                       type="number" 
                       placeholder="Ex: 20" 
@@ -1066,7 +1066,7 @@ export default function Dashboard() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[9px] uppercase font-extrabold text-[var(--accent-powder)] mb-1">Glucides Max (g)</label>
+                    <label className="block text-[9px] uppercase font-extrabold text-[var(--accent-powder)] mb-1">{t('carbs_max')}</label>
                     <input 
                       type="number" 
                       placeholder="Ex: 10" 
@@ -1076,7 +1076,7 @@ export default function Dashboard() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[9px] uppercase font-extrabold text-[var(--accent-sand)] mb-1">Lipides Max (g)</label>
+                    <label className="block text-[9px] uppercase font-extrabold text-[var(--accent-sand)] mb-1">{t('fat_max')}</label>
                     <input 
                       type="number" 
                       placeholder="Ex: 15" 
@@ -1097,7 +1097,7 @@ export default function Dashboard() {
                       }} 
                       className="text-[9px] font-bold text-[var(--accent-magenta)] hover:underline uppercase cursor-pointer"
                     >
-                      Réinitialiser
+                      {t('reset_filters')}
                     </button>
                   </div>
                 </div>
@@ -1109,10 +1109,10 @@ export default function Dashboard() {
                   <div className="flex justify-center py-8"><div className="brutal-spinner"></div></div>
                 )}
                 {!mealSearching && mealSearchQuery && mealSearchResults.length === 0 && (
-                  <p className="text-xs text-center text-[var(--text-muted)] py-8">Aucun aliment trouvé pour "{mealSearchQuery}"</p>
+                  <p className="text-xs text-center text-[var(--text-muted)] py-8">{t('no_food_found')} "{mealSearchQuery}"</p>
                 )}
                 {!mealSearching && !mealSearchQuery && (
-                  <p className="text-xs text-center text-[var(--text-dim)] py-8">Commencez à taper pour rechercher...</p>
+                  <p className="text-xs text-center text-[var(--text-dim)] py-8">{t('type_to_search')}</p>
                 )}
                 {!mealSearching && mealSearchResults.map((food) => (
                   <div
@@ -1126,7 +1126,7 @@ export default function Dashboard() {
                     </div>
                     <div className="text-right shrink-0">
                       <span className="text-xs font-bold text-[var(--accent-pistachio)] block">{food.calories} kcal</span>
-                      <span className="text-[9px] text-[var(--text-dim)]">sélectionner</span>
+                      <span className="text-[9px] text-[var(--text-dim)]">{t('select')}</span>
                     </div>
                   </div>
                 ))}
@@ -1143,19 +1143,19 @@ export default function Dashboard() {
             {/* Modal header */}
             <div className="px-6 py-4 border-b border-[var(--border-muted)] flex items-center justify-between">
               <div>
-                <h3 className="font-bold text-sm uppercase tracking-wider text-[var(--text)]">Ajouter au journal</h3>
+                <h3 className="font-bold text-sm uppercase tracking-wider text-[var(--text)]">{t('add_to_journal')}</h3>
                 <span className="text-[10px] text-[var(--text-dim)] font-semibold">{selectedFood.food_name}</span>
               </div>
               <button onClick={() => { setShowAddModal(false); setSelectedFood(null); }}
                 className="text-xs text-[var(--text-muted)] hover:text-[var(--text)] cursor-pointer font-bold uppercase transition-colors duration-150">
-                Annuler
+                {t('cancel')}
               </button>
             </div>
 
             <div className="p-6 space-y-5">
               {/* Meal selector */}
               <div>
-                <label className="brutal-label">Choisir le repas</label>
+                <label className="brutal-label">{t('choose_meal')}</label>
                 <div className="grid grid-cols-2 gap-2">
                   {MEALS.map((meal) => (
                     <button key={meal.id} type="button" onClick={() => setActiveMealType(meal.id)}
@@ -1165,7 +1165,7 @@ export default function Dashboard() {
                           : 'border-[var(--border-muted)] text-[var(--text-dim)] hover:border-[var(--text-muted)]'
                       }`}
                     >
-                      {meal.label}
+                      {t(meal.id)}
                     </button>
                   ))}
                 </div>
@@ -1173,7 +1173,7 @@ export default function Dashboard() {
 
               {/* Amount */}
               <div>
-                <label className="brutal-label">Quantité ({servingUnit})</label>
+                <label className="brutal-label">{t('amount')} ({servingUnit})</label>
                 <div className="flex gap-2">
                   <input type="number" min="1" max="2000" value={servingAmount}
                     onChange={(e) => setServingAmount(Math.max(1, parseInt(e.target.value) || 0))}
@@ -1197,21 +1197,21 @@ export default function Dashboard() {
                   <span className="font-extrabold text-[var(--accent-pistachio)]">{Math.round(selectedFood.calories * (computedGrams / 100))} kcal</span>
                 </div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-[var(--text-muted)]">Protéines</span>
+                  <span className="text-[var(--text-muted)]">{t('protein')}</span>
                   <span className="font-bold text-[var(--accent-powder)]">{(selectedFood.protein * (computedGrams / 100)).toFixed(1)}g</span>
                 </div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-[var(--text-muted)]">Glucides</span>
+                  <span className="text-[var(--text-muted)]">{t('carbs')}</span>
                   <span className="font-bold text-[var(--accent-powder)]">{(selectedFood.carbs * (computedGrams / 100)).toFixed(1)}g</span>
                 </div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-[var(--text-muted)]">Lipides</span>
+                  <span className="text-[var(--text-muted)]">{t('fat')}</span>
                   <span className="font-bold text-[var(--accent-sand)]">{(selectedFood.fat * (computedGrams / 100)).toFixed(1)}g</span>
                 </div>
               </div>
 
               <button onClick={addFoodToJournal} className="brutal-btn-accent w-full" style={{ backgroundColor: 'var(--accent-pistachio)', color: 'var(--bg-dark-slate)' }}>
-                Ajouter au repas
+                {t('add_to_meal_btn')}
               </button>
             </div>
           </div>
@@ -1255,7 +1255,7 @@ export default function Dashboard() {
                     <div className="p-3.5 border border-[var(--border)] rounded-2xl flex items-center gap-3 bg-[var(--surface-raised)]">
                       <Clock className="w-5 h-5 text-[var(--accent-powder)]" />
                       <div>
-                        <span className="brutal-label mb-0">Préparation</span>
+                        <span className="brutal-label mb-0">{t('prep_time')}</span>
                         <span className="text-xs font-bold block text-[var(--text)]">
                           {selectedRecipe.preparation_time_min > 0 ? `${selectedRecipe.preparation_time_min} min` : '--'}
                         </span>
@@ -1264,7 +1264,7 @@ export default function Dashboard() {
                     <div className="p-3.5 border border-[var(--border)] rounded-2xl flex items-center gap-3 bg-[var(--surface-raised)]">
                       <Clock className="w-5 h-5 text-[var(--accent-sand)]" />
                       <div>
-                        <span className="brutal-label mb-0">Cuisson</span>
+                        <span className="brutal-label mb-0">{t('cook_time')}</span>
                         <span className="text-xs font-bold block text-[var(--text)]">
                           {selectedRecipe.cooking_time_min > 0 ? `${selectedRecipe.cooking_time_min} min` : '--'}
                         </span>
@@ -1275,20 +1275,20 @@ export default function Dashboard() {
                   {/* Nutrition */}
                   <div className="border border-[var(--border)] p-4 space-y-3 rounded-2xl bg-[var(--surface-inset)]">
                     <div className="flex items-center justify-between border-b border-[var(--border-muted)] pb-2">
-                      <span className="brutal-label mb-0">Nutrition</span>
-                      <span className="text-xs font-extrabold text-[var(--accent-pistachio)]">{selectedRecipe.calories} kcal/portion</span>
+                      <span className="brutal-label mb-0">{t('nutrition')}</span>
+                      <span className="text-xs font-extrabold text-[var(--accent-pistachio)]">{selectedRecipe.calories} {t('kcal_per_serving')}</span>
                     </div>
                     <div className="grid grid-cols-3 gap-3 text-center">
                       <div className="p-2 border border-[var(--accent-powder)]/20 rounded-xl bg-[var(--accent-powder)]/5">
-                        <span className="text-[9px] font-bold text-[var(--accent-powder)] block uppercase">Protéines</span>
+                        <span className="text-[9px] font-bold text-[var(--accent-powder)] block uppercase">{t('protein')}</span>
                         <span className="text-sm font-extrabold text-[var(--text)]">{selectedRecipe.protein}g</span>
                       </div>
                       <div className="p-2 border border-[var(--accent-powder)]/20 rounded-xl bg-[var(--accent-powder)]/5">
-                        <span className="text-[9px] font-bold text-[var(--accent-powder)] block uppercase">Glucides</span>
+                        <span className="text-[9px] font-bold text-[var(--accent-powder)] block uppercase">{t('carbs')}</span>
                         <span className="text-sm font-extrabold text-[var(--text)]">{selectedRecipe.carbs}g</span>
                       </div>
                       <div className="p-2 border border-[var(--accent-sand)]/20 rounded-xl bg-[var(--accent-sand)]/5">
-                        <span className="text-[9px] font-bold text-[var(--accent-sand)] block uppercase">Lipides</span>
+                        <span className="text-[9px] font-bold text-[var(--accent-sand)] block uppercase">{t('fat')}</span>
                         <span className="text-sm font-extrabold text-[var(--text)]">{selectedRecipe.fat}g</span>
                       </div>
                     </div>
@@ -1301,7 +1301,7 @@ export default function Dashboard() {
                 {/* Ingredients */}
                 <div className="space-y-3">
                   <h4 className="font-extrabold text-sm uppercase tracking-wider flex items-center gap-2 text-[var(--text)]">
-                    <ListTodo className="w-4 h-4 text-[var(--accent-powder)]" /> Ingrédients
+                    <ListTodo className="w-4 h-4 text-[var(--accent-powder)]" /> {t('ingredients')}
                   </h4>
                   <div className="space-y-2 max-h-[300px] overflow-y-auto">
                     {selectedRecipe.ingredients.map((ing, index) => {
@@ -1324,7 +1324,7 @@ export default function Dashboard() {
                 {/* Instructions */}
                 <div className="space-y-3">
                   <h4 className="font-extrabold text-sm uppercase tracking-wider flex items-center gap-2 text-[var(--text)]">
-                    <CheckCircle className="w-4 h-4 text-[var(--accent-sand)]" /> Instructions
+                    <CheckCircle className="w-4 h-4 text-[var(--accent-sand)]" /> {t('directions')}
                   </h4>
                   <div className="space-y-2.5 max-h-[300px] overflow-y-auto">
                     {selectedRecipe.directions.map((step, index) => (

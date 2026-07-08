@@ -98,6 +98,11 @@ router.post('/:listId/items', authMiddleware, async (req, res) => {
       return res.status(404).json({ message: 'Liste non trouvée ou non autorisée.' });
     }
 
+    const cleanCalories = Math.max(0, parseInt(calories) || 0);
+    const cleanProtein = Math.max(0, parseFloat(protein) || 0);
+    const cleanCarbs = Math.max(0, parseFloat(carbs) || 0);
+    const cleanFat = Math.max(0, parseFloat(fat) || 0);
+
     const result = await db.query(
       `INSERT INTO custom_list_items 
        (list_id, food_id, food_name, calories, protein, carbs, fat, serving_description) 
@@ -106,10 +111,10 @@ router.post('/:listId/items', authMiddleware, async (req, res) => {
         listId,
         food_id || null,
         food_name,
-        parseInt(calories),
-        parseFloat(protein || 0),
-        parseFloat(carbs || 0),
-        parseFloat(fat || 0),
+        cleanCalories,
+        cleanProtein,
+        cleanCarbs,
+        cleanFat,
         serving_description || '100g'
       ]
     );
@@ -119,11 +124,11 @@ router.post('/:listId/items', authMiddleware, async (req, res) => {
       list_id: parseInt(listId),
       food_id,
       food_name,
-      calories,
-      protein,
-      carbs,
-      fat,
-      serving_description
+      calories: cleanCalories,
+      protein: cleanProtein,
+      carbs: cleanCarbs,
+      fat: cleanFat,
+      serving_description: serving_description || '100g'
     });
   } catch (error) {
     console.error('Erreur ajout aliment à la liste:', error.message);
