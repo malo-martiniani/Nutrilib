@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Heart, FolderPlus, Trash2, Plus, Calendar, ShoppingBag, Search, Folder, X, Clock, Star, ListTodo, Flame, CheckCircle } from 'lucide-react';
 import { useNotification } from '../context/NotificationContext';
+import { useAuth } from '../context/AuthContext';
 
 const MEALS = [
   { id: 'breakfast', name: 'Petit-déjeuner', label: 'MATIN' },
@@ -11,6 +12,7 @@ const MEALS = [
 
 export default function Favorites({ token, defaultDate }) {
   const { showToast, askConfirmation } = useNotification();
+  const { language, t } = useAuth();
   const [favorites, setFavorites] = useState([]);
   const [lists, setLists] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -58,7 +60,7 @@ export default function Favorites({ token, defaultDate }) {
       setListSearching(true);
       try {
         const response = await fetch(`http://localhost:5000/api/foods/search?query=${encodeURIComponent(listSearchQuery)}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { 'Authorization': `Bearer ${token}`, 'x-app-lang': language }
         });
         if (response.ok) {
           const data = await response.json();
@@ -218,7 +220,7 @@ export default function Favorites({ token, defaultDate }) {
     setLoadingRecipe(true);
     setCheckedIngredients({});
     try {
-      const response = await fetch(`http://localhost:5000/api/foods/recipes/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const response = await fetch(`http://localhost:5000/api/foods/recipes/${id}`, { headers: { 'Authorization': `Bearer ${token}`, 'x-app-lang': language } });
       if (response.ok) { setSelectedRecipe((await response.json()).recipe); }
       else { showToast('Erreur chargement recette.', 'error'); }
     } catch (err) { 

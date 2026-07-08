@@ -64,7 +64,7 @@ const MEALS = [
 import { useNotification } from '../context/NotificationContext';
 
 export default function Dashboard() {
-  const { user, token, logout } = useAuth();
+  const { user, token, logout, language, setLanguage, t } = useAuth();
   const { showToast, askConfirmation } = useNotification();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [journalEntries, setJournalEntries] = useState([]);
@@ -178,7 +178,7 @@ export default function Dashboard() {
         if (fatMax) url += `&fatMax=${fatMax}`;
 
         const response = await fetch(url, {
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { 'Authorization': `Bearer ${token}`, 'x-app-lang': language }
         });
         if (response.ok) {
           const data = await response.json();
@@ -208,7 +208,7 @@ export default function Dashboard() {
         if (fatMax) url += `&fatMax=${fatMax}`;
 
         const response = await fetch(url, {
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { 'Authorization': `Bearer ${token}`, 'x-app-lang': language }
         });
         if (response.ok) {
           const data = await response.json();
@@ -264,7 +264,7 @@ export default function Dashboard() {
     let detailedFood = { ...food };
     if (food.food_id && !food.food_id.toString().startsWith('recipe_')) {
       try {
-        const res = await fetch(`${API_URL}/foods/food/${food.food_id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const res = await fetch(`${API_URL}/foods/food/${food.food_id}`, { headers: { 'Authorization': `Bearer ${token}`, 'x-app-lang': language } });
         if (res.ok) {
           const detailData = await res.json();
           if (detailData.food && detailData.food.servings && detailData.food.servings.length > 0) {
@@ -366,7 +366,7 @@ export default function Dashboard() {
     setLoadingRecipe(true);
     setCheckedIngredients({});
     try {
-      const response = await fetch(`${API_URL}/foods/recipes/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const response = await fetch(`${API_URL}/foods/recipes/${id}`, { headers: { 'Authorization': `Bearer ${token}`, 'x-app-lang': language } });
       if (response.ok) { setSelectedRecipe((await response.json()).recipe); }
       else { showToast('Erreur chargement recette.', 'error'); }
     } catch (err) { 
@@ -471,11 +471,11 @@ export default function Dashboard() {
   };
 
   const NAV_ITEMS = [
-    { id: 'journal', label: 'Journal', icon: BookOpen },
-    { id: 'recipes', label: 'Recettes', icon: ChefHat },
-    { id: 'weight', label: 'Poids', icon: Scale },
-    { id: 'favorites', label: 'Favoris', icon: Heart },
-    { id: 'profile', label: 'Profil', icon: User },
+    { id: 'journal', label: t('tab_journal'), icon: BookOpen },
+    { id: 'recipes', label: t('tab_recipes'), icon: ChefHat },
+    { id: 'weight', label: t('tab_weight'), icon: Scale },
+    { id: 'favorites', label: t('tab_favorites'), icon: Heart },
+    { id: 'profile', label: t('tab_profile'), icon: User },
   ];
 
   const renderMicroCircle = (current, target, isMax = false) => {
@@ -549,7 +549,7 @@ export default function Dashboard() {
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-dim)]" />
               <input
                 type="text"
-                placeholder="Rechercher un aliment..."
+                placeholder={t('search_placeholder')}
                 value={headerSearchQuery}
                 onChange={(e) => setHeaderSearchQuery(e.target.value)}
                 className="brutal-input pr-8 py-2 text-xs"
@@ -634,11 +634,30 @@ export default function Dashboard() {
               </button>
             </div>
 
-            {/* Logout */}
-            <button onClick={logout} className="brutal-btn-ghost text-[10px] shrink-0">
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Quitter</span>
-            </button>
+            {/* Language Switcher & Logout */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 border border-[var(--border)] rounded-xl p-0.5 bg-[var(--surface-raised)]">
+                <button
+                  type="button"
+                  onClick={() => setLanguage('fr')}
+                  className={`px-2 py-1 text-[9px] font-extrabold rounded-lg cursor-pointer transition-all ${language === 'fr' ? 'bg-[var(--accent-pistachio)] text-[var(--black)]' : 'text-[var(--text-muted)] hover:text-[var(--text)]'}`}
+                >
+                  FR
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLanguage('en')}
+                  className={`px-2 py-1 text-[9px] font-extrabold rounded-lg cursor-pointer transition-all ${language === 'en' ? 'bg-[var(--accent-pistachio)] text-[var(--black)]' : 'text-[var(--text-muted)] hover:text-[var(--text)]'}`}
+                >
+                  EN
+                </button>
+              </div>
+
+              <button onClick={logout} className="brutal-btn-ghost text-[10px] shrink-0">
+                <LogOut className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">{t('logout')}</span>
+              </button>
+            </div>
           </div>
 
           {/* Advanced filters panel */}

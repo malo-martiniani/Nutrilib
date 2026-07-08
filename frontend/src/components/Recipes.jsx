@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Clock, Star, CheckCircle, ChevronRight, X, ListTodo, Flame, Info, Heart, FolderOpen, SlidersHorizontal, Trash2, Plus, Sparkles, ChefHat } from 'lucide-react';
 import { useNotification } from '../context/NotificationContext';
+import { useAuth } from '../context/AuthContext';
 
 const API_URL = 'http://localhost:5000/api';
 
 export default function Recipes({ token, initialFilters, onClearFilters }) {
   const { showToast, askConfirmation } = useNotification();
+  const { language, t } = useAuth();
   const [recipes, setRecipes] = useState([]);
   const [query, setQuery] = useState('');
   const [searching, setSearching] = useState(false);
@@ -85,7 +87,7 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
     if (fatMax) url += `&fatMax=${fatMax}`;
 
     try {
-      const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+      const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}`, 'x-app-lang': language } });
       if (response.ok) {
         const data = await response.json();
         setRecipes(data.recipes || []);
@@ -130,7 +132,7 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
         if (initialFilters.fatMax) url += `&fatMax=${initialFilters.fatMax}`;
 
         try {
-          const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+          const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}`, 'x-app-lang': language } });
           if (response.ok) {
             const data = await response.json();
             setRecipes(data.recipes || []);
@@ -157,7 +159,7 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
     setLoadingRecipe(true);
     setCheckedIngredients({});
     try {
-      const response = await fetch(`${API_URL}/foods/recipes/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const response = await fetch(`${API_URL}/foods/recipes/${id}`, { headers: { 'Authorization': `Bearer ${token}`, 'x-app-lang': language } });
       if (response.ok) { setSelectedRecipe((await response.json()).recipe); }
       else { showToast('Erreur chargement recette.', 'error'); }
     } catch (err) { 
@@ -200,7 +202,7 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
     const delayDebounceFn = setTimeout(async () => {
       try {
         const response = await fetch(`${API_URL}/foods/search?query=${encodeURIComponent(ingSearchQuery)}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { 'Authorization': `Bearer ${token}`, 'x-app-lang': language }
         });
         if (response.ok) {
           const data = await response.json();

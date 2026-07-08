@@ -288,6 +288,95 @@ function buildSignedUrl(method, apiParams) {
 }
 
 // ============================================================
+// TRADUCTION DE SECOURS (FR/EN)
+// ============================================================
+
+async function translateText(text, from = 'auto', to = 'fr') {
+  if (!text) return '';
+  try {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${from}&tl=${to}&dt=t&q=${encodeURIComponent(text)}`;
+    const response = await fetch(url);
+    if (!response.ok) return text;
+    const data = await response.json();
+    if (data && data[0] && data[0][0] && data[0][0][0]) {
+      return data[0][0][0];
+    }
+    return text;
+  } catch (error) {
+    console.error('Erreur de traduction:', error.message);
+    return text;
+  }
+}
+
+async function translateTextBatch(texts, from = 'auto', to = 'fr') {
+  if (!texts || texts.length === 0) return [];
+  const combinedText = texts.join('\n');
+  try {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${from}&tl=${to}&dt=t&q=${encodeURIComponent(combinedText)}`;
+    const response = await fetch(url);
+    if (!response.ok) return texts;
+    const data = await response.json();
+    if (data && data[0]) {
+      const translatedLines = data[0].map(item => item[0]).join('');
+      const splitTexts = translatedLines.split('\n').map(t => t.trim());
+      if (splitTexts.length === texts.length) {
+        return splitTexts;
+      } else {
+        console.log(`Désalignement de traduction batch (attendu: ${texts.length}, reçu: ${splitTexts.length}).`);
+        const result = [];
+        for (let i = 0; i < texts.length; i++) {
+          result.push(splitTexts[i] || texts[i]);
+        }
+        return result;
+      }
+    }
+    return texts;
+  } catch (error) {
+    console.error('Erreur traduction batch:', error.message);
+    return texts;
+  }
+}
+
+function translateServingDescription(desc) {
+  if (!desc) return desc;
+  let translated = desc;
+  const map = {
+    'slice': 'tranche',
+    'slices': 'tranches',
+    'cup': 'tasse',
+    'cups': 'tasses',
+    'container': 'pot',
+    'containers': 'pots',
+    'serving': 'portion',
+    'servings': 'portions',
+    'medium': 'moyen(ne)',
+    'large': 'grand(e)',
+    'small': 'petit(e)',
+    'package': 'paquet',
+    'bottle': 'bouteille',
+    'bottles': 'bouteilles',
+    'can': 'boîte/canette',
+    'cans': 'boîtes/canettes',
+    'cookie': 'biscuit',
+    'cookies': 'biscuits',
+    'piece': 'morceau',
+    'pieces': 'morceaux',
+    'tbsp': 'c. à soupe',
+    'tsp': 'c. à café',
+    'oz': 'oz',
+    'gram': 'g',
+    'grams': 'g'
+  };
+  
+  Object.keys(map).forEach(eng => {
+    const reg = new RegExp(`\\b${eng}\\b`, 'gi');
+    translated = translated.replace(reg, map[eng]);
+  });
+  
+  return translated;
+}
+
+// ============================================================
 // ENDPOINTS
 // ============================================================
 
@@ -297,6 +386,7 @@ function buildSignedUrl(method, apiParams) {
 router.get('/search', authMiddleware, async (req, res) => {
   const query = req.query.query;
   const { caloriesMin, caloriesMax, proteinMin, carbsMax, fatMax } = req.query;
+  const lang = req.headers['x-app-lang'] || 'fr';
 
   if (!query) {
     return res.status(400).json({ message: 'Veuillez spécifier un terme de recherche.' });
@@ -318,11 +408,17 @@ router.get('/search', authMiddleware, async (req, res) => {
   }
 
   try {
+    // Traduire en anglais seulement si lang === 'fr'
+    const searchExpression = (lang === 'fr') ? await translateText(query, 'fr', 'en') : query;
+    console.log(`Recherche aliment (lang: ${lang}): "${query}" -> "${searchExpression}"`);
+
     const apiParams = {
       method: 'foods.search',
-      search_expression: query,
+      search_expression: searchExpression,
       format: 'json',
-      max_results: '30' // Échantillon plus grand pour un filtrage efficace
+      max_results: '30', // Échantillon plus grand pour un filtrage efficace
+      region: lang === 'fr' ? 'FR' : 'US',
+      language: lang === 'fr' ? 'fr' : 'en'
     };
 
     const signedUrl = buildSignedUrl('GET', apiParams);
@@ -344,27 +440,41 @@ router.get('/search', authMiddleware, async (req, res) => {
       foods = foodList.map(item => {
         const desc = item.food_description || '';
         const caloriesMatch = desc.match(/Calories:\s*(\d+)kcal/i);
-        const fatMatch = desc.match(/Fat:\s*([\d.]+)g/i);
-        const carbsMatch = desc.match(/Carbs:\s*([\d.]+)g/i);
-        const proteinMatch = desc.match(/Protein:\s*([\d.]+)g/i);
+        const fatMatch = desc.match(/(?:Fat|Lipides):\s*([\d.,]+)g/i);
+        const carbsMatch = desc.match(/(?:Carbs|Glucides):\s*([\d.,]+)g/i);
+        const proteinMatch = desc.match(/(?:Protein|Protéines|Protéine):\s*([\d.,]+)g/i);
         
         let serving = '100g';
-        const servingMatch = desc.match(/^Per\s+([^|-]+)/i);
+        const servingMatch = desc.match(/^(?:Per|Par|Pour)\s+([^|-]+)/i);
         if (servingMatch) {
           serving = servingMatch[1].trim();
         }
+
+        const parseDescFloat = (match) => {
+          if (!match) return 0.0;
+          return parseFloat(match[1].replace(',', '.'));
+        };
 
         return {
           food_id: item.food_id,
           food_name: item.food_name,
           brand_name: item.brand_name || 'Générique',
           calories: caloriesMatch ? parseInt(caloriesMatch[1]) : 0,
-          fat: fatMatch ? parseFloat(fatMatch[1]) : 0.0,
-          carbs: carbsMatch ? parseFloat(carbsMatch[1]) : 0.0,
-          protein: proteinMatch ? parseFloat(proteinMatch[1]) : 0.0,
-          serving: serving
+          fat: parseDescFloat(fatMatch),
+          carbs: parseDescFloat(carbsMatch),
+          protein: parseDescFloat(proteinMatch),
+          serving: (lang === 'fr') ? translateServingDescription(serving) : serving
         };
       });
+
+      // Traduire les noms d'aliments retournés en français (seulement si lang === 'fr')
+      if (lang === 'fr' && foods.length > 0) {
+        const foodNames = foods.map(f => f.food_name);
+        const translatedNames = await translateTextBatch(foodNames, 'en', 'fr');
+        foods.forEach((f, idx) => {
+          f.food_name = translatedNames[idx] || f.food_name;
+        });
+      }
 
       // Appliquer les filtres de nutriments
       if (caloriesMin) foods = foods.filter(f => f.calories >= parseInt(caloriesMin));
@@ -396,6 +506,7 @@ router.get('/search', authMiddleware, async (req, res) => {
 // @access  Privé
 router.get('/food/:id', authMiddleware, async (req, res) => {
   const foodId = req.params.id;
+  const lang = req.headers['x-app-lang'] || 'fr';
 
   if (!areCredentialsConfigured()) {
     console.log('Détails aliment Mockés.');
@@ -412,7 +523,9 @@ router.get('/food/:id', authMiddleware, async (req, res) => {
     const apiParams = {
       method: 'food.get.v4', // v4 contient plus de données micronutritionnelles
       food_id: foodId,
-      format: 'json'
+      format: 'json',
+      region: lang === 'fr' ? 'FR' : 'US',
+      language: lang === 'fr' ? 'fr' : 'en'
     };
 
     const signedUrl = buildSignedUrl('GET', apiParams);
@@ -450,14 +563,16 @@ router.get('/food/:id', authMiddleware, async (req, res) => {
       potassium: s.potassium ? parseFloat(s.potassium) : 0.0,
       fiber: s.fiber ? parseFloat(s.fiber) : 0.0,
       sugar: s.sugar ? parseFloat(s.sugar) : 0.0,
-      serving_description: s.serving_description,
+      serving_description: (lang === 'fr') ? translateServingDescription(s.serving_description) : s.serving_description,
       metric_serving_amount: s.metric_serving_amount ? parseFloat(s.metric_serving_amount) : 0.0,
       metric_serving_unit: s.metric_serving_unit || 'g'
     }));
 
+    const translatedFoodName = (lang === 'fr') ? await translateText(rawFood.food_name, 'en', 'fr') : rawFood.food_name;
+
     const foodDetails = {
       food_id: rawFood.food_id,
-      food_name: rawFood.food_name,
+      food_name: translatedFoodName,
       brand_name: rawFood.brand_name || 'Générique',
       servings
     };
@@ -481,6 +596,7 @@ router.get('/food/:id', authMiddleware, async (req, res) => {
 // @access  Privé
 router.get('/recipes/search', authMiddleware, async (req, res) => {
   const { query, caloriesMax, carbMaxPercent, proteinMinPercent, caloriesMin, proteinMin, carbsMax, fatMax } = req.query;
+  const lang = req.headers['x-app-lang'] || 'fr';
 
   if (!areCredentialsConfigured()) {
     console.log('Utilisation des recettes Mockées (FatSecret non configuré).');
@@ -507,23 +623,19 @@ router.get('/recipes/search', authMiddleware, async (req, res) => {
   }
 
   try {
+    const englishQuery = (lang === 'fr' && query) ? await translateText(query, 'fr', 'en') : (query || '');
+    console.log(`Recherche recette (lang: ${lang}): "${query || ''}" -> "${englishQuery}"`);
+
     const apiParams = {
       method: 'recipes.search.v3',
       format: 'json',
-      max_results: '24' // Plus de résultats pour filtrer précisément ensuite
+      max_results: '24', // Plus de résultats pour filtrer précisément ensuite
+      region: lang === 'fr' ? 'FR' : 'US',
+      language: lang === 'fr' ? 'fr' : 'en'
     };
 
-    if (query) {
-      let apiQuery = query;
-      const lowerQuery = query.toLowerCase().trim();
-      if (lowerQuery === 'végétarien' || lowerQuery === 'vegetarien') {
-        apiQuery = 'vegetarian';
-      } else if (lowerQuery === 'vegan' || lowerQuery === 'végétalien') {
-        apiQuery = 'vegan';
-      } else if (lowerQuery === 'sans gluten') {
-        apiQuery = 'gluten free';
-      }
-      apiParams.search_expression = apiQuery;
+    if (englishQuery) {
+      apiParams.search_expression = englishQuery;
     }
     if (caloriesMax) apiParams['calories.to'] = caloriesMax;
     if (carbMaxPercent) apiParams['carb_percentage.to'] = carbMaxPercent;
@@ -557,6 +669,20 @@ router.get('/recipes/search', authMiddleware, async (req, res) => {
         fat: r.recipe_nutrition ? parseFloat(r.recipe_nutrition.fat) : 0.0
       }));
 
+      // Traduire les noms et descriptions de recettes retournés en français (seulement si lang === 'fr')
+      if (lang === 'fr' && recipes.length > 0) {
+        const recipeNames = recipes.map(r => r.recipe_name);
+        const recipeDescriptions = recipes.map(r => r.recipe_description);
+        
+        const translatedNames = await translateTextBatch(recipeNames, 'en', 'fr');
+        const translatedDescriptions = await translateTextBatch(recipeDescriptions, 'en', 'fr');
+        
+        recipes.forEach((r, idx) => {
+          r.recipe_name = translatedNames[idx] || r.recipe_name;
+          r.recipe_description = translatedDescriptions[idx] || r.recipe_description;
+        });
+      }
+
       // Appliquer les filtres nutritionnels précis
       if (caloriesMin) recipes = recipes.filter(r => r.calories >= parseInt(caloriesMin));
       if (proteinMin) recipes = recipes.filter(r => r.protein >= parseFloat(proteinMin));
@@ -588,6 +714,7 @@ router.get('/recipes/search', authMiddleware, async (req, res) => {
 // @access  Privé
 router.get('/recipes/:id', authMiddleware, async (req, res) => {
   const recipeId = req.params.id;
+  const lang = req.headers['x-app-lang'] || 'fr';
 
   if (!areCredentialsConfigured()) {
     const recipe = MOCK_RECIPES.find(r => r.recipe_id === recipeId);
@@ -601,7 +728,9 @@ router.get('/recipes/:id', authMiddleware, async (req, res) => {
     const apiParams = {
       method: 'recipe.get',
       recipe_id: recipeId,
-      format: 'json'
+      format: 'json',
+      region: lang === 'fr' ? 'FR' : 'US',
+      language: lang === 'fr' ? 'fr' : 'en'
     };
 
     const signedUrl = buildSignedUrl('GET', apiParams);
@@ -667,6 +796,22 @@ router.get('/recipes/:id', authMiddleware, async (req, res) => {
       directions,
       number_of_servings: r.number_of_servings ? parseInt(r.number_of_servings) : null
     };
+
+    // Traduire le détail de la recette en français (seulement si lang === 'fr')
+    if (lang === 'fr') {
+      try {
+        recipeDetails.recipe_name = await translateText(recipeDetails.recipe_name, 'en', 'fr');
+        recipeDetails.recipe_description = await translateText(recipeDetails.recipe_description, 'en', 'fr');
+        if (recipeDetails.ingredients && recipeDetails.ingredients.length > 0) {
+          recipeDetails.ingredients = await translateTextBatch(recipeDetails.ingredients, 'en', 'fr');
+        }
+        if (recipeDetails.directions && recipeDetails.directions.length > 0) {
+          recipeDetails.directions = await translateTextBatch(recipeDetails.directions, 'en', 'fr');
+        }
+      } catch (transError) {
+        console.error('Erreur lors de la traduction du détail de la recette:', transError.message);
+      }
+    }
 
     res.json({ recipe: recipeDetails, isMock: false });
 
