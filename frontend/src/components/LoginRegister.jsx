@@ -31,8 +31,11 @@ export default function LoginRegister() {
         if (username.length < 3) {
           throw new Error(t('validation_username_len'));
         }
-        if (password.length < 6) {
+        if (password.length < 8) {
           throw new Error(t('validation_password_len'));
+        }
+        if (!/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) {
+          throw new Error(t('validation_password_complexity'));
         }
         await register(username, email, password);
       }

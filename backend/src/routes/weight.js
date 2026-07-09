@@ -34,6 +34,12 @@ router.post('/', authMiddleware, async (req, res) => {
     return res.status(400).json({ message: 'Poids invalide (doit être compris entre 0.1 et 500 kg).' });
   }
 
+  // Validation du format de date AAAA-MM-JJ
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dateRegex.test(entry_date) || isNaN(new Date(entry_date).getTime())) {
+    return res.status(400).json({ message: 'Format de date invalide (attendu : AAAA-MM-JJ).' });
+  }
+
   try {
     await db.query(
       `INSERT INTO weight_history (user_id, weight, entry_date) 

@@ -13,6 +13,11 @@ router.get('/', authMiddleware, async (req, res) => {
     return res.status(400).json({ message: 'Veuillez spécifier une date (AAAA-MM-JJ).' });
   }
 
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dateRegex.test(date) || isNaN(new Date(date).getTime())) {
+    return res.status(400).json({ message: 'Format de date invalide (attendu : AAAA-MM-JJ).' });
+  }
+
   try {
     const entries = await db.query(
       'SELECT * FROM journal_entries WHERE user_id = ? AND entry_date = ? ORDER BY id DESC',
@@ -57,6 +62,12 @@ router.post('/', authMiddleware, async (req, res) => {
   const validMeals = ['breakfast', 'lunch', 'dinner', 'snack'];
   if (!validMeals.includes(meal_type)) {
     return res.status(400).json({ message: 'Type de repas invalide (doit être breakfast, lunch, dinner ou snack).' });
+  }
+
+  // Validation du format de date AAAA-MM-JJ
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dateRegex.test(entry_date) || isNaN(new Date(entry_date).getTime())) {
+    return res.status(400).json({ message: 'Format de date invalide (attendu : AAAA-MM-JJ).' });
   }
 
   const cleanCalories = Math.max(0, parseInt(calories) || 0);

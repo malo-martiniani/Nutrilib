@@ -856,6 +856,12 @@ router.post('/custom-recipes', authMiddleware, async (req, res) => {
   if (!recipe_name || !ingredients || ingredients.length === 0) {
     return res.status(400).json({ message: 'Veuillez renseigner un nom et au moins un ingrédient.' });
   }
+  if (recipe_name.length > 255) {
+    return res.status(400).json({ message: 'Le nom de la recette ne peut pas dépasser 255 caractères.' });
+  }
+  if (recipe_image && recipe_image.length > 500) {
+    return res.status(400).json({ message: 'L\'URL de l\'image ne peut pas dépasser 500 caractères.' });
+  }
   const cleanServings = Math.max(1, parseInt(servings) || 1);
   const cleanCalories = Math.max(0, parseInt(calories) || 0);
   const cleanProtein = Math.max(0, parseFloat(protein) || 0);

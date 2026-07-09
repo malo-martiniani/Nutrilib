@@ -59,6 +59,10 @@ router.post('/', authMiddleware, async (req, res) => {
     return res.status(400).json({ message: 'Le nom de la liste est requis.' });
   }
 
+  if (list_name.length > 100) {
+    return res.status(400).json({ message: 'Le nom de la liste ne peut pas dépasser 100 caractères.' });
+  }
+
   try {
     const result = await db.query(
       'INSERT INTO custom_lists (user_id, list_name) VALUES (?, ?)',

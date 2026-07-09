@@ -33,6 +33,14 @@ router.get('/', authMiddleware, async (req, res) => {
 router.put('/', authMiddleware, async (req, res) => {
   const { display_name, avatar_url, is_private } = req.body;
 
+  if (display_name && display_name.length > 100) {
+    return res.status(400).json({ message: 'Le nom d\'affichage ne peut pas dépasser 100 caractères.' });
+  }
+
+  if (avatar_url && avatar_url.length > 255) {
+    return res.status(400).json({ message: 'L\'URL de l\'avatar ne peut pas dépasser 255 caractères.' });
+  }
+
   try {
     await db.query(
       `UPDATE users 

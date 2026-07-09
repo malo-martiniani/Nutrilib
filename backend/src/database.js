@@ -226,17 +226,7 @@ async function createTables() {
     await connection.query(`ALTER TABLE journal_entries MODIFY COLUMN serving_amount DECIMAL(10,2) NOT NULL DEFAULT 100.00`);
     await connection.query(`ALTER TABLE custom_recipe_ingredients MODIFY COLUMN serving_amount DECIMAL(10,2) NOT NULL DEFAULT 100.00`);
 
-    // Ajouter les colonnes servings et recipe_image à la table custom_recipes si elles n'existent pas
-    const [customRecipesColumns] = await connection.query('SHOW COLUMNS FROM custom_recipes');
-    const customRecipesColumnNames = customRecipesColumns.map(c => c.Field);
-    if (!customRecipesColumnNames.includes('recipe_image')) {
-      await connection.query('ALTER TABLE custom_recipes ADD COLUMN recipe_image VARCHAR(500) DEFAULT NULL');
-      console.log('Colonne "recipe_image" ajoutée à "custom_recipes".');
-    }
-    if (!customRecipesColumnNames.includes('servings')) {
-      await connection.query('ALTER TABLE custom_recipes ADD COLUMN servings INT NOT NULL DEFAULT 1');
-      console.log('Colonne "servings" ajoutée à "custom_recipes".');
-    }
+    // Note: recipe_image et servings sont déjà définis dans le CREATE TABLE ci-dessus.
 
   } catch (error) {
     console.error('Erreur lors de la création des tables:', error.message);
