@@ -33,3 +33,7 @@ Thumbs.db
 *.sln
 *.sw?
 *.local
+ 
+# Ressource
+
+ressource/*
