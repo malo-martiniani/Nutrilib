@@ -303,11 +303,20 @@ export default function Favorites({ token, defaultDate }) {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="brutal-tag border-[var(--border-muted)] text-[var(--text-muted)] text-[10px]">{fav.calories} kcal</span>
-                    <button onClick={() => openQuickAdd(fav)} className="brutal-btn-accent py-1.5 px-2.5 text-[10px] cursor-pointer" style={{ backgroundColor: 'var(--accent-pistachio)', color: 'var(--bg-dark-slate)' }}>
-                      <Plus className="w-3.5 h-3.5" />
+                    <button 
+                      onClick={() => openQuickAdd(fav)} 
+                      className="brutal-btn-accent py-1.5 px-2.5 text-[10px] cursor-pointer" 
+                      style={{ backgroundColor: 'var(--accent-pistachio)', color: 'var(--bg-dark-slate)' }}
+                      aria-label={`${t('add_to_journal')} ${fav.food_name}`}
+                    >
+                      <Plus className="w-3.5 h-3.5" aria-hidden="true" />
                     </button>
-                    <button onClick={() => handleRemoveFavorite(fav.id)} className="brutal-btn-danger">
-                      <Trash2 className="w-3.5 h-3.5" />
+                    <button 
+                      onClick={() => handleRemoveFavorite(fav.id)} 
+                      className="brutal-btn-danger"
+                      aria-label={`${t('delete')} ${fav.food_name}`}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                     </button>
                   </div>
                 </div>
@@ -324,11 +333,24 @@ export default function Favorites({ token, defaultDate }) {
             <ShoppingBag className="w-5 h-5 text-[var(--accent-powder)]" /> {t('my_lists')}
           </h2>
           <form onSubmit={handleCreateList} className="flex gap-2">
-            <input type="text" required placeholder={t('list_name_placeholder') || "Nom de la liste..."}
-              value={newListName} onChange={(e) => setNewListName(e.target.value)}
-              className="brutal-input flex-1 py-2 text-xs" />
-            <button type="submit" disabled={creatingList} className="brutal-btn-accent py-2 px-3 text-[10px] cursor-pointer" style={{ backgroundColor: 'var(--accent-pistachio)', color: 'var(--bg-dark-slate)', boxShadow: 'none' }}>
-              <FolderPlus className="w-4 h-4" />
+            <label htmlFor="lst-new-name" className="sr-only">{t('list_name_placeholder') || "Nom de la liste"}</label>
+            <input 
+              id="lst-new-name"
+              type="text" 
+              required 
+              placeholder={t('list_name_placeholder') || "Nom de la liste..."}
+              value={newListName} 
+              onChange={(e) => setNewListName(e.target.value)}
+              className="brutal-input flex-1 py-2 text-xs" 
+            />
+            <button 
+              type="submit" 
+              disabled={creatingList} 
+              className="brutal-btn-accent py-2 px-3 text-[10px] cursor-pointer" 
+              style={{ backgroundColor: 'var(--accent-pistachio)', color: 'var(--bg-dark-slate)', boxShadow: 'none' }}
+              aria-label={t('create_list') || 'Créer une liste'}
+            >
+              <FolderPlus className="w-4 h-4" aria-hidden="true" />
             </button>
           </form>
         </div>

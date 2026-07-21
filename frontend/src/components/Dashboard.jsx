@@ -160,6 +160,11 @@ export default function Dashboard() {
   useEffect(() => { fetchProfileData(); fetchFavoritesAndLists(); }, [token]);
   useEffect(() => { fetchJournalEntries(); }, [selectedDate, token]);
 
+  // Dynamically update document title based on the active tab for SPAs
+  useEffect(() => {
+    document.title = `Nutrilib - ${t('tab_' + activeTab)}`;
+  }, [activeTab, language]);
+
   // Debounced search for header search bar
   useEffect(() => {
     if (!headerSearchQuery.trim()) {
@@ -514,13 +519,19 @@ export default function Dashboard() {
     }
 
     return (
-      <svg className="w-4 h-4 -rotate-90 shrink-0" viewBox="0 0 16 16">
+      <svg 
+        className="w-4 h-4 -rotate-90 shrink-0" 
+        viewBox="0 0 16 16"
+        role="img"
+        aria-label={`Progression : ${Math.round(percent)}%`}
+      >
         <circle
           cx="8"
           cy="8"
           r={radius}
           className="stroke-[var(--border)] fill-transparent"
           strokeWidth="2"
+          aria-hidden="true"
         />
         <circle
           cx="8"
@@ -532,6 +543,7 @@ export default function Dashboard() {
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
+          aria-hidden="true"
         />
       </svg>
     );
@@ -541,15 +553,28 @@ export default function Dashboard() {
   const computedGrams = servingAmount * unitMultiplier;
 
   return (
-    <div className="min-h-screen text-[var(--text)] flex flex-col pb-[64px] md:pb-0 md:pl-[80px] transition-all duration-300">
+    <>
+      <a href="#main-content" className="skip-link">
+        {t('skip_to_content')}
+      </a>
+      <div className="min-h-screen text-[var(--text)] flex flex-col pb-[64px] md:pb-0 md:pl-[80px] transition-all duration-300">
 
-      {/* ===== HEADER ===== */}
-      <header className="sticky top-0 z-40 bg-[rgba(24,32,48,0.85)] backdrop-blur-md border-b border-[var(--border)]">
+        {/* ===== HEADER ===== */}
+        <header className="sticky top-0 z-40 bg-[rgba(24,32,48,0.85)] backdrop-blur-md border-b border-[var(--border)]">
         <div className="px-5 py-4 flex flex-col gap-3 max-w-4xl mx-auto w-full">
           <div className="flex items-center justify-between gap-3 w-full">
           {/* Logo */}
           <h1 
-            onClick={() => setActiveTab('journal')} 
+            role="button"
+            tabIndex={0}
+            aria-label={t('aria_logo_desc')}
+            onClick={() => setActiveTab('journal')}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setActiveTab('journal');
+              }
+            }}
             className="text-xl font-extrabold uppercase tracking-tight text-[var(--accent-pistachio)] shrink-0 cursor-pointer hover:opacity-85 transition-opacity"
           >
             Nutrilib
@@ -602,15 +627,20 @@ export default function Dashboard() {
                             <span className="text-xs font-bold text-[var(--accent-pistachio)] block">{food.calories}</span>
                             <span className="text-[9px] text-[var(--text-dim)]">kcal</span>
                           </div>
-                          <button onClick={(e) => handleToggleFavorite(e, food)} className="brutal-btn-danger">
-                            <Heart className={`w-3.5 h-3.5 ${isFav ? 'text-[var(--accent-magenta)] fill-[var(--accent-magenta)]' : ''}`} />
-                          </button>
-                          <button
-                            onClick={() => setShowListSelectorForFood(showListSelectorForFood === food.food_id ? null : food.food_id)}
-                            className="brutal-btn-danger"
-                          >
-                            <FolderOpen className="w-3.5 h-3.5" />
-                          </button>
+                          <button 
+                             onClick={(e) => handleToggleFavorite(e, food)} 
+                             className="brutal-btn-danger"
+                             aria-label={isFav ? t('aria_favorite_remove') : t('aria_favorite_add')}
+                           >
+                             <Heart className={`w-3.5 h-3.5 ${isFav ? 'text-[var(--accent-magenta)] fill-[var(--accent-magenta)]' : ''}`} aria-hidden="true" />
+                           </button>
+                           <button
+                             onClick={() => setShowListSelectorForFood(showListSelectorForFood === food.food_id ? null : food.food_id)}
+                             className="brutal-btn-danger"
+                             aria-label={t('aria_add_to_list')}
+                           >
+                             <FolderOpen className="w-3.5 h-3.5" aria-hidden="true" />
+                           </button>
 
                           {showListSelectorForFood === food.food_id && (
                             <div className="absolute right-2 mt-1 bg-[var(--surface)] border border-[var(--border)] p-3.5 z-50 w-44 rounded-2xl shadow-[var(--shadow-soft)]" onClick={(e) => e.stopPropagation()}>
@@ -745,7 +775,13 @@ export default function Dashboard() {
       </header>
 
       {/* ===== MAIN CONTENT ===== */}
-      <main className="flex-1 w-full max-w-4xl mx-auto px-4 py-6 space-y-6">
+      <main 
+        id="main-content" 
+        tabIndex="-1" 
+        role="tabpanel" 
+        aria-labelledby={`tab-${activeTab}`} 
+        className="flex-1 w-full max-w-4xl mx-auto px-4 py-6 space-y-6"
+      >
 
         {/* TAB: JOURNAL */}
         {activeTab === 'journal' && (
@@ -753,15 +789,23 @@ export default function Dashboard() {
 
             {/* Date Navigation */}
             <div className="flex items-center justify-between border border-[var(--border)] bg-[var(--surface)] p-3 rounded-[20px] shadow-[var(--shadow-subtle)]">
-              <button onClick={() => adjustDate(-1)} className="brutal-btn-ghost p-2 text-[var(--accent-pistachio)] hover:text-[var(--text)]">
-                <ChevronLeft className="w-5 h-5" />
+              <button 
+                onClick={() => adjustDate(-1)} 
+                className="brutal-btn-ghost p-2 text-[var(--accent-pistachio)] hover:text-[var(--text)]"
+                aria-label={language === 'fr' ? 'Jour précédent' : 'Previous day'}
+              >
+                <ChevronLeft className="w-5 h-5" aria-hidden="true" />
               </button>
               <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-[var(--accent-pistachio)]">
-                <Calendar className="w-4 h-4 text-[var(--accent-pistachio)]" />
+                <Calendar className="w-4 h-4 text-[var(--accent-pistachio)]" aria-hidden="true" />
                 <span className="capitalize">{new Date(selectedDate).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
               </div>
-              <button onClick={() => adjustDate(1)} className="brutal-btn-ghost p-2 text-[var(--accent-pistachio)] hover:text-[var(--text)]">
-                <ChevronRight className="w-5 h-5" />
+              <button 
+                onClick={() => adjustDate(1)} 
+                className="brutal-btn-ghost p-2 text-[var(--accent-pistachio)] hover:text-[var(--text)]"
+                aria-label={language === 'fr' ? 'Jour suivant' : 'Next day'}
+              >
+                <ChevronRight className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
 
@@ -941,8 +985,8 @@ export default function Dashboard() {
                                   <span className="brutal-tag text-[10px] border-[var(--border-muted)] text-[var(--text-muted)]">
                                     {entry.calories} kcal
                                   </span>
-                                  <button onClick={() => deleteJournalEntry(entry.id)} className="brutal-btn-danger">
-                                    <Trash2 className="w-3.5 h-3.5" />
+                                  <button onClick={() => deleteJournalEntry(entry.id)} className="brutal-btn-danger" aria-label={t('aria_delete_entry')}>
+                                    <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                                   </button>
                                 </div>
                               </div>
@@ -988,15 +1032,19 @@ export default function Dashboard() {
       </main>
 
       {/* ===== BOTTOM NAVIGATION ===== */}
-      <nav className="bottom-nav">
+      <nav className="bottom-nav" role="tablist" aria-label="Navigation principale">
         {NAV_ITEMS.map((item) => (
           <button
             key={item.id}
+            id={`tab-${item.id}`}
+            role="tab"
+            aria-selected={activeTab === item.id}
+            aria-controls="main-content"
             onClick={() => handleTabChange(item.id)}
             className={`bottom-nav-item ${activeTab === item.id ? 'active' : ''}`}
             style={{ color: activeTab === item.id ? 'var(--accent-pistachio)' : 'var(--text-muted)' }}
           >
-            <item.icon className="w-5 h-5" />
+            <item.icon className="w-5 h-5" aria-hidden="true" />
             <span>{item.label}</span>
           </button>
         ))}
@@ -1362,5 +1410,6 @@ export default function Dashboard() {
       )}
 
     </div>
+    </>
   );
 }

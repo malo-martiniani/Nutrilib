@@ -170,7 +170,25 @@ const TRANSLATIONS = {
     nutrition_preference: 'Préférence Nutritionnelle',
     choose_avatar: 'Choisissez un avatar ou insérez une URL.',
     custom_url: 'URL personnalisée',
-    avatars: 'Avatars'
+    avatars: 'Avatars',
+    // Accessibility keys
+    skip_to_content: 'Aller au contenu principal',
+    aria_delete_entry: 'Supprimer cette entrée',
+    aria_favorite_add: 'Ajouter aux favoris',
+    aria_favorite_remove: 'Retirer des favoris',
+    aria_select_food: 'Sélectionner cet aliment',
+    aria_add_to_list: 'Ajouter à une liste de courses',
+    aria_close_modal: 'Fermer la fenêtre modale',
+    aria_logo_desc: 'Logo Nutrilib — Application de suivi nutritionnel',
+    // GDPR keys
+    gdpr_consent_text: "J'accepte que Nutrilib traite mes données physiologiques et alimentaires pour calculer mes objectifs et assurer mon suivi de santé.",
+    gdpr_consent_error: "Vous devez accepter le traitement de vos données de santé pour vous inscrire.",
+    gdpr_export_data: "Exporter mes données (JSON)",
+    gdpr_delete_account: "Supprimer mon compte",
+    gdpr_delete_warning: "⚠️ Attention : Cette action est irréversible. Toutes vos données physiologiques, votre journal et vos recettes seront définitivement supprimés.",
+    gdpr_delete_confirm: "Êtes-vous sûr de vouloir supprimer définitivement votre compte Nutrilib ?",
+    gdpr_policy_title: "Protection des Données & RGPD",
+    gdpr_policy_desc: "Vos données (email, profil, journal) sont stockées localement de manière sécurisée et ne sont jamais transmises à des tiers. Vous pouvez à tout moment exporter ou supprimer vos données."
   },
   en: {
     loading: 'Loading',
@@ -337,7 +355,25 @@ const TRANSLATIONS = {
     nutrition_preference: 'Nutrition Preference',
     choose_avatar: 'Choose an avatar or enter custom URL.',
     custom_url: 'Custom URL',
-    avatars: 'Avatars'
+    avatars: 'Avatars',
+    // Accessibility keys
+    skip_to_content: 'Skip to main content',
+    aria_delete_entry: 'Delete this entry',
+    aria_favorite_add: 'Add to favorites',
+    aria_favorite_remove: 'Remove from favorites',
+    aria_select_food: 'Select this food',
+    aria_add_to_list: 'Add to shopping list',
+    aria_close_modal: 'Close modal window',
+    aria_logo_desc: 'Nutrilib Logo — Nutritional tracking application',
+    // GDPR keys
+    gdpr_consent_text: 'I accept that Nutrilib processes my physiological and dietary data to compute my goals and provide health tracking.',
+    gdpr_consent_error: 'You must accept the processing of your health data to register.',
+    gdpr_export_data: 'Export my data (JSON)',
+    gdpr_delete_account: 'Delete my account',
+    gdpr_delete_warning: '⚠️ Warning: This action is irreversible. All of your physiological data, food logs, and recipes will be permanently deleted.',
+    gdpr_delete_confirm: 'Are you sure you want to permanently delete your Nutrilib account?',
+    gdpr_policy_title: 'Data Protection & GDPR',
+    gdpr_policy_desc: 'Your data (email, profile, journal) is stored securely and never shared with third parties. You can export or delete your data at any time.'
   }
 };
 

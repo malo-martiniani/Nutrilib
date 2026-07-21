@@ -506,19 +506,26 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
           <div className="brutal-card space-y-4">
             <form onSubmit={handleSearch} className="flex gap-2">
               <div className="relative flex-1">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-dim)]" />
-                <input type="text" placeholder="Poulet, saumon, soupe..."
-                  value={query} onChange={(e) => setQuery(e.target.value)}
+                <label htmlFor="rec-search-query" className="sr-only">{language === 'fr' ? 'Rechercher une recette' : 'Search recipes'}</label>
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-dim)]" aria-hidden="true" />
+                <input 
+                  id="rec-search-query"
+                  type="text" 
+                  placeholder="Poulet, saumon, soupe..."
+                  value={query} 
+                  onChange={(e) => setQuery(e.target.value)}
                   className="brutal-input pr-8 py-2 text-xs"
-                  style={{ paddingLeft: '2.5rem' }} />
+                  style={{ paddingLeft: '2.5rem' }} 
+                />
               </div>
               <button 
                 type="button"
                 onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
                 className={`p-2 border rounded-xl hover:bg-[var(--surface-raised)] transition-all cursor-pointer ${showAdvancedFilters ? 'border-[var(--accent-pistachio)] text-[var(--accent-pistachio)]' : 'border-[var(--border)] text-[var(--text-muted)]'}`}
-                title="Filtres avancés"
+                aria-label="Filtres avancés"
+                aria-expanded={showAdvancedFilters}
               >
-                <SlidersHorizontal className="w-4 h-4" />
+                <SlidersHorizontal className="w-4 h-4" aria-hidden="true" />
               </button>
               <button type="submit" disabled={searching} className="brutal-btn-accent px-5 cursor-pointer" style={{ backgroundColor: 'var(--accent-pistachio)', color: 'var(--bg-dark-slate)' }}>
                 {searching ? <div className="brutal-spinner-sm"></div> : 'Rechercher'}
@@ -979,8 +986,9 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
 
             <form onSubmit={handleCreateCustomRecipe} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
               <div className="space-y-1">
-                <label className="brutal-label">{language === 'fr' ? 'Nom de la recette' : 'Recipe name'}</label>
+                <label htmlFor="rec-name" className="brutal-label">{language === 'fr' ? 'Nom de la recette' : 'Recipe name'}</label>
                 <input
+                  id="rec-name"
                   type="text"
                   placeholder="Ex: Riz sauté poulet curry"
                   value={newRecipeName}
@@ -991,8 +999,9 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
               </div>
 
               <div className="space-y-1">
-                <label className="brutal-label">{language === 'fr' ? 'Description (facultatif)' : 'Description (optional)'}</label>
+                <label htmlFor="rec-desc" className="brutal-label">{language === 'fr' ? 'Description (facultatif)' : 'Description (optional)'}</label>
                 <textarea
+                  id="rec-desc"
                   placeholder="Ex: Idéal après une séance d'entraînement."
                   value={newRecipeDesc}
                   onChange={(e) => setNewRecipeDesc(e.target.value)}
@@ -1001,8 +1010,9 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
               </div>
 
               <div className="space-y-1">
-                <label className="brutal-label">{language === 'fr' ? "URL de l'image (facultatif)" : 'Image URL (optional)'}</label>
+                <label htmlFor="rec-img" className="brutal-label">{language === 'fr' ? "URL de l'image (facultatif)" : 'Image URL (optional)'}</label>
                 <input
+                  id="rec-img"
                   type="url"
                   placeholder="https://images.unsplash.com/... (ou vide)"
                   value={newRecipeImage}
@@ -1012,8 +1022,9 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
               </div>
 
               <div className="space-y-1">
-                <label className="brutal-label">{language === 'fr' ? 'Nombre de portions' : 'Number of servings'}</label>
+                <label htmlFor="rec-servings" className="brutal-label">{language === 'fr' ? 'Nombre de portions' : 'Number of servings'}</label>
                 <input
+                  id="rec-servings"
                   type="number"
                   min="1"
                   value={newRecipeServings}

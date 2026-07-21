@@ -7,6 +7,7 @@ export default function LoginRegister() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [gdprConsent, setGdprConsent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [validationError, setValidationError] = useState('');
 
@@ -25,6 +26,9 @@ export default function LoginRegister() {
         }
         await login(email, password);
       } else {
+        if (!gdprConsent) {
+          throw new Error(t('gdpr_consent_error'));
+        }
         if (!username || !email || !password) {
           throw new Error(t('validation_fill_fields'));
         }
@@ -52,6 +56,7 @@ export default function LoginRegister() {
     setUsername('');
     setEmail('');
     setPassword('');
+    setGdprConsent(false);
     setValidationError('');
     setError(null);
   };
@@ -76,8 +81,12 @@ export default function LoginRegister() {
           
           {/* Error Display */}
           {(error || validationError) && (
-            <div className="p-4 border border-[var(--accent-magenta)]/20 bg-[var(--accent-magenta)]/10 text-[var(--accent-magenta)] text-sm font-semibold flex items-start gap-3 rounded-2xl">
-              <span className="shrink-0 mt-0.5">✕</span>
+            <div 
+              role="alert" 
+              aria-live="assertive" 
+              className="p-4 border border-[var(--accent-magenta)]/20 bg-[var(--accent-magenta)]/10 text-[var(--accent-magenta)] text-sm font-semibold flex items-start gap-3 rounded-2xl"
+            >
+              <span className="shrink-0 mt-0.5" aria-hidden="true">✕</span>
               <p>{validationError || error}</p>
             </div>
           )}
@@ -88,16 +97,18 @@ export default function LoginRegister() {
               
               {!isLogin && (
                 <div>
-                  <label className="brutal-label">{t('username')}</label>
+                  <label htmlFor="reg-username" className="brutal-label">{t('username')}</label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-dim)]" />
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-dim)]" aria-hidden="true" />
                     <input
+                      id="reg-username"
                       type="text"
                       placeholder="Ex: JeanDupont"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       className="brutal-input pr-8 py-2 text-xs"
                       style={{ paddingLeft: '2.5rem' }}
+                      autoComplete="username"
                       required
                     />
                   </div>
@@ -105,36 +116,56 @@ export default function LoginRegister() {
               )}
 
               <div>
-                <label className="brutal-label">{t('email')}</label>
+                <label htmlFor="auth-email" className="brutal-label">{t('email')}</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-dim)]" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-dim)]" aria-hidden="true" />
                   <input
+                    id="auth-email"
                     type="email"
                     placeholder="contact@nutrilib.fr"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="brutal-input pr-8 py-2 text-xs"
                     style={{ paddingLeft: '2.5rem' }}
+                    autoComplete="email"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="brutal-label">{t('password')}</label>
+                <label htmlFor="auth-password" className="brutal-label">{t('password')}</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-dim)]" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-dim)]" aria-hidden="true" />
                   <input
+                    id="auth-password"
                     type="password"
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="brutal-input pr-8 py-2 text-xs"
                     style={{ paddingLeft: '2.5rem' }}
+                    autoComplete={isLogin ? "current-password" : "new-password"}
                     required
                   />
                 </div>
               </div>
+              
+              {!isLogin && (
+                <div className="flex items-start gap-2.5 pt-2">
+                  <input
+                    id="auth-gdpr-consent"
+                    type="checkbox"
+                    checked={gdprConsent}
+                    onChange={(e) => setGdprConsent(e.target.checked)}
+                    className="w-4 h-4 rounded border-[var(--border-muted)] bg-[var(--surface-inset)] accent-[var(--accent-pistachio)] mt-0.5 cursor-pointer"
+                    required
+                  />
+                  <label htmlFor="auth-gdpr-consent" className="text-[10px] text-[var(--text-muted)] font-medium leading-relaxed cursor-pointer select-none">
+                    {t('gdpr_consent_text')}
+                  </label>
+                </div>
+              )}
             </div>
 
             <button
@@ -144,14 +175,14 @@ export default function LoginRegister() {
               style={{ backgroundColor: 'var(--accent-pistachio)', color: 'var(--bg-dark-slate)' }}
             >
               {submitting ? (
-                <div className="brutal-spinner-sm"></div>
+                <div className="brutal-spinner-sm" aria-label={t('loading')}></div>
               ) : isLogin ? (
                 <>
-                  <ArrowRight className="w-4 h-4" /> {t('login')}
+                  <ArrowRight className="w-4 h-4" aria-hidden="true" /> {t('login')}
                 </>
               ) : (
                 <>
-                  <UserPlus className="w-4 h-4" /> {t('create_account')}
+                  <UserPlus className="w-4 h-4" aria-hidden="true" /> {t('create_account')}
                 </>
               )}
             </button>

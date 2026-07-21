@@ -21,7 +21,7 @@
   /* Text */
   --text: #faf8f5; /* Blanc chaud */
   --text-muted: #cbd5e1; /* Gris-sage très pâle / slate */
-  --text-dim: #64748b; /* Disabled/dimmed slate-gray */
+  --text-dim: #8ba3c7; /* Higher contrast slate-gray for accessibility (4.5:1 ratio) */
 
   /* Accents - Premium Soft Pastels */
   --accent-pistachio: #d2f0c0; /* Pistache pâle */
@@ -438,3 +438,43 @@ html, body {
 .animate-slide-down {
   animation: slide-down 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* ============================================================
+   ACCESSIBILITY HELPERS (RGAA)
+   ============================================================ */
+
+/* Hide visually but keep visible to screen readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skip link style */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 1rem;
+  background: var(--accent-pistachio);
+  color: var(--bg-dark-slate);
+  font-weight: bold;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  z-index: 9999;
+  transition: top 0.2s ease;
+  text-decoration: none;
+  font-size: 0.875rem;
+  box-shadow: var(--shadow-soft);
+}
+
+.skip-link:focus {
+  top: 1rem;
+  outline: 2px solid var(--border-focus);
+}
+

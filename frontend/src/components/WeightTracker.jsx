@@ -162,23 +162,23 @@ export default function WeightTracker({ token, onWeightChange }) {
       {/* Input form */}
       <div className="brutal-card space-y-4">
         <h3 className="font-extrabold text-sm uppercase tracking-wider flex items-center gap-2 text-[var(--text)]">
-          <Scale className="w-4 h-4 text-[var(--accent-powder)]" /> {t('weight_input_title')}
+          <Scale className="w-4 h-4 text-[var(--accent-powder)]" aria-hidden="true" /> {t('weight_input_title')}
         </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="brutal-label">{t('weight_placeholder')}</label>
-              <input type="number" step="0.1" min="20" max="300" required value={weight}
+              <label htmlFor="wt-weight" className="brutal-label">{t('weight_placeholder')}</label>
+              <input id="wt-weight" type="number" step="0.1" min="20" max="300" required value={weight}
                 onChange={(e) => setWeight(e.target.value)} placeholder="78.5" className="brutal-input" />
             </div>
             <div>
-              <label className="brutal-label">{t('date')}</label>
-              <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} className="brutal-input" />
+              <label htmlFor="wt-date" className="brutal-label">{t('date')}</label>
+              <input id="wt-date" type="date" required value={date} onChange={(e) => setDate(e.target.value)} className="brutal-input" />
             </div>
           </div>
           {error && <p className="text-xs text-[var(--accent-magenta)] font-bold">{error}</p>}
           <button type="submit" disabled={saving} className="brutal-btn-accent w-full cursor-pointer" style={{ backgroundColor: 'var(--accent-pistachio)', color: 'var(--bg-dark-slate)' }}>
-            <Plus className="w-4 h-4" /> {t('save')}
+            <Plus className="w-4 h-4" aria-hidden="true" /> {t('save')}
           </button>
         </form>
       </div>
@@ -196,7 +196,7 @@ export default function WeightTracker({ token, onWeightChange }) {
                 ? 'text-[var(--accent-pistachio)]'
                 : 'text-[var(--accent-magenta)]'
             }`} style={{ borderColor: changeStats.isDown ? 'var(--accent-pistachio)' : 'var(--accent-magenta)' }}>
-              {changeStats.isDown ? <TrendingDown className="w-3.5 h-3.5" /> : <TrendingUp className="w-3.5 h-3.5" />}
+              {changeStats.isDown ? <TrendingDown className="w-3.5 h-3.5" aria-hidden="true" /> : <TrendingUp className="w-3.5 h-3.5" aria-hidden="true" />}
               {changeStats.diff > 0 ? `+${changeStats.diff}` : changeStats.diff} kg ({changeStats.percent}%)
             </span>
           )}
@@ -204,7 +204,7 @@ export default function WeightTracker({ token, onWeightChange }) {
         <div className="min-h-[280px] relative">
           {weightHistory.length < 2 ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center text-[var(--text-dim)] space-y-3">
-              <Scale className="w-10 h-10" />
+              <Scale className="w-10 h-10" aria-hidden="true" />
               <p className="text-sm font-bold uppercase tracking-wider">{t('min_weights_required')}</p>
             </div>
           ) : (
@@ -216,7 +216,7 @@ export default function WeightTracker({ token, onWeightChange }) {
       {/* History list */}
       <div className="brutal-card space-y-3">
         <h3 className="font-extrabold text-sm uppercase tracking-wider flex items-center gap-2 border-b border-[var(--border-muted)] pb-3">
-          <Calendar className="w-4 h-4 text-[var(--accent-powder)]" /> {t('weight_history')}
+          <Calendar className="w-4 h-4 text-[var(--accent-powder)]" aria-hidden="true" /> {t('weight_history')}
         </h3>
         <div className="max-h-[300px] overflow-y-auto space-y-2">
           {weightHistory.length === 0 ? (
@@ -232,8 +232,12 @@ export default function WeightTracker({ token, onWeightChange }) {
                     <span className="font-extrabold text-sm text-[var(--text)]">{w.weight} kg</span>
                     <span className="text-[10px] text-[var(--text-muted)] block mt-0.5">{displayDate}</span>
                   </div>
-                  <button onClick={() => handleDelete(w.id)} className="brutal-btn-danger">
-                    <Trash2 className="w-3.5 h-3.5" />
+                  <button 
+                    onClick={() => handleDelete(w.id)} 
+                    className="brutal-btn-danger"
+                    aria-label={`${t('delete')} ${w.weight} kg (${displayDate})`}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                   </button>
                 </div>
               );

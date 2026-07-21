@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, Shield, Flame, ChevronRight, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useNotification } from '../context/NotificationContext';
 
 const AVATARS = [
   { emoji: '🍏', label: 'Pomme' },
@@ -25,7 +26,8 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
   const [updating, setUpdating] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
 
-  const { language, t } = useAuth();
+  const { logout, language, t } = useAuth();
+  const { showToast, askConfirmation } = useNotification();
 
   const [displayName, setDisplayName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
@@ -238,6 +240,56 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
     finally { setUpdating(false); }
   };
 
+  const handleExportData = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/profile/export', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(
+          JSON.stringify(data, null, 2)
+        )}`;
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute('href', jsonString);
+        downloadAnchor.setAttribute('download', `nutrilib_export_${profile?.username || 'user'}.json`);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+        showToast(language === 'fr' ? 'Données exportées avec succès !' : 'Data exported successfully!');
+      } else {
+        showToast(t('errorServer'), 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast(language === 'fr' ? 'Erreur réseau.' : 'Network error.', 'error');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    const confirm1 = await askConfirmation(t('gdpr_delete_confirm'));
+    if (!confirm1) return;
+
+    const confirm2 = await askConfirmation(t('gdpr_delete_warning'));
+    if (!confirm2) return;
+
+    try {
+      const response = await fetch('http://localhost:5000/api/profile', {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        showToast(language === 'fr' ? 'Votre compte a été définitivement supprimé.' : 'Your account has been permanently deleted.');
+        logout();
+      } else {
+        showToast(t('errorServer'), 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast(language === 'fr' ? 'Erreur réseau.' : 'Network error.', 'error');
+    }
+  };
+
   const handleSaveCalculator = async (e) => {
     e.preventDefault();
 
@@ -394,8 +446,8 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
 
           {/* Display name */}
           <div>
-            <label className="brutal-label">{t('display_name')}</label>
-            <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)}
+            <label htmlFor="prof-display-name" className="brutal-label">{t('display_name')}</label>
+            <input id="prof-display-name" type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)}
               placeholder={profile?.username}
               className="brutal-input" />
           </div>
@@ -404,14 +456,20 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
           <div className="flex items-center justify-between p-4 border border-[var(--border-muted)] bg-[var(--surface-raised)] rounded-[20px]">
             <div>
               <span className="text-sm font-bold flex items-center gap-2 text-[var(--text)]">
-                <Shield className="w-4 h-4 text-[var(--accent-powder)]" /> {t('private_profile')}
+                <Shield className="w-4 h-4 text-[var(--accent-powder)]" aria-hidden="true" /> {t('private_profile')}
               </span>
               <p className="text-[10px] text-[var(--text-muted)] mt-0.5 font-medium">{t('private_profile_desc')}</p>
             </div>
-            <button type="button" onClick={() => setIsPrivate(!isPrivate)}
+            <button 
+              type="button" 
+              role="switch"
+              aria-checked={isPrivate}
+              aria-label={t('private_profile')}
+              onClick={() => setIsPrivate(!isPrivate)}
               className={`w-12 h-7 rounded-full cursor-pointer flex items-center px-1 border transition-colors duration-200 ${
                 isPrivate ? 'border-[var(--accent-pistachio)] bg-[var(--accent-pistachio)]' : 'border-[var(--border-muted)] bg-[var(--surface-inset)]'
-              }`}>
+              }`}
+            >
               <span className={`w-5 h-5 rounded-full block transition-transform duration-200 ${isPrivate ? 'translate-x-5 bg-[var(--bg-dark-slate)]' : 'translate-x-0 bg-[var(--text-muted)]'}`}></span>
             </button>
           </div>
@@ -462,16 +520,16 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
           {/* Age, Height, Weight */}
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="brutal-label">{t('age')}</label>
-              <input type="number" min="1" max="120" value={age} onChange={(e) => setAge(e.target.value)} placeholder="25" className="brutal-input" />
+              <label htmlFor="prof-age" className="brutal-label">{t('age')}</label>
+              <input id="prof-age" type="number" min="1" max="120" value={age} onChange={(e) => setAge(e.target.value)} placeholder="25" className="brutal-input" />
             </div>
             <div>
-              <label className="brutal-label">{t('height')}</label>
-              <input type="number" min="50" max="250" value={height} onChange={(e) => setHeight(e.target.value)} placeholder="175" className="brutal-input" />
+              <label htmlFor="prof-height" className="brutal-label">{t('height')}</label>
+              <input id="prof-height" type="number" min="50" max="250" value={height} onChange={(e) => setHeight(e.target.value)} placeholder="175" className="brutal-input" />
             </div>
             <div>
-              <label className="brutal-label">{t('weight_label')}</label>
-              <input type="number" step="0.1" min="20" max="300" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="70" className="brutal-input" />
+              <label htmlFor="prof-weight" className="brutal-label">{t('weight_label')}</label>
+              <input id="prof-weight" type="number" step="0.1" min="20" max="300" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="70" className="brutal-input" />
             </div>
           </div>
 
@@ -540,9 +598,9 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
           {/* Poids Cible */}
           {goalType !== 'maintain' && (
             <div className="space-y-2">
-              <label className="brutal-label">{t('target_weight_label')}</label>
+              <label htmlFor="prof-target-weight" className="brutal-label">{t('target_weight_label')}</label>
               <div className="flex gap-2">
-                <input type="number" step="0.1" min="20" max="300" 
+                <input id="prof-target-weight" type="number" step="0.1" min="20" max="300" 
                   value={targetWeight} 
                   onChange={(e) => setTargetWeight(e.target.value)} 
                   placeholder={calcResults ? Math.round(calcResults.idealWeightDevine).toString() : '70'} 
@@ -784,9 +842,10 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
             {updating ? `${t('saving_profile')}...` : t('update_goals')}
           </button>
         </form>
+      </div>
 
-        {/* ===== CARD: SUGGESTION DE RECETTES ===== */}
-        <div className="brutal-card p-6 mt-6 border-3 shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]" style={{ borderColor: 'var(--border)' }}>
+      {/* ===== CARD: SUGGESTION DE RECETTES ===== */}
+      <div className="brutal-card p-6 mt-6 border-3 shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]" style={{ borderColor: 'var(--border)' }}>
           <div className="flex items-center gap-2.5 mb-2 border-b border-[var(--border-muted)] pb-3">
             <span className="text-xl">🍳</span>
             <div>
@@ -932,9 +991,35 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
               className="brutal-btn-accent w-full py-2.5 text-xs font-black uppercase tracking-wider cursor-pointer mt-2 text-center"
               style={{ backgroundColor: 'var(--accent-pistachio)', color: 'var(--bg-dark-slate)' }}
             >
-              {t('search_recipe_placeholder')}
             </button>
           </div>
+        </div>
+
+      {/* SECTION 4: GDPR & Data Protection */}
+      <div className="brutal-card space-y-4">
+        <h2 className="text-base font-extrabold uppercase tracking-wider border-b border-[var(--border-muted)] pb-3 flex items-center gap-2 text-[var(--text)]">
+          <Shield className="w-5 h-5 text-[var(--accent-powder)]" aria-hidden="true" /> {t('gdpr_policy_title')}
+        </h2>
+        <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+          {t('gdpr_policy_desc')}
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+          <button
+            type="button"
+            onClick={handleExportData}
+            className="brutal-btn-accent text-xs py-2.5 font-bold uppercase tracking-wider cursor-pointer text-center"
+            style={{ backgroundColor: 'var(--accent-powder)', color: 'var(--bg-dark-slate)' }}
+          >
+            {t('gdpr_export_data')}
+          </button>
+          <button
+            type="button"
+            onClick={handleDeleteAccount}
+            className="brutal-btn-accent text-xs py-2.5 font-bold uppercase tracking-wider cursor-pointer text-center"
+            style={{ backgroundColor: 'var(--accent-magenta)', color: 'var(--bg-dark-slate)' }}
+          >
+            {t('gdpr_delete_account')}
+          </button>
         </div>
       </div>
     </div>

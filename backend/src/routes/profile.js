@@ -231,4 +231,110 @@ router.put('/calculator', authMiddleware, async (req, res) => {
   }
 });
 
+// @route   GET api/profile/export
+// @desc    Exporter toutes les données de l'utilisateur sous forme de JSON (RGPD - Droit à la portabilité)
+// @access  Privé
+router.get('/export', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Récupérer le profil
+    const users = await db.query(
+      `SELECT id, username, email, display_name, avatar_url, is_private, 
+              gender, age, height, current_weight, activity_level, 
+              calorie_goal, protein_goal, carb_goal, fat_goal, goal_type, target_weight, goal_speed, created_at 
+       FROM users WHERE id = ?`,
+      [userId]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé.' });
+    }
+
+    const profile = users[0];
+
+    // Récupérer le journal
+    const journal = await db.query(
+      'SELECT * FROM journal_entries WHERE user_id = ? ORDER BY entry_date DESC',
+      [userId]
+    );
+
+    // Récupérer le poids
+    const weight = await db.query(
+      'SELECT * FROM weight_history WHERE user_id = ? ORDER BY entry_date DESC',
+      [userId]
+    );
+
+    // Récupérer les favoris
+    const favorites = await db.query(
+      'SELECT * FROM favorites WHERE user_id = ?',
+      [userId]
+    );
+
+    // Récupérer les recettes personnalisées
+    const recipes = await db.query(
+      'SELECT * FROM custom_recipes WHERE user_id = ?',
+      [userId]
+    );
+
+    // Pour chaque recette, récupérer les ingrédients
+    for (let r of recipes) {
+      r.ingredients = await db.query(
+        'SELECT * FROM custom_recipe_ingredients WHERE recipe_id = ?',
+        [r.id]
+      );
+    }
+
+    // Récupérer les listes de courses
+    const lists = await db.query(
+      'SELECT * FROM custom_lists WHERE user_id = ?',
+      [userId]
+    );
+
+    // Pour chaque liste, récupérer les items
+    for (let l of lists) {
+      l.items = await db.query(
+        'SELECT * FROM custom_list_items WHERE list_id = ?',
+        [l.id]
+      );
+    }
+
+    const exportedData = {
+      export_date: new Date(),
+      profile,
+      journal,
+      weight_history: weight,
+      favorites,
+      custom_recipes: recipes,
+      grocery_lists: lists
+    };
+
+    res.json(exportedData);
+  } catch (error) {
+    console.error('Erreur export de données:', error.message);
+    res.status(500).json({ message: 'Erreur lors de la génération du fichier d\'export.' });
+  }
+});
+
+// @route   DELETE api/profile
+// @desc    Supprimer définitivement le compte et toutes les données associées (RGPD - Droit à l'oubli)
+// @access  Privé
+router.delete('/', authMiddleware, async (req, res) => {
+  try {
+    const result = await db.query(
+      'DELETE FROM users WHERE id = ?',
+      [req.user.id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé.' });
+    }
+
+    res.json({ message: 'Compte supprimé avec succès. Toutes vos données ont été définitivement effacées.' });
+  } catch (error) {
+    console.error('Erreur suppression compte:', error.message);
+    res.status(500).json({ message: 'Erreur lors de la suppression de votre compte.' });
+  }
+});
+
 module.exports = router;
