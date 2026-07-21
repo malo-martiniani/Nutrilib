@@ -244,6 +244,18 @@ export default function Favorites({ token, defaultDate }) {
       const g = Math.round(parseFloat(p1) * 28.35);
       return `${g} g`;
     });
+    // Convert explicit Fahrenheit: e.g. 350°F, 350 F, 350 fahrenheit, 350 degrees F, 350 degrees Fahrenheit
+    formatted = formatted.replace(/(\d+(?:\.\d+)?)\s*(?:degrés?|degrees?|°)?\s*[fF](?:ahrenheit)?\b/gi, (match, p1) => {
+      const f = parseFloat(p1);
+      const c = Math.round((f - 32) * 5 / 9);
+      return `${c}°C`;
+    });
+    // Convert implicit Fahrenheit: numbers between 250 and 500 followed by degrees/degrés without F
+    formatted = formatted.replace(/\b(2[5-9]\d|[3-4]\d{2}|500)\s*(?:degrés?|degrees?)\b/gi, (match, p1) => {
+      const f = parseFloat(p1);
+      const c = Math.round((f - 32) * 5 / 9);
+      return `${c}°C`;
+    });
     return formatted;
   };
 

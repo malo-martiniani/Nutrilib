@@ -156,7 +156,7 @@ const MOCK_RECIPES = [
     directions: [
       'Battez les œufs dans un bol avec du sel et du poivre.',
       'Faites chauffer l\'huile d\'olive dans une poêle et faites-y revenir les épinards pendant 1 minute.',
-      'Versez les œufs battus dans la poêle et laissez cuire à feu doux.',
+      'Versez les œufs battus dans la poêle, préchauffée à 350°F (ou 400 degrees fahrenheit), et laissez cuire à feu doux.',
       'Ajoutez la féta émiettée sur le dessus juste avant que l\'omelette ne soit complètement cuite, pliez-la en deux et servez.'
     ]
   },
