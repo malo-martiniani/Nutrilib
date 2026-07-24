@@ -11,7 +11,32 @@ export default function LoginRegister() {
   const [submitting, setSubmitting] = useState(false);
   const [validationError, setValidationError] = useState('');
 
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotMessage, setForgotMessage] = useState('');
+  const [forgotSending, setForgotSending] = useState(false);
+
   const { login, register, error, setError, t } = useAuth();
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    if (!forgotEmail) return;
+    setForgotSending(true);
+    setForgotMessage('');
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail })
+      });
+      const data = await response.json();
+      setForgotMessage(data.message);
+    } catch (err) {
+      setForgotMessage('Erreur lors de l\'envoi.');
+    } finally {
+      setForgotSending(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -149,6 +174,17 @@ export default function LoginRegister() {
                     required
                   />
                 </div>
+                {isLogin && (
+                  <div className="text-right mt-1">
+                    <button
+                      type="button"
+                      onClick={() => { setShowForgotModal(true); setForgotMessage(''); setForgotEmail(email); }}
+                      className="text-[10px] text-[var(--accent-powder)] hover:underline cursor-pointer font-medium"
+                    >
+                      Mot de passe oublié ?
+                    </button>
+                  </div>
+                )}
               </div>
               
               {!isLogin && (
@@ -215,6 +251,58 @@ export default function LoginRegister() {
 
         </div>
       </div>
+
+      {/* MODALE RÉCUPÉRATION MOT DE PASSE */}
+      {showForgotModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="brutal-card max-w-md w-full p-6 space-y-4 relative border border-[var(--border)]">
+            <h3 className="text-base font-extrabold uppercase tracking-wider text-[var(--text)]">
+              Réinitialisation du mot de passe
+            </h3>
+            <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+              Saisissez l'adresse email associée à votre compte pour recevoir les instructions de réinitialisation.
+            </p>
+            <form onSubmit={handleForgotPassword} className="space-y-4 pt-2">
+              <div>
+                <label className="brutal-label">Adresse Email</label>
+                <input
+                  type="email"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  placeholder="contact@nutrilib.fr"
+                  className="brutal-input text-xs w-full"
+                  required
+                />
+              </div>
+
+              {forgotMessage && (
+                <div className="p-3 border border-[var(--accent-powder)]/30 bg-[var(--accent-powder)]/10 text-[var(--accent-powder)] text-xs font-semibold rounded-xl">
+                  {forgotMessage}
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowForgotModal(false)}
+                  className="brutal-btn-accent flex-1 text-xs py-2 font-bold uppercase cursor-pointer"
+                  style={{ backgroundColor: 'var(--surface-raised)', color: 'var(--text-muted)' }}
+                >
+                  Fermer
+                </button>
+                <button
+                  type="submit"
+                  disabled={forgotSending}
+                  className="brutal-btn-accent flex-1 text-xs py-2 font-bold uppercase cursor-pointer"
+                  style={{ backgroundColor: 'var(--accent-pistachio)', color: 'var(--bg-dark-slate)' }}
+                >
+                  {forgotSending ? 'Envoi...' : 'Envoyer'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
