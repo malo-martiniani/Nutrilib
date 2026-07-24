@@ -61,6 +61,51 @@ router.put('/', authMiddleware, async (req, res) => {
   }
 });
 
+// @route   POST api/profile/avatar
+// @desc    Téléverser une photo de profil depuis son PC ou mobile
+// @access  Privé
+router.post('/avatar', authMiddleware, async (req, res) => {
+  const { image_data } = req.body;
+  if (!image_data) {
+    return res.status(400).json({ message: 'Aucune image fournie.' });
+  }
+
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const uploadsDir = path.join(__dirname, '../../uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+
+    let filename = '';
+    if (image_data.startsWith('data:image')) {
+      const matches = image_data.match(/^data:image\/([a-zA-Z0-9]+);base64,(.+)$/);
+      if (!matches) {
+        return res.status(400).json({ message: 'Format d\'image invalide.' });
+      }
+      const ext = matches[1] === 'jpeg' ? 'jpg' : matches[1];
+      const buffer = Buffer.from(matches[2], 'base64');
+      filename = `avatar_${req.user.id}_${Date.now()}.${ext}`;
+      fs.writeFileSync(path.join(uploadsDir, filename), buffer);
+    } else {
+      filename = image_data;
+    }
+
+    const avatarUrl = filename.startsWith('http') || filename.startsWith('/') ? filename : `/uploads/${filename}`;
+
+    await db.query(
+      'UPDATE users SET avatar_url = ? WHERE id = ?',
+      [avatarUrl, req.user.id]
+    );
+
+    res.json({ message: 'Photo de profil mise à jour avec succès.', avatar_url: avatarUrl });
+  } catch (error) {
+    console.error('Erreur upload avatar:', error.message);
+    res.status(500).json({ message: 'Erreur lors du téléversement de la photo.' });
+  }
+});
+
 // @route   PUT api/profile/calculator
 // @desc    Calculer et mettre à jour les besoins caloriques et les objectifs macros
 // @access  Privé
