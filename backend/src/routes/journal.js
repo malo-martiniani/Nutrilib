@@ -163,4 +163,56 @@ router.delete('/:id', authMiddleware, async (req, res) => {
   }
 });
 
+// @route   GET api/journal/water
+// @desc    Obtenir la consommation d'eau quotidienne
+router.get('/water', authMiddleware, async (req, res) => {
+  const { date } = req.query;
+  const targetDate = date || new Date().toISOString().split('T')[0];
+  try {
+    const rows = await db.query(
+      'SELECT SUM(calories) as total_ml FROM journal_entries WHERE user_id = ? AND entry_date = ? AND meal_type = "water"',
+      [req.user.id, targetDate]
+    );
+    const totalMl = rows[0]?.total_ml || 0;
+    res.json({ date: targetDate, total_ml: totalMl });
+  } catch (error) {
+    console.error('Erreur eau GET:', error.message);
+    res.status(500).json({ message: 'Erreur serveur.' });
+  }
+});
+
+// @route   POST api/journal/water
+// @desc    Enregistrer un apport d'eau (en ml)
+router.post('/water', authMiddleware, async (req, res) => {
+  const { amount_ml, date } = req.body;
+  const targetDate = date || new Date().toISOString().split('T')[0];
+  const ml = Math.max(0, parseInt(amount_ml) || 0);
+
+  try {
+    if (ml === 0) {
+      await db.query(
+        'DELETE FROM journal_entries WHERE user_id = ? AND entry_date = ? AND meal_type = "water"',
+        [req.user.id, targetDate]
+      );
+      return res.json({ message: 'Hydratation réinitialisée.', total_ml: 0 });
+    }
+
+    await db.query(
+      `INSERT INTO journal_entries (user_id, entry_date, meal_type, food_name, calories, protein, carbs, fat)
+       VALUES (?, ?, 'water', 'Eau', ?, 0, 0, 0)`,
+      [req.user.id, targetDate, ml]
+    );
+
+    const rows = await db.query(
+      'SELECT SUM(calories) as total_ml FROM journal_entries WHERE user_id = ? AND entry_date = ? AND meal_type = "water"',
+      [req.user.id, targetDate]
+    );
+
+    res.json({ message: 'Hydratation enregistrée.', total_ml: rows[0]?.total_ml || 0 });
+  } catch (error) {
+    console.error('Erreur eau POST:', error.message);
+    res.status(500).json({ message: 'Erreur serveur.' });
+  }
+});
+
 module.exports = router;
