@@ -71,7 +71,14 @@ export default function Dashboard() {
   const { showToast, askConfirmation } = useNotification();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [journalEntries, setJournalEntries] = useState([]);
-  const [loadingEntries, setLoadingEntries] = useState(false);
+  const [activeTab, setActiveTab] = useState('journal');
+  const [recipeSearchFilters, setRecipeSearchFilters] = useState(null);
+  const [profileData, setProfileData] = useState(null);
+  const [calorieGoal, setCalorieGoal] = useState(2000);
+  const [proteinGoal, setProteinGoal] = useState(130);
+  const [carbGoal, setCarbGoal] = useState(220);
+  const [fatGoal, setFatGoal] = useState(65);
+
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
   const [waterMl, setWaterMl] = useState(0);
 
