@@ -72,14 +72,47 @@ export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [journalEntries, setJournalEntries] = useState([]);
   const [loadingEntries, setLoadingEntries] = useState(false);
-  const [activeTab, setActiveTab] = useState('journal');
-  const [recipeSearchFilters, setRecipeSearchFilters] = useState(null);
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+  const [waterMl, setWaterMl] = useState(0);
 
-  const [profileData, setProfileData] = useState(null);
-  const [calorieGoal, setCalorieGoal] = useState(2000);
-  const [proteinGoal, setProteinGoal] = useState(130);
-  const [carbGoal, setCarbGoal] = useState(220);
-  const [fatGoal, setFatGoal] = useState(65);
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  const fetchWaterIntake = async () => {
+    try {
+      const response = await fetch(`${API_URL}/journal/water?date=${selectedDate}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setWaterMl(data.total_ml || 0);
+      }
+    } catch (err) { console.error('Erreur eau:', err); }
+  };
+
+  useEffect(() => {
+    if (token) fetchWaterIntake();
+  }, [selectedDate, token]);
+
+  const handleAddWater = async (amount) => {
+    try {
+      const response = await fetch(`${API_URL}/journal/water`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ amount_ml: amount, date: selectedDate })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setWaterMl(data.total_ml || 0);
+      }
+    } catch (err) { console.error('Erreur add water:', err); }
+  };
 
   const [headerSearchQuery, setHeaderSearchQuery] = useState('');
   const [headerSearchResults, setHeaderSearchResults] = useState([]);
@@ -698,6 +731,16 @@ export default function Dashboard() {
                 </button>
               </div>
 
+              {/* Theme Switcher (Clair / Sombre) */}
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="p-1.5 border border-[var(--border)] rounded-xl bg-[var(--surface-raised)] text-[var(--text-muted)] hover:text-[var(--text)] transition-all cursor-pointer flex items-center justify-center"
+                title={theme === 'light' ? 'Passer en mode Sombre' : 'Passer en mode Clair'}
+              >
+                {theme === 'light' ? <Moon className="w-4 h-4 text-[var(--accent-powder)]" /> : <Sun className="w-4 h-4 text-[var(--accent-sand)]" />}
+              </button>
+
               <button onClick={logout} className="brutal-btn-ghost text-[10px] shrink-0">
                 <LogOut className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">{t('logout')}</span>
@@ -913,6 +956,61 @@ export default function Dashboard() {
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* Suivi de l'hydratation (Water Intake Card) */}
+              <div className="brutal-card p-5 transition-all duration-300">
+                <div className="flex items-center justify-between border-b border-[var(--border-muted)] pb-3 mb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-full bg-[var(--accent-powder)]/15 border border-[var(--accent-powder)]/30 flex items-center justify-center">
+                      <Droplet className="w-4.5 h-4.5 text-[var(--accent-powder)]" />
+                    </div>
+                    <div>
+                      <h3 className="font-extrabold text-xs uppercase tracking-wider text-[var(--text)]">
+                        {language === 'fr' ? 'Suivi de l\'hydratation' : 'Water Intake Tracking'}
+                      </h3>
+                      <p className="text-[10px] text-[var(--text-muted)] font-semibold">
+                        {language === 'fr' ? 'Objectif conseillé : 2000 ml / jour' : 'Recommended goal: 2000 ml / day'}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-base font-extrabold text-[var(--accent-powder)]">
+                    {waterMl} <span className="text-xs font-semibold text-[var(--text-muted)]">/ 2000 ml</span>
+                  </span>
+                </div>
+
+                <div className="brutal-progress-track mb-3">
+                  <div 
+                    className="brutal-progress-fill bg-[var(--accent-powder)]" 
+                    style={{ width: `${Math.min(100, (waterMl / 2000) * 100)}%` }}
+                  ></div>
+                </div>
+
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleAddWater(250)}
+                      className="py-1.5 px-3 border border-[var(--border-muted)] hover:border-[var(--accent-powder)] bg-[var(--surface-raised)] hover:bg-[var(--accent-powder)]/10 text-[var(--accent-powder)] text-[10px] font-extrabold uppercase rounded-xl transition-all cursor-pointer flex items-center gap-1"
+                    >
+                      <Plus className="w-3 h-3" /> 250 ml
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAddWater(500)}
+                      className="py-1.5 px-3 border border-[var(--border-muted)] hover:border-[var(--accent-powder)] bg-[var(--surface-raised)] hover:bg-[var(--accent-powder)]/10 text-[var(--accent-powder)] text-[10px] font-extrabold uppercase rounded-xl transition-all cursor-pointer flex items-center gap-1"
+                    >
+                      <Plus className="w-3 h-3" /> 500 ml
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleAddWater(0)}
+                    className="text-[9px] font-bold text-[var(--text-dim)] hover:text-[var(--accent-magenta)] uppercase cursor-pointer"
+                  >
+                    {language === 'fr' ? 'Réinitialiser' : 'Reset'}
+                  </button>
+                </div>
               </div>
             </div>
 
