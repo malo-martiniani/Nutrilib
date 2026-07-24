@@ -396,7 +396,7 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
           <User className="w-5 h-5 text-[var(--accent-pistachio)]" /> {t('profile_title')}
         </h2>
 
-        <form onSubmit={handleSaveProfile} className="space-y-5">
+        <form onSubmit={handleUpdateBasic} className="space-y-5">
           {/* Profile header with avatar */}
           <div className="flex items-center gap-4 p-4 border border-[var(--border-muted)] bg-[var(--surface-raised)] rounded-[20px]">
             <div className="w-16 h-16 rounded-full border border-[var(--border)] bg-[var(--surface-inset)] flex items-center justify-center text-3xl shrink-0">
