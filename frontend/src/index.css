@@ -39,6 +39,36 @@
   --shadow-subtle: 0 8px 24px rgba(5, 8, 15, 0.4);
 }
 
+[data-theme="light"] {
+  /* Core surfaces */
+  --bg-dark-slate: #f8fafc;
+  --bg-charcoal: #f1f5f9;
+  --surface: #ffffff;
+  --surface-raised: #f1f5f9;
+  --surface-inset: #e2e8f0;
+
+  /* Borders */
+  --border: rgba(100, 116, 139, 0.2);
+  --border-focus: rgba(16, 185, 129, 0.4);
+  --border-muted: rgba(100, 116, 139, 0.1);
+  --border-dim: rgba(100, 116, 139, 0.05);
+
+  /* Text */
+  --text: #0f172a;
+  --text-muted: #475569;
+  --text-dim: #475569;
+
+  /* Accents */
+  --accent-pistachio: #059669;
+  --accent-powder: #0284c7;
+  --accent-sand: #d97706;
+  --accent-magenta: #dc2626;
+
+  /* Shadows */
+  --shadow-soft: 0 16px 40px rgba(100, 116, 139, 0.15);
+  --shadow-subtle: 0 8px 24px rgba(100, 116, 139, 0.1);
+}
+
 /* ============================================================
    BASE RESET & TYPOGRAPHY
    ============================================================ */

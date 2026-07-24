@@ -21,7 +21,9 @@ import {
   Clock,
   CheckCircle,
   ListTodo,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Sun,
+  Moon
 } from 'lucide-react';
 import Profile from './Profile';
 import WeightTracker from './WeightTracker';
