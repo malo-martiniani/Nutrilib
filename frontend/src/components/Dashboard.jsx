@@ -22,7 +22,9 @@ import {
   CheckCircle,
   ListTodo,
   SlidersHorizontal,
-  Droplet
+  Droplet,
+  Sun,
+  Moon
 } from 'lucide-react';
 import Profile from './Profile';
 import WeightTracker from './WeightTracker';
