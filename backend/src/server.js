@@ -41,13 +41,16 @@ const apiLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const path = require('path');
+
 // Configuration des Middlewares
-app.use(helmet()); // Sécurisation des en-têtes HTTP
+app.use(helmet({ crossOriginResourcePolicy: false })); // Sécurisation des en-têtes HTTP
 app.use(cors({
   origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:5173'],
   credentials: true
 }));
-app.use(express.json({ limit: '1mb' })); // Parser les requêtes JSON (limité à 1 Mo)
+app.use(express.json({ limit: '5mb' })); // Parser les requêtes JSON (limité à 5 Mo pour l'upload d'avatar)
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Définition des Routes API
 app.use('/api/auth', authLimiter, authRoutes);

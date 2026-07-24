@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { User, Shield, Flame, ChevronRight, Check } from 'lucide-react';
+import { User, Shield, Flame, ChevronRight, Check, Upload, Camera, Activity, Award, Heart } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 
 const AVATARS = [
-  { emoji: '🍏', label: 'Pomme' },
-  { emoji: '🥑', label: 'Avocat' },
-  { emoji: '🍓', label: 'Fraise' },
-  { emoji: '🍋', label: 'Citron' },
-  { emoji: '💪', label: 'Force' },
-  { emoji: '🏃‍♂️', label: 'Course' },
+  { id: 'icon:user', label: 'Utilisateur', IconComponent: User },
+  { id: 'icon:shield', label: 'Bouclier', IconComponent: Shield },
+  { id: 'icon:flame', label: 'Énergie', IconComponent: Flame },
+  { id: 'icon:activity', label: 'Activité', IconComponent: Activity },
+  { id: 'icon:award', label: 'Succès', IconComponent: Award },
+  { id: 'icon:heart', label: 'Santé', IconComponent: Heart },
 ];
 
 const ACTIVITY_LEVELS = [
@@ -32,6 +32,7 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
   const [displayName, setDisplayName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   const [gender, setGender] = useState('male');
   const [age, setAge] = useState('25');
@@ -240,6 +241,45 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
     finally { setUpdating(false); }
   };
 
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 4 * 1024 * 1024) {
+      showToast(language === 'fr' ? 'L\'image ne doit pas dépasser 4 Mo.' : 'Image size must be less than 4MB.', 'error');
+      return;
+    }
+    setUploadingAvatar(true);
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/profile/avatar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ image_data: reader.result })
+        });
+        const resData = await response.json();
+        if (response.ok) {
+          setAvatarUrl(resData.avatar_url);
+          setProfile(prev => ({ ...prev, avatar_url: resData.avatar_url }));
+          showToast(language === 'fr' ? 'Photo de profil mise à jour !' : 'Profile photo updated!');
+          if (onProfileUpdate) onProfileUpdate();
+        } else {
+          showToast(resData.message || t('errorServer'), 'error');
+        }
+      } catch (err) {
+        showToast(language === 'fr' ? 'Erreur réseau.' : 'Network error.', 'error');
+      } finally {
+        setUploadingAvatar(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const selectPresetAvatar = (preset) => {
+    const presetUrl = `preset:${preset.id}`;
+    setAvatarUrl(presetUrl);
+  };
+
   const handleExportData = async () => {
     try {
       const response = await fetch('http://localhost:5000/api/profile/export', {
@@ -357,23 +397,22 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
     finally { setUpdating(false); }
   };
 
-  const selectPresetAvatar = (preset) => {
-    setAvatarUrl(`preset:${preset.emoji}:none`);
-  };
-
   const renderCurrentAvatar = () => {
-    if (avatarUrl && avatarUrl.startsWith('preset:')) {
-      const [, emoji] = avatarUrl.split(':');
+    if (avatarUrl && avatarUrl.startsWith('preset:icon:')) {
+      const iconId = avatarUrl.split(':')[2];
+      const presetObj = AVATARS.find(a => a.id === `icon:${iconId}`);
+      const Icon = presetObj ? presetObj.IconComponent : User;
       return (
         <div className="w-16 h-16 border border-[var(--accent-pistachio)] bg-[var(--surface-raised)] rounded-full flex items-center justify-center text-3xl shadow-[0_0_15px_rgba(210,240,192,0.15)]">
-          {emoji}
+          <Icon className="w-8 h-8 text-[var(--accent-pistachio)]" />
         </div>
       );
     } else if (avatarUrl) {
+      const fullUrl = avatarUrl.startsWith('/') ? `http://localhost:5000${avatarUrl}` : avatarUrl;
       return (
-        <img src={avatarUrl} alt="Avatar"
+        <img src={fullUrl} alt="Avatar"
           className="w-16 h-16 object-cover border border-[var(--border)] rounded-full"
-          onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150'; }}
+          onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; }}
         />
       );
     }
@@ -399,31 +438,50 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
         <form onSubmit={handleUpdateBasic} className="space-y-5">
           {/* Profile header with avatar */}
           <div className="flex items-center gap-4 p-4 border border-[var(--border-muted)] bg-[var(--surface-raised)] rounded-[20px]">
-            <div className="w-16 h-16 rounded-full border border-[var(--border)] bg-[var(--surface-inset)] flex items-center justify-center text-3xl shrink-0">
-              {avatarUrl.startsWith('preset:') ? avatarUrl.split(':')[1] : '👤'}
-            </div>
+            {renderCurrentAvatar()}
             <div>
               <h3 className="font-extrabold text-sm text-[var(--text)]">{profile?.username}</h3>
               <p className="text-[10px] text-[var(--text-muted)] mt-0.5 font-medium">{t('choose_avatar')}</p>
             </div>
           </div>
 
+          {/* File Upload (PC / Mobile) */}
+          <div>
+            <label className="brutal-label">{language === 'fr' ? 'Téléverser une photo (depuis votre appareil)' : 'Upload photo (from device)'}</label>
+            <div className="flex items-center gap-3 mt-1.5">
+              <label className="brutal-btn-accent text-xs py-2 px-4 cursor-pointer flex items-center gap-2" style={{ backgroundColor: 'var(--accent-powder)', color: 'var(--bg-dark-slate)' }}>
+                <Upload className="w-4 h-4" />
+                <span>{uploadingAvatar ? (language === 'fr' ? 'Chargement...' : 'Uploading...') : (language === 'fr' ? 'Choisir un fichier' : 'Choose a file')}</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  disabled={uploadingAvatar}
+                  className="hidden"
+                />
+              </label>
+              <span className="text-[10px] text-[var(--text-muted)] font-medium">
+                {language === 'fr' ? 'JPG, PNG, WEBP (Max 4 Mo)' : 'JPG, PNG, WEBP (Max 4MB)'}
+              </span>
+            </div>
+          </div>
+
           {/* Avatar presets */}
           <div>
-            <label className="brutal-label">{t('avatars')}</label>
-            <div className="grid grid-cols-6 gap-2">
+            <label className="brutal-label">{language === 'fr' ? 'Ou choisir un icône prédéfini' : 'Or choose a preset icon'}</label>
+            <div className="grid grid-cols-6 gap-2 mt-1.5">
               {AVATARS.map((preset, index) => {
-                const presetUrl = `preset:${preset.emoji}:none`;
-                const isSelected = avatarUrl === presetUrl;
+                const isSelected = avatarUrl === preset.id;
+                const IconComp = preset.IconComponent;
                 return (
                   <button key={index} type="button" onClick={() => selectPresetAvatar(preset)}
                     className={`aspect-square border flex items-center justify-center text-xl cursor-pointer rounded-2xl relative transition-all duration-200 ${
                       isSelected
-                        ? 'border-[var(--accent-pistachio)] bg-[var(--surface-raised)]'
-                        : 'border-[var(--border-muted)] bg-[var(--surface)] hover:border-[var(--text-dim)]'
+                        ? 'border-[var(--accent-pistachio)] bg-[var(--surface-raised)] text-[var(--accent-pistachio)]'
+                        : 'border-[var(--border-muted)] bg-[var(--surface)] text-[var(--text-dim)] hover:border-[var(--text-muted)]'
                     }`}
                   >
-                    {preset.emoji}
+                    <IconComp className="w-6 h-6" />
                     {isSelected && (
                       <span className="absolute -top-1 -right-1 w-5 h-5 bg-[var(--accent-pistachio)] flex items-center justify-center rounded-full border border-[var(--bg-dark-slate)]">
                         <Check className="w-3.5 h-3.5 text-black stroke-[3]" />
@@ -847,7 +905,7 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
       {/* ===== CARD: SUGGESTION DE RECETTES ===== */}
       <div className="brutal-card p-6 mt-6 border-3 shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]" style={{ borderColor: 'var(--border)' }}>
           <div className="flex items-center gap-2.5 mb-2 border-b border-[var(--border-muted)] pb-3">
-            <span className="text-xl">🍳</span>
+            <Flame className="w-5 h-5 text-[var(--accent-pistachio)]" aria-hidden="true" />
             <div>
               <h3 className="font-extrabold text-sm uppercase tracking-wider text-[var(--text)]">{t('search_recipe_placeholder')}</h3>
               <p className="text-[10px] text-[var(--text-muted)] font-semibold uppercase mt-0.5">{language === 'fr' ? 'Trouvez des idées selon vos objectifs' : 'Find ideas based on your goals'}</p>
