@@ -604,7 +604,7 @@ export default function Dashboard() {
       <div className="min-h-screen text-[var(--text)] flex flex-col pb-[64px] md:pb-0 md:pl-[80px] transition-all duration-300">
 
         {/* ===== HEADER ===== */}
-        <header className="sticky top-0 z-40 bg-[rgba(24,32,48,0.85)] backdrop-blur-md border-b border-[var(--border)]">
+        <header className="sticky top-0 z-40 bg-[var(--surface)]/90 backdrop-blur-md border-b border-[var(--border)]">
         <div className="px-5 py-4 flex flex-col gap-3 max-w-4xl mx-auto w-full">
           <div className="flex items-center justify-between gap-3 w-full">
           {/* Logo */}
