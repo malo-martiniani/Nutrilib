@@ -1086,7 +1086,7 @@ export default function Dashboard() {
                                   <p className="text-[10px] text-[var(--text-muted)] font-medium mt-0.5">
                                     {entry.serving_amount}{entry.serving_unit || 'g'} ·{' '}
                                     <span className="text-[var(--accent-powder)]">P:{entry.protein}g</span> ·{' '}
-                                    <span className="text-[var(--accent-powder)]">G:{entry.carbs}g</span> ·{' '}
+                                    <span className="text-[var(--accent-pistachio)]">G:{entry.carbs}g</span> ·{' '}
                                     <span className="text-[var(--accent-sand)]">L:{entry.fat}g</span>
                                   </p>
                                 </div>

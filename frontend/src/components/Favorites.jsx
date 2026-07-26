@@ -297,7 +297,7 @@ export default function Favorites({ token, defaultDate }) {
                     <p className="text-[10px] text-[var(--text-muted)] font-medium mt-0.5">
                       {formatServing(fav.serving_description)} ·{' '}
                       <span className="text-[var(--accent-powder)]">P:{fav.protein}g</span> ·{' '}
-                      <span className="text-[var(--accent-powder)]">G:{fav.carbs}g</span> ·{' '}
+                      <span className="text-[var(--accent-pistachio)]">G:{fav.carbs}g</span> ·{' '}
                       <span className="text-[var(--accent-sand)]">L:{fav.fat}g</span>
                     </p>
                   </div>

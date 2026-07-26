@@ -706,7 +706,7 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
                           </div>
                           <div className="flex gap-2">
                             <span className="text-[var(--accent-powder)]">P:{Math.round(recipe.protein)}g</span>
-                            <span className="text-[var(--accent-powder)]">G:{Math.round(recipe.carbs)}g</span>
+                            <span className="text-[var(--accent-pistachio)]">G:{Math.round(recipe.carbs)}g</span>
                             <span className="text-[var(--accent-sand)]">L:{Math.round(recipe.fat)}g</span>
                           </div>
                         </div>
@@ -811,7 +811,7 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
                         </div>
                         <div className="flex gap-2">
                           <span className="text-[var(--accent-powder)]">P:{Math.round(recipe.protein / servings)}g</span>
-                          <span className="text-[var(--accent-powder)]">G:{Math.round(recipe.carbs / servings)}g</span>
+                          <span className="text-[var(--accent-pistachio)]">G:{Math.round(recipe.carbs / servings)}g</span>
                           <span className="text-[var(--accent-sand)]">L:{Math.round(recipe.fat / servings)}g</span>
                         </div>
                       </div>
