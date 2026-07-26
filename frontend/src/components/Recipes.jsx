@@ -659,7 +659,7 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
                           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                           onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400'; }}
                         />
-                        <div className="absolute top-3 right-3 brutal-tag border-transparent text-[var(--text)] bg-[rgba(24,32,48,0.85)] backdrop-blur-md text-[9px] rounded-lg">
+                        <div className="absolute top-3 right-3 brutal-tag border border-[var(--border)] text-[var(--text)] bg-[var(--surface-raised)]/95 backdrop-blur-md text-[9px] font-bold rounded-lg shadow-sm">
                           <Flame className="w-3 h-3 text-[var(--accent-pistachio)]" /> {recipe.calories} kcal
                         </div>
                       </div>
@@ -774,7 +774,7 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400'; }}
                       />
-                      <div className="absolute top-3 right-3 brutal-tag border-transparent text-[var(--text)] bg-[rgba(24,32,48,0.85)] backdrop-blur-md text-[9px] rounded-lg">
+                      <div className="absolute top-3 right-3 brutal-tag border border-[var(--border)] text-[var(--text)] bg-[var(--surface-raised)]/95 backdrop-blur-md text-[9px] font-bold rounded-lg shadow-sm">
                         <Flame className="w-3 h-3 text-[var(--accent-pistachio)]" /> {Math.round(recipe.calories / servings)} kcal/portion
                       </div>
                     </div>
