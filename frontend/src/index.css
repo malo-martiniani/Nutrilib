@@ -5,58 +5,58 @@
    ============================================================ */
 
 :root {
-  /* Core surfaces */
-  --bg-dark-slate: #0b0f19; /* Bleu-ardoise très sombre */
-  --bg-charcoal: #121824; /* Slate charcoal slightly warmer */
-  --surface: #182030; /* Bleu-ardoise moyen, mat */
-  --surface-raised: #222d42; /* Slightly lighter matte slate for raised elements */
-  --surface-inset: #090d16; /* Inset slate */
+  /* Core surfaces - Organic Forest Emerald (#154438 base) */
+  --bg-dark-slate: #091a15; /* Vert sombre de forêt */
+  --bg-charcoal: #0e261f; /* Charcoal de sous-bois vert */
+  --surface: #154438; /* Couleur exacte demandée (#154438) */
+  --surface-raised: #1d5749; /* Émeraude mat surélevé */
+  --surface-inset: #091a15; /* Inset vert sombre */
 
   /* Borders */
-  --border: rgba(148, 163, 184, 0.12); /* Soft slate border */
-  --border-focus: rgba(210, 240, 192, 0.35); /* Pistachio glow/focus */
-  --border-muted: rgba(148, 163, 184, 0.06);
-  --border-dim: rgba(148, 163, 184, 0.02);
+  --border: rgba(167, 243, 208, 0.16); /* Bordure menthe douce */
+  --border-focus: rgba(52, 211, 153, 0.5); /* Glow vert menthe émeraude */
+  --border-muted: rgba(167, 243, 208, 0.08);
+  --border-dim: rgba(167, 243, 208, 0.03);
 
-  /* Text */
-  --text: #faf8f5; /* Blanc chaud */
-  --text-muted: #cbd5e1; /* Gris-sage très pâle / slate */
-  --text-dim: #8ba3c7; /* Higher contrast slate-gray for accessibility (4.5:1 ratio) */
+  /* Text - High contrast mint-whites */
+  --text: #f0fdf4; /* Blanc menthe glacée */
+  --text-muted: #a7f3d0; /* Sauge / Menthe pastel */
+  --text-dim: #6ee7b7; /* Vert menthe contrasté pour l'accessibilité */
 
-  /* Accents - Premium Soft Pastels */
-  --accent-pistachio: #d2f0c0; /* Pistache pâle */
-  --accent-powder: #a9d4f5; /* Bleu-poudre doux */
-  --accent-sand: #f5d5ae; /* Sable adouci */
-  --accent-magenta: #e5989b; /* Soft pastel red/pink for destructive actions */
+  /* Accents - Botanical Color Theory Harmony */
+  --accent-pistachio: #34d399; /* Vert menthe vive */
+  --accent-powder: #38bdf8; /* Cyan glacé lumineux */
+  --accent-sand: #fbbf24; /* Or ambré chaud */
+  --accent-magenta: #f87171; /* Corail pastel */
 
   /* Macro mappings to soft pastels */
-  --protein: #a9d4f5; /* Bleu-poudre doux */
-  --carbs: #d2f0c0; /* Pistache pâle */
-  --fat: #f5d5ae; /* Sable adouci */
+  --protein: #38bdf8; /* Cyan glacé */
+  --carbs: #34d399; /* Menthe vive */
+  --fat: #fbbf24; /* Or ambré */
 
   /* Shadows */
-  --shadow-soft: 0 16px 40px rgba(5, 8, 15, 0.6);
-  --shadow-subtle: 0 8px 24px rgba(5, 8, 15, 0.4);
+  --shadow-soft: 0 16px 40px rgba(4, 18, 14, 0.65);
+  --shadow-subtle: 0 8px 24px rgba(4, 18, 14, 0.45);
 }
 
 [data-theme="light"] {
-  /* Core surfaces */
-  --bg-dark-slate: #f8fafc;
-  --bg-charcoal: #f1f5f9;
+  /* Core surfaces - Fresh Sage Light Theme */
+  --bg-dark-slate: #f0fdf4;
+  --bg-charcoal: #e6f4ea;
   --surface: #ffffff;
-  --surface-raised: #f1f5f9;
-  --surface-inset: #e2e8f0;
+  --surface-raised: #e6f4ea;
+  --surface-inset: #d1fae5;
 
   /* Borders */
-  --border: rgba(100, 116, 139, 0.2);
-  --border-focus: rgba(16, 185, 129, 0.4);
-  --border-muted: rgba(100, 116, 139, 0.1);
-  --border-dim: rgba(100, 116, 139, 0.05);
+  --border: rgba(16, 185, 129, 0.2);
+  --border-focus: rgba(16, 185, 129, 0.5);
+  --border-muted: rgba(16, 185, 129, 0.1);
+  --border-dim: rgba(16, 185, 129, 0.05);
 
   /* Text */
-  --text: #0f172a;
-  --text-muted: #475569;
-  --text-dim: #475569;
+  --text: #064e3b;
+  --text-muted: #047857;
+  --text-dim: #059669;
 
   /* Accents */
   --accent-pistachio: #059669;
@@ -65,8 +65,8 @@
   --accent-magenta: #dc2626;
 
   /* Shadows */
-  --shadow-soft: 0 16px 40px rgba(100, 116, 139, 0.15);
-  --shadow-subtle: 0 8px 24px rgba(100, 116, 139, 0.1);
+  --shadow-soft: 0 16px 40px rgba(6, 78, 59, 0.12);
+  --shadow-subtle: 0 8px 24px rgba(6, 78, 59, 0.08);
 }
 
 /* ============================================================
