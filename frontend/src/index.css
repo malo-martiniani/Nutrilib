@@ -5,68 +5,68 @@
    ============================================================ */
 
 :root {
-  /* Core surfaces - Organic Forest Emerald (#154438 base) */
-  --bg-dark-slate: #091a15; /* Vert sombre de forêt */
-  --bg-charcoal: #0e261f; /* Charcoal de sous-bois vert */
-  --surface: #154438; /* Couleur exacte demandée (#154438) */
-  --surface-raised: #1d5749; /* Émeraude mat surélevé */
-  --surface-inset: #091a15; /* Inset vert sombre */
+  /* Core surfaces - Natural Matte Eucalyptus & Dark Moss */
+  --bg-dark-slate: #0f1814; /* Deep matte pine */
+  --bg-charcoal: #14221c; /* Matte moss charcoal */
+  --surface: #192e26; /* Desaturated herbal forest green */
+  --surface-raised: #223c32; /* Soft matte eucalyptus for raised cards */
+  --surface-inset: #0d1511; /* Deep inset herbal dark */
 
-  /* Borders */
-  --border: rgba(167, 243, 208, 0.16); /* Bordure menthe douce */
-  --border-focus: rgba(52, 211, 153, 0.5); /* Glow vert menthe émeraude */
-  --border-muted: rgba(167, 243, 208, 0.08);
-  --border-dim: rgba(167, 243, 208, 0.03);
+  /* Borders - Soft Earthy Sage */
+  --border: rgba(167, 196, 177, 0.16); /* Soft muted sage border */
+  --border-focus: rgba(155, 190, 163, 0.45); /* Soft matte sage focus */
+  --border-muted: rgba(167, 196, 177, 0.08);
+  --border-dim: rgba(167, 196, 177, 0.03);
 
-  /* Text - High contrast mint-whites */
-  --text: #f0fdf4; /* Blanc menthe glacée */
-  --text-muted: #a7f3d0; /* Sauge / Menthe pastel */
-  --text-dim: #6ee7b7; /* Vert menthe contrasté pour l'accessibilité */
+  /* Text - Soothing Warm Natural Whites & Sage */
+  --text: #eaf2ec; /* Soft warm natural white (no digital glare) */
+  --text-muted: #a3b8aa; /* Matte sage pastel */
+  --text-dim: #809c89; /* Soft earthy herbal green */
 
-  /* Accents - Botanical Color Theory Harmony */
-  --accent-pistachio: #34d399; /* Vert menthe vive */
-  --accent-powder: #38bdf8; /* Cyan glacé lumineux */
-  --accent-sand: #fbbf24; /* Or ambré chaud */
-  --accent-magenta: #f87171; /* Corail pastel */
+  /* Accents - Soft Natural Matte Pastels */
+  --accent-pistachio: #9bc6a5; /* Soft Matte Pistachio Sage Green */
+  --accent-powder: #92b8c3; /* Soft Matte Mineral Slate Blue */
+  --accent-sand: #d8b98b; /* Soft Matte Warm Honey Sand */
+  --accent-magenta: #ce8a8a; /* Soft Matte Dusty Rose */
 
-  /* Macro mappings to soft pastels */
-  --protein: #38bdf8; /* Cyan glacé */
-  --carbs: #34d399; /* Menthe vive */
-  --fat: #fbbf24; /* Or ambré */
+  /* Macro mappings */
+  --protein: #92b8c3; /* Soft Mineral Slate Blue */
+  --carbs: #9bc6a5; /* Soft Pistachio Sage */
+  --fat: #d8b98b; /* Soft Honey Sand */
 
-  /* Shadows */
-  --shadow-soft: 0 16px 40px rgba(4, 18, 14, 0.65);
-  --shadow-subtle: 0 8px 24px rgba(4, 18, 14, 0.45);
+  /* Shadows - Organic Soft Shadows */
+  --shadow-soft: 0 16px 40px rgba(8, 16, 13, 0.55);
+  --shadow-subtle: 0 8px 24px rgba(8, 16, 13, 0.35);
 }
 
 [data-theme="light"] {
-  /* Core surfaces - Fresh Sage Light Theme */
-  --bg-dark-slate: #f0fdf4;
-  --bg-charcoal: #e6f4ea;
+  /* Core surfaces - Natural Linen & Herbal Sage */
+  --bg-dark-slate: #f3f7f4;
+  --bg-charcoal: #e4ede6;
   --surface: #ffffff;
-  --surface-raised: #e6f4ea;
-  --surface-inset: #d1fae5;
+  --surface-raised: #e7f0e9;
+  --surface-inset: #d8e6db;
 
   /* Borders */
-  --border: rgba(16, 185, 129, 0.2);
-  --border-focus: rgba(16, 185, 129, 0.5);
-  --border-muted: rgba(16, 185, 129, 0.1);
-  --border-dim: rgba(16, 185, 129, 0.05);
+  --border: rgba(79, 135, 94, 0.18);
+  --border-focus: rgba(79, 135, 94, 0.45);
+  --border-muted: rgba(79, 135, 94, 0.09);
+  --border-dim: rgba(79, 135, 94, 0.04);
 
   /* Text */
-  --text: #064e3b;
-  --text-muted: #047857;
-  --text-dim: #059669;
+  --text: #1c3328;
+  --text-muted: #3b5e4f;
+  --text-dim: #547a6a;
 
   /* Accents */
-  --accent-pistachio: #059669;
-  --accent-powder: #0284c7;
-  --accent-sand: #d97706;
-  --accent-magenta: #dc2626;
+  --accent-pistachio: #4f875e;
+  --accent-powder: #4b7f8c;
+  --accent-sand: #a37d46;
+  --accent-magenta: #a64d4d;
 
   /* Shadows */
-  --shadow-soft: 0 16px 40px rgba(6, 78, 59, 0.12);
-  --shadow-subtle: 0 8px 24px rgba(6, 78, 59, 0.08);
+  --shadow-soft: 0 16px 40px rgba(28, 51, 40, 0.08);
+  --shadow-subtle: 0 8px 24px rgba(28, 51, 40, 0.05);
 }
 
 /* ============================================================
