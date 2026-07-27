@@ -373,8 +373,8 @@ html, body {
   background-color: var(--surface-raised);
 }
 .bottom-nav-item.active {
-  color: #000000;
-  background-color: var(--accent-pistachio);
+  color: var(--accent-pistachio);
+  background-color: var(--surface-raised);
   font-weight: 900;
 }
 .bottom-nav-item.active::before {
@@ -384,7 +384,7 @@ html, body {
   left: 0;
   right: 0;
   height: 4px;
-  background: #000000;
+  background: var(--accent-pistachio);
 }
 
 /* Desktop: convert bottom nav to left sidebar */
@@ -411,9 +411,9 @@ html, body {
     bottom: 0;
     left: 0;
     right: auto;
-    width: 5px;
+    width: 4px;
     height: 100%;
-    background: #000000;
+    background: var(--accent-pistachio);
   }
 }
 

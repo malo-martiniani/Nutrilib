@@ -880,8 +880,8 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
                   <span className="text-base font-extrabold text-[var(--text)]">{calcResults.protein}g</span>
                   <span className="text-[9px] text-[var(--text-dim)] block mt-0.5">{proteinPercent}% · 4kcal/g</span>
                 </div>
-                <div className="p-2 border border-[var(--accent-powder)]/20 rounded-xl bg-[var(--accent-powder)]/5">
-                  <span className="text-[9px] font-bold text-[var(--accent-powder)] block uppercase">{t('carbs')}</span>
+                <div className="p-2 border border-[var(--accent-pistachio)]/30 rounded-xl bg-[var(--accent-pistachio)]/10">
+                  <span className="text-[9px] font-bold text-[var(--accent-pistachio)] block uppercase">{t('carbs')}</span>
                   <span className="text-base font-extrabold text-[var(--text)]">{calcResults.carbs}g</span>
                   <span className="text-[9px] text-[var(--text-dim)] block mt-0.5">{carbPercent}% · 4kcal/g</span>
                 </div>

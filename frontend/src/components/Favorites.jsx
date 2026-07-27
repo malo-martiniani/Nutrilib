@@ -614,8 +614,8 @@ export default function Favorites({ token, defaultDate }) {
                         <span className="text-[9px] font-bold text-[var(--accent-powder)] block uppercase">{t('protein')}</span>
                         <span className="text-sm font-extrabold text-[var(--text)]">{selectedRecipe.protein}g</span>
                       </div>
-                      <div className="p-2 border border-[var(--accent-powder)]/20 rounded-xl bg-[var(--accent-powder)]/5">
-                        <span className="text-[9px] font-bold text-[var(--accent-powder)] block uppercase">{t('carbs')}</span>
+                      <div className="p-2 border border-[var(--accent-pistachio)]/30 rounded-xl bg-[var(--accent-pistachio)]/10">
+                        <span className="text-[9px] font-bold text-[var(--accent-pistachio)] block uppercase">{t('carbs')}</span>
                         <span className="text-sm font-extrabold text-[var(--text)]">{selectedRecipe.carbs}g</span>
                       </div>
                       <div className="p-2 border border-[var(--accent-sand)]/20 rounded-xl bg-[var(--accent-sand)]/5">

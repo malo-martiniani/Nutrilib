@@ -680,13 +680,25 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
                               <span className="font-bold text-[var(--text)]">{recipe.rating}</span>
                             </div>
                             {/* Favorite button */}
-                            <button onClick={(e) => handleToggleFavorite(e, recipe)} className="brutal-btn-danger p-1">
-                              <Heart className={`w-3.5 h-3.5 ${isFav ? 'text-[var(--accent-magenta)] fill-[var(--accent-magenta)]' : ''}`} />
-                            </button>
-                            {/* Add to list button */}
-                            <button onClick={(e) => setShowListSelectorForRecipe(showListSelectorForRecipe === recipe.recipe_id ? null : recipe.recipe_id)} className="brutal-btn-danger p-1">
-                              <FolderOpen className="w-3.5 h-3.5" />
-                            </button>
+                            <button 
+                               onClick={(e) => handleToggleFavorite(e, recipe)} 
+                               className={`p-1.5 border-2 border-black rounded-xl shadow-[2px_2px_0px_#000000] cursor-pointer transition-all duration-150 ${
+                                 isFav 
+                                   ? 'bg-[var(--accent-magenta)] text-white' 
+                                   : 'bg-[var(--surface-raised)] text-[var(--text-muted)] hover:text-[var(--accent-magenta)]'
+                               }`}
+                               title={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                             >
+                               <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-white text-white' : ''}`} />
+                             </button>
+                             {/* Add to list button */}
+                             <button 
+                               onClick={(e) => setShowListSelectorForRecipe(showListSelectorForRecipe === recipe.recipe_id ? null : recipe.recipe_id)} 
+                               className="p-1.5 border-2 border-black rounded-xl shadow-[2px_2px_0px_#000000] bg-[var(--surface-raised)] text-[var(--text-muted)] hover:text-[var(--accent-powder)] cursor-pointer transition-all duration-150"
+                               title="Ajouter à une liste"
+                             >
+                               <FolderOpen className="w-3.5 h-3.5" />
+                             </button>
 
                             {showListSelectorForRecipe === recipe.recipe_id && (
                               <div className="absolute left-4 mt-8 bg-[var(--surface)] border border-[var(--border)] p-3.5 z-50 w-44 rounded-2xl shadow-[var(--shadow-soft)]" onClick={(e) => e.stopPropagation()}>
@@ -797,8 +809,16 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
                             {servings} portion(s)
                           </span>
                           {/* Favorite button */}
-                          <button onClick={(e) => handleToggleFavorite(e, recipe)} className="brutal-btn-danger p-1">
-                            <Heart className={`w-3.5 h-3.5 ${isFav ? 'text-[var(--accent-magenta)] fill-[var(--accent-magenta)]' : ''}`} />
+                          <button 
+                            onClick={(e) => handleToggleFavorite(e, recipe)} 
+                            className={`p-1.5 border-2 border-black rounded-xl shadow-[2px_2px_0px_#000000] cursor-pointer transition-all duration-150 ${
+                              isFav 
+                                ? 'bg-[var(--accent-magenta)] text-white' 
+                                : 'bg-[var(--surface-raised)] text-[var(--text-muted)] hover:text-[var(--accent-magenta)]'
+                            }`}
+                            title={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                          >
+                            <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-white text-white' : ''}`} />
                           </button>
                           {/* Delete button */}
                           <button
@@ -907,8 +927,8 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
                         <span className="text-[9px] font-bold text-[var(--accent-powder)] block uppercase">Protéines</span>
                         <span className="text-sm font-extrabold text-[var(--text)]">{selectedRecipe.protein}g</span>
                       </div>
-                      <div className="p-2 border border-[var(--accent-powder)]/20 rounded-xl bg-[var(--accent-powder)]/5">
-                        <span className="text-[9px] font-bold text-[var(--accent-powder)] block uppercase">Glucides</span>
+                      <div className="p-2 border border-[var(--accent-pistachio)]/30 rounded-xl bg-[var(--accent-pistachio)]/10">
+                        <span className="text-[9px] font-bold text-[var(--accent-pistachio)] block uppercase">Glucides</span>
                         <span className="text-sm font-extrabold text-[var(--text)]">{selectedRecipe.carbs}g</span>
                       </div>
                       <div className="p-2 border border-[var(--accent-sand)]/20 rounded-xl bg-[var(--accent-sand)]/5">
@@ -1285,8 +1305,8 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
                         <span className="text-[8px] font-bold text-[var(--accent-powder)] block uppercase">Prot.</span>
                         <span className="text-[10px] font-extrabold text-[var(--text)]">{parseFloat((selectedCustomRecipeDetail.protein / (selectedCustomRecipeDetail.servings || 1)).toFixed(1))}g</span>
                       </div>
-                      <div className="p-1.5 border border-[var(--accent-powder)]/20 rounded-xl bg-[var(--accent-powder)]/5">
-                        <span className="text-[8px] font-bold text-[var(--accent-powder)] block uppercase">{language === 'fr' ? 'Gluc.' : 'Carb.'}</span>
+                      <div className="p-1.5 border border-[var(--accent-pistachio)]/30 rounded-xl bg-[var(--accent-pistachio)]/10">
+                        <span className="text-[8px] font-bold text-[var(--accent-pistachio)] block uppercase">{language === 'fr' ? 'Gluc.' : 'Carb.'}</span>
                         <span className="text-[10px] font-extrabold text-[var(--text)]">{parseFloat((selectedCustomRecipeDetail.carbs / (selectedCustomRecipeDetail.servings || 1)).toFixed(1))}g</span>
                       </div>
                       <div className="p-1.5 border border-[var(--accent-sand)]/20 rounded-xl bg-[var(--accent-sand)]/5">
