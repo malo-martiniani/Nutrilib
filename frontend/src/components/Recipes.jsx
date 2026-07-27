@@ -17,6 +17,10 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
   const [filterKeto, setFilterKeto] = useState(false);
   const [filterHighProtein, setFilterHighProtein] = useState(false);
   const [filterLight, setFilterLight] = useState(false);
+  const [filterVegetarian, setFilterVegetarian] = useState(false);
+  const [filterVegan, setFilterVegan] = useState(false);
+  const [filterGlutenFree, setFilterGlutenFree] = useState(false);
+  const [filterDairyFree, setFilterDairyFree] = useState(false);
 
   // Advanced search filters states
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
@@ -78,6 +82,10 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
     if (filterLight) url += '&caloriesMax=400';
     if (filterKeto) url += '&carbMaxPercent=15';
     if (filterHighProtein) url += '&proteinMinPercent=30';
+    if (filterVegetarian) url += '&vegetarian=true';
+    if (filterVegan) url += '&vegan=true';
+    if (filterGlutenFree) url += '&glutenFree=true';
+    if (filterDairyFree) url += '&dairyFree=true';
 
     // Filtres nutritionnels précis
     if (caloriesMin) url += `&caloriesMin=${caloriesMin}`;
@@ -602,40 +610,121 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
               </div>
             )}
 
-            {/* Filter toggles */}
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="brutal-label mb-0 mr-1">Filtres :</span>
-              <button type="button" onClick={() => setFilterKeto(!filterKeto)}
-                className={`py-1.5 px-3 border text-[10px] font-bold uppercase rounded-xl cursor-pointer transition-all duration-200 ${
-                  filterKeto ? 'border-[var(--accent-powder)] text-[var(--accent-powder)] bg-[var(--surface-raised)]' : 'border-[var(--border-muted)] text-[var(--text-dim)]'
+            {/* Filter toggles (Dietary Regimes & Macros) */}
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <span className="brutal-label mb-0 mr-1 text-[11px]">Régimes & Filtres :</span>
+              
+              <button 
+                type="button" 
+                onClick={() => setFilterKeto(!filterKeto)}
+                className={`py-1.5 px-3 border-2 border-black text-[10px] font-black uppercase rounded-xl cursor-pointer shadow-[2px_2px_0px_#000000] transition-all duration-150 ${
+                  filterKeto 
+                    ? 'bg-[var(--accent-sand)] text-black' 
+                    : 'bg-[var(--surface-raised)] text-[var(--text-muted)] hover:text-[var(--text)]'
                 }`}
               >
-                Keto
+                ⚡ Keto
               </button>
-              <button type="button" onClick={() => setFilterHighProtein(!filterHighProtein)}
-                className={`py-1.5 px-3 border text-[10px] font-bold uppercase rounded-xl cursor-pointer transition-all duration-200 ${
-                  filterHighProtein ? 'border-[var(--accent-powder)] text-[var(--accent-powder)] bg-[var(--surface-raised)]' : 'border-[var(--border-muted)] text-[var(--text-dim)]'
+
+              <button 
+                type="button" 
+                onClick={() => setFilterHighProtein(!filterHighProtein)}
+                className={`py-1.5 px-3 border-2 border-black text-[10px] font-black uppercase rounded-xl cursor-pointer shadow-[2px_2px_0px_#000000] transition-all duration-150 ${
+                  filterHighProtein 
+                    ? 'bg-[var(--accent-powder)] text-black' 
+                    : 'bg-[var(--surface-raised)] text-[var(--text-muted)] hover:text-[var(--text)]'
                 }`}
               >
-                Protéines+
+                💪 Protéines+
               </button>
-              <button type="button" onClick={() => setFilterLight(!filterLight)}
-                className={`py-1.5 px-3 border text-[10px] font-bold uppercase rounded-xl cursor-pointer transition-all duration-200 ${
-                  filterLight ? 'border-[var(--accent-sand)] text-[var(--accent-sand)] bg-[var(--surface-raised)]' : 'border-[var(--border-muted)] text-[var(--text-dim)]'
+
+              <button 
+                type="button" 
+                onClick={() => setFilterLight(!filterLight)}
+                className={`py-1.5 px-3 border-2 border-black text-[10px] font-black uppercase rounded-xl cursor-pointer shadow-[2px_2px_0px_#000000] transition-all duration-150 ${
+                  filterLight 
+                    ? 'bg-[var(--accent-pistachio)] text-black' 
+                    : 'bg-[var(--surface-raised)] text-[var(--text-muted)] hover:text-[var(--text)]'
                 }`}
               >
-                Léger
+                🥗 Léger (&lt;400 kcal)
               </button>
+
+              <button 
+                type="button" 
+                onClick={() => setFilterVegetarian(!filterVegetarian)}
+                className={`py-1.5 px-3 border-2 border-black text-[10px] font-black uppercase rounded-xl cursor-pointer shadow-[2px_2px_0px_#000000] transition-all duration-150 ${
+                  filterVegetarian 
+                    ? 'bg-[#86efac] text-black' 
+                    : 'bg-[var(--surface-raised)] text-[var(--text-muted)] hover:text-[var(--text)]'
+                }`}
+              >
+                🥬 Végétarien
+              </button>
+
+              <button 
+                type="button" 
+                onClick={() => setFilterVegan(!filterVegan)}
+                className={`py-1.5 px-3 border-2 border-black text-[10px] font-black uppercase rounded-xl cursor-pointer shadow-[2px_2px_0px_#000000] transition-all duration-150 ${
+                  filterVegan 
+                    ? 'bg-[#4ade80] text-black' 
+                    : 'bg-[var(--surface-raised)] text-[var(--text-muted)] hover:text-[var(--text)]'
+                }`}
+              >
+                🌱 Végan
+              </button>
+
+              <button 
+                type="button" 
+                onClick={() => setFilterGlutenFree(!filterGlutenFree)}
+                className={`py-1.5 px-3 border-2 border-black text-[10px] font-black uppercase rounded-xl cursor-pointer shadow-[2px_2px_0px_#000000] transition-all duration-150 ${
+                  filterGlutenFree 
+                    ? 'bg-[#fde047] text-black' 
+                    : 'bg-[var(--surface-raised)] text-[var(--text-muted)] hover:text-[var(--text)]'
+                }`}
+              >
+                🌾 Sans Gluten
+              </button>
+
+              <button 
+                type="button" 
+                onClick={() => setFilterDairyFree(!filterDairyFree)}
+                className={`py-1.5 px-3 border-2 border-black text-[10px] font-black uppercase rounded-xl cursor-pointer shadow-[2px_2px_0px_#000000] transition-all duration-150 ${
+                  filterDairyFree 
+                    ? 'bg-[#38bdf8] text-black' 
+                    : 'bg-[var(--surface-raised)] text-[var(--text-muted)] hover:text-[var(--text)]'
+                }`}
+              >
+                🥛 Sans Lactose
+              </button>
+
+              {(filterKeto || filterHighProtein || filterLight || filterVegetarian || filterVegan || filterGlutenFree || filterDairyFree) && (
+                <button 
+                  type="button"
+                  onClick={() => {
+                    setFilterKeto(false);
+                    setFilterHighProtein(false);
+                    setFilterLight(false);
+                    setFilterVegetarian(false);
+                    setFilterVegan(false);
+                    setFilterGlutenFree(false);
+                    setFilterDairyFree(false);
+                  }}
+                  className="text-[10px] font-bold text-[var(--accent-magenta)] hover:underline uppercase ml-auto cursor-pointer"
+                >
+                  Effacer filtres
+                </button>
+              )}
             </div>
 
             {isMockData && recipes.length > 0 && (
-              <div className="p-4 border border-[var(--accent-sand)]/20 bg-[var(--accent-sand)]/10 text-[var(--accent-sand)] text-xs font-semibold flex items-center gap-2 rounded-2xl">
-                <Info className="w-4 h-4 shrink-0 text-[var(--accent-sand)]" /> Mode démo — clés FatSecret non configurées.
+              <div className="p-3 border-2 border-black bg-[var(--accent-sand)] text-black text-xs font-black flex items-center gap-2 rounded-xl shadow-[3px_3px_0px_#000000]">
+                <Info className="w-4 h-4 shrink-0 text-black" /> Mode démo — recettes représentatives chargées.
               </div>
             )}
           </div>
 
-          {/* Results */}
+          {/* Results Header & Grid */}
           <div className="space-y-4">
             {error && <p className="text-sm text-center text-[var(--accent-magenta)] font-bold py-8 uppercase">{error}</p>}
 
@@ -644,7 +733,17 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
             )}
 
             {!searching && recipes.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              <>
+                <div className="flex items-center justify-between border-b border-[var(--border-muted)] pb-2">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-[var(--text-muted)]">
+                    {recipes.length} {recipes.length > 1 ? 'Recettes trouvées' : 'Recette trouvée'}
+                  </h3>
+                  <span className="text-[10px] font-bold uppercase text-[var(--accent-pistachio)]">
+                    Affichage responsive ({recipes.length} cartes)
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
                 {recipes.map((recipe) => {
                   const recipeFoodId = `recipe_${recipe.recipe_id}`;
                   const isFav = favoriteIds.includes(recipeFoodId);
@@ -732,6 +831,7 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
                   );
                 })}
               </div>
+            </>
             )}
           </div>
         </>

@@ -595,7 +595,7 @@ router.get('/food/:id', authMiddleware, async (req, res) => {
 // @desc    Rechercher des recettes avec filtres avancés
 // @access  Privé
 router.get('/recipes/search', authMiddleware, async (req, res) => {
-  const { query, caloriesMax, carbMaxPercent, proteinMinPercent, caloriesMin, proteinMin, carbsMax, fatMax } = req.query;
+  const { query, caloriesMax, carbMaxPercent, proteinMinPercent, caloriesMin, proteinMin, carbsMax, fatMax, vegetarian, vegan, glutenFree, dairyFree } = req.query;
   const lang = req.headers['x-app-lang'] || 'fr';
 
   if (!areCredentialsConfigured()) {
@@ -618,6 +618,20 @@ router.get('/recipes/search', authMiddleware, async (req, res) => {
     if (proteinMin) filtered = filtered.filter(r => r.protein >= parseFloat(proteinMin));
     if (carbsMax) filtered = filtered.filter(r => r.carbs <= parseFloat(carbsMax));
     if (fatMax) filtered = filtered.filter(r => r.fat <= parseFloat(fatMax));
+
+    // Filtres régimes alimentaires
+    if (vegetarian === 'true') {
+      filtered = filtered.filter(r => !/poulet|saumon|viande|boeuf|porc|jambon|dinde|poisson|thon|crevette|chicken|beef|pork|salmon|tuna|fish|shrimp|meat/i.test(r.recipe_name + r.recipe_description));
+    }
+    if (vegan === 'true') {
+      filtered = filtered.filter(r => !/poulet|saumon|viande|boeuf|porc|jambon|dinde|poisson|thon|œuf|oeuf|lait|fromage|beurre|crème|yaourt|chicken|beef|egg|milk|cheese|butter|cream|yogurt/i.test(r.recipe_name + r.recipe_description));
+    }
+    if (glutenFree === 'true') {
+      filtered = filtered.filter(r => !/blé|pâtes|farine de blé|pain|seigle|orge|wheat|pasta|flour|bread/i.test(r.recipe_name + r.recipe_description) || /gluten-free|sans gluten/i.test(r.recipe_name + r.recipe_description));
+    }
+    if (dairyFree === 'true') {
+      filtered = filtered.filter(r => !/lait|fromage|beurre|crème|yaourt|milk|cheese|butter|cream|yogurt|dairy/i.test(r.recipe_name + r.recipe_description) || /dairy-free|sans lactose/i.test(r.recipe_name + r.recipe_description));
+    }
 
     return res.json({ recipes: filtered, isMock: true });
   }
