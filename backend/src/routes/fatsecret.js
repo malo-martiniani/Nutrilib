@@ -107,6 +107,90 @@ const MOCK_FOOD_DETAILS = {
   }
 };
 
+const MOCK_RECIPES_EN_MAP = {
+  '101': {
+    name: 'Keto Chicken Salad with Cottage Cheese',
+    description: 'A fresh, low-carb, high-protein salad with a light creamy dressing. [Keto, Gluten-Free]',
+    ingredients: [
+      '150g cooked shredded chicken breast',
+      '50g 0% fat cottage cheese',
+      '1/2 diced avocado',
+      '2 cups romaine lettuce',
+      '1 tsp lemon juice',
+      'Salt and pepper to taste'
+    ],
+    directions: [
+      'In a bowl, mix cottage cheese, lemon juice, salt, and pepper for the dressing.',
+      'In a large bowl, arrange lettuce, shredded chicken, and avocado.',
+      'Drizzle with dressing and toss gently before serving cold.'
+    ]
+  },
+  '102': {
+    name: 'Light Spinach & Feta Omelette',
+    description: 'A quick, healthy protein omelette perfect for breakfast or dinner. [Vegetarian, Gluten-Free]',
+    ingredients: [
+      '2 large whole eggs',
+      '1 cup fresh spinach',
+      '30g crumbled feta cheese',
+      '1 tsp olive oil',
+      'Salt and pepper'
+    ],
+    directions: [
+      'Beat eggs in a bowl with salt and pepper.',
+      'Heat olive oil in a pan and sauté spinach for 1 minute.',
+      'Pour beaten eggs into the pan and cook over low heat.',
+      'Add crumbled feta on top before folded in half and serve.'
+    ]
+  },
+  '103': {
+    name: 'Protein Berry Oatmeal Porridge',
+    description: 'A comforting, fiber-rich oatmeal bowl ideal for boosting morning energy. [Vegetarian, Vegan, Gluten-Free]',
+    ingredients: [
+      '40g rolled oats',
+      '200ml unsweetened almond milk',
+      '1 scoop protein powder or cottage cheese',
+      '1 handful fresh berries (strawberries, blueberries)',
+      '1 tsp chia seeds'
+    ],
+    directions: [
+      'Cook oats with almond milk over medium heat for 5 minutes.',
+      'Remove from heat, stir in protein powder until smooth.',
+      'Top with fresh berries and chia seeds before serving warm.'
+    ]
+  },
+  '104': {
+    name: 'Grilled Salmon & Vegetable Quinoa',
+    description: 'A balanced dish packed with Omega-3, complex carbs, and high-quality protein. [Gluten-Free, Dairy-Free]',
+    ingredients: [
+      '120g grilled salmon fillet',
+      '60g cooked quinoa',
+      '1/2 grilled zucchini sliced',
+      '1 tsp olive oil',
+      'Lemon wedge and herbs'
+    ],
+    directions: [
+      'Grill salmon fillet in a hot pan for 3-4 minutes per side.',
+      'Sauté zucchini slices with olive oil and herbs.',
+      'Serve salmon over warm quinoa with grilled zucchini and lemon juice.'
+    ]
+  },
+  '105': {
+    name: 'Roasted Chicken & Sweet Potato Power Bowl',
+    description: 'A complete fitness meal bowl with roasted sweet potato, lean chicken, and broccoli. [Gluten-Free, Dairy-Free]',
+    ingredients: [
+      '150g roasted chicken breast',
+      '100g roasted sweet potato cubes',
+      '1 cup steamed broccoli',
+      '1 tsp olive oil'
+    ],
+    directions: [
+      'Roast sweet potato cubes with olive oil at 200°C for 20 minutes.',
+      'Steam broccoli florets for 5 minutes until tender-crisp.',
+      'Assemble roasted chicken, sweet potatoes, and broccoli in a bowl.'
+    ]
+  }
+};
+
 const MOCK_RECIPES = [
   {
     recipe_id: '101',
@@ -599,8 +683,21 @@ router.get('/recipes/search', authMiddleware, async (req, res) => {
   const lang = req.headers['x-app-lang'] || 'fr';
 
   if (!areCredentialsConfigured()) {
-    console.log('Utilisation des recettes Mockées (FatSecret non configuré).');
-    let filtered = [...MOCK_RECIPES];
+    console.log(`Utilisation des recettes Mockées (FatSecret non configuré) [lang: ${lang}].`);
+    let filtered = MOCK_RECIPES.map(r => {
+      const en = MOCK_RECIPES_EN_MAP[r.recipe_id];
+      if (lang === 'en' && en) {
+        return {
+          ...r,
+          recipe_name: en.name,
+          recipe_description: en.description,
+          ingredients: en.ingredients,
+          directions: en.directions
+        };
+      }
+      return r;
+    });
+
     if (query) {
       filtered = filtered.filter(r => r.recipe_name.toLowerCase().includes(query.toLowerCase()) || r.recipe_description.toLowerCase().includes(query.toLowerCase()));
     }
@@ -676,7 +773,7 @@ router.get('/recipes/search', authMiddleware, async (req, res) => {
         recipe_name: r.recipe_name,
         recipe_description: r.recipe_description || '',
         recipe_image: r.recipe_image || 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400',
-        rating: r.rating ? parseFloat(r.rating) : 4.5,
+        rating: r.rating ? parseFloat(r.rating) : parseFloat((4.2 + ((parseInt(String(r.recipe_id).replace(/\D/g, '')) || 5) % 8) * 0.1).toFixed(1)),
         calories: r.recipe_nutrition ? parseInt(r.recipe_nutrition.calories) : 0,
         carbs: r.recipe_nutrition ? parseFloat(r.recipe_nutrition.carbohydrate) : 0.0,
         protein: r.recipe_nutrition ? parseFloat(r.recipe_nutrition.protein) : 0.0,
@@ -731,9 +828,19 @@ router.get('/recipes/:id', authMiddleware, async (req, res) => {
   const lang = req.headers['x-app-lang'] || 'fr';
 
   if (!areCredentialsConfigured()) {
-    const recipe = MOCK_RECIPES.find(r => r.recipe_id === recipeId);
+    let recipe = MOCK_RECIPES.find(r => r.recipe_id === recipeId);
     if (!recipe) {
       return res.status(404).json({ message: 'Recette non trouvée.' });
+    }
+    if (lang === 'en' && MOCK_RECIPES_EN_MAP[recipeId]) {
+      const en = MOCK_RECIPES_EN_MAP[recipeId];
+      recipe = {
+        ...recipe,
+        recipe_name: en.name,
+        recipe_description: en.description,
+        ingredients: en.ingredients,
+        directions: en.directions
+      };
     }
     return res.json({ recipe, isMock: true });
   }

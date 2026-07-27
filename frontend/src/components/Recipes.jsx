@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Clock, Star, CheckCircle, ChevronRight, X, ListTodo, Flame, Info, Heart, FolderOpen, SlidersHorizontal, Trash2, Plus, Sparkles, ChefHat } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, Clock, Star, CheckCircle, ChevronRight, ChevronLeft, X, ListTodo, Flame, Info, Heart, FolderOpen, SlidersHorizontal, Trash2, Plus, Sparkles, ChefHat } from 'lucide-react';
 import { useNotification } from '../context/NotificationContext';
 import { useAuth } from '../context/AuthContext';
+import { FALLBACK_RECIPES, filterFallbackRecipes } from '../data/fallbackRecipes';
 
 const API_URL = 'http://localhost:5000/api';
 
@@ -17,10 +18,6 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
   const [filterKeto, setFilterKeto] = useState(false);
   const [filterHighProtein, setFilterHighProtein] = useState(false);
   const [filterLight, setFilterLight] = useState(false);
-  const [filterVegetarian, setFilterVegetarian] = useState(false);
-  const [filterVegan, setFilterVegan] = useState(false);
-  const [filterGlutenFree, setFilterGlutenFree] = useState(false);
-  const [filterDairyFree, setFilterDairyFree] = useState(false);
 
   // Advanced search filters states
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
@@ -59,6 +56,16 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
   const [quickAddDate, setQuickAddDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedCustomRecipeDetail, setSelectedCustomRecipeDetail] = useState(null);
 
+  const row1Ref = useRef(null);
+  const row2Ref = useRef(null);
+
+  const scrollRow = (ref, direction) => {
+    if (ref.current) {
+      const amount = direction === 'left' ? -360 : 360;
+      ref.current.scrollBy({ left: amount, behavior: 'smooth' });
+    }
+  };
+
   const fetchFavoritesAndLists = async () => {
     if (!token) return;
     try {
@@ -82,10 +89,6 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
     if (filterLight) url += '&caloriesMax=400';
     if (filterKeto) url += '&carbMaxPercent=15';
     if (filterHighProtein) url += '&proteinMinPercent=30';
-    if (filterVegetarian) url += '&vegetarian=true';
-    if (filterVegan) url += '&vegan=true';
-    if (filterGlutenFree) url += '&glutenFree=true';
-    if (filterDairyFree) url += '&dairyFree=true';
 
     // Filtres nutritionnels précis
     if (caloriesMin) url += `&caloriesMin=${caloriesMin}`;
@@ -101,8 +104,16 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
         setRecipes(data.recipes || []);
         setIsMockData(data.isMock || false);
         if (data.recipes && data.recipes.length === 0) { setError('Aucune recette trouvée.'); }
-      } else { throw new Error('Erreur.'); }
-    } catch (err) { setError('Impossible de récupérer les recettes.'); }
+      } else { throw new Error('Erreur HTTP.'); }
+    } catch (err) { 
+      console.warn('Backend/API non joignable. Bascule automatique sur les recettes locales de secours.');
+      const fallbackList = filterFallbackRecipes({
+        query, caloriesMin, caloriesMax, proteinMin, carbsMax, fatMax, filterKeto, filterHighProtein, filterLight
+      }, language);
+      setRecipes(fallbackList);
+      setIsMockData(true);
+      if (fallbackList.length === 0) { setError('Aucune recette trouvée.'); }
+    }
     finally { setSearching(false); }
   };
 
@@ -146,8 +157,14 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
             setRecipes(data.recipes || []);
             setIsMockData(data.isMock || false);
             if (data.recipes && data.recipes.length === 0) { setError('Aucune recette trouvée.'); }
-          } else { throw new Error('Erreur.'); }
-        } catch (err) { setError('Impossible de récupérer les recettes.'); }
+          } else { throw new Error('Erreur HTTP.'); }
+        } catch (err) { 
+          console.warn('Mode Secours initial déclenché.');
+          const fallbackList = filterFallbackRecipes(initialFilters, language);
+          setRecipes(fallbackList);
+          setIsMockData(true);
+          if (fallbackList.length === 0) { setError('Aucune recette trouvée.'); }
+        }
         finally { setSearching(false); }
       };
 
@@ -161,18 +178,36 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
     if (initialFilters) return; // Prevent double trigger when processing initialFilters
     handleSearch(); 
     fetchFavoritesAndLists();
-  }, [filterKeto, filterHighProtein, filterLight, caloriesMin, caloriesMax, proteinMin, carbsMax, fatMax, token]);
+    if (selectedRecipe) {
+      handleFetchRecipeDetails(selectedRecipe.recipe_id);
+    }
+  }, [filterKeto, filterHighProtein, filterLight, caloriesMin, caloriesMax, proteinMin, carbsMax, fatMax, token, language]);
 
   const handleFetchRecipeDetails = async (id) => {
     setLoadingRecipe(true);
     setCheckedIngredients({});
     try {
       const response = await fetch(`${API_URL}/foods/recipes/${id}`, { headers: { 'Authorization': `Bearer ${token}`, 'x-app-lang': language } });
-      if (response.ok) { setSelectedRecipe((await response.json()).recipe); }
-      else { showToast('Erreur chargement recette.', 'error'); }
+      if (response.ok) { 
+        setSelectedRecipe((await response.json()).recipe); 
+      } else { 
+        throw new Error('Erreur API.'); 
+      }
     } catch (err) { 
-      console.error(err); 
-      showToast('Erreur réseau.', 'error');
+      console.warn('Mode Secours local activé pour la recette:', id);
+      const localRecipe = FALLBACK_RECIPES.find(r => r.recipe_id === id);
+      if (localRecipe) {
+        const localized = language === 'en' ? {
+          ...localRecipe,
+          recipe_name: localRecipe.recipe_name_en || localRecipe.recipe_name,
+          recipe_description: localRecipe.recipe_description_en || localRecipe.recipe_description,
+          ingredients: localRecipe.ingredients_en || localRecipe.ingredients,
+          directions: localRecipe.directions_en || localRecipe.directions
+        } : localRecipe;
+        setSelectedRecipe(localized);
+      } else {
+        showToast('Erreur chargement recette.', 'error');
+      }
     }
     finally { setLoadingRecipe(false); }
   };
@@ -650,65 +685,13 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
                 🥗 Léger (&lt;400 kcal)
               </button>
 
-              <button 
-                type="button" 
-                onClick={() => setFilterVegetarian(!filterVegetarian)}
-                className={`py-1.5 px-3 border-2 border-black text-[10px] font-black uppercase rounded-xl cursor-pointer shadow-[2px_2px_0px_#000000] transition-all duration-150 ${
-                  filterVegetarian 
-                    ? 'bg-[#86efac] text-black' 
-                    : 'bg-[var(--surface-raised)] text-[var(--text-muted)] hover:text-[var(--text)]'
-                }`}
-              >
-                🥬 Végétarien
-              </button>
-
-              <button 
-                type="button" 
-                onClick={() => setFilterVegan(!filterVegan)}
-                className={`py-1.5 px-3 border-2 border-black text-[10px] font-black uppercase rounded-xl cursor-pointer shadow-[2px_2px_0px_#000000] transition-all duration-150 ${
-                  filterVegan 
-                    ? 'bg-[#4ade80] text-black' 
-                    : 'bg-[var(--surface-raised)] text-[var(--text-muted)] hover:text-[var(--text)]'
-                }`}
-              >
-                🌱 Végan
-              </button>
-
-              <button 
-                type="button" 
-                onClick={() => setFilterGlutenFree(!filterGlutenFree)}
-                className={`py-1.5 px-3 border-2 border-black text-[10px] font-black uppercase rounded-xl cursor-pointer shadow-[2px_2px_0px_#000000] transition-all duration-150 ${
-                  filterGlutenFree 
-                    ? 'bg-[#fde047] text-black' 
-                    : 'bg-[var(--surface-raised)] text-[var(--text-muted)] hover:text-[var(--text)]'
-                }`}
-              >
-                🌾 Sans Gluten
-              </button>
-
-              <button 
-                type="button" 
-                onClick={() => setFilterDairyFree(!filterDairyFree)}
-                className={`py-1.5 px-3 border-2 border-black text-[10px] font-black uppercase rounded-xl cursor-pointer shadow-[2px_2px_0px_#000000] transition-all duration-150 ${
-                  filterDairyFree 
-                    ? 'bg-[#38bdf8] text-black' 
-                    : 'bg-[var(--surface-raised)] text-[var(--text-muted)] hover:text-[var(--text)]'
-                }`}
-              >
-                🥛 Sans Lactose
-              </button>
-
-              {(filterKeto || filterHighProtein || filterLight || filterVegetarian || filterVegan || filterGlutenFree || filterDairyFree) && (
+              {(filterKeto || filterHighProtein || filterLight) && (
                 <button 
                   type="button"
                   onClick={() => {
                     setFilterKeto(false);
                     setFilterHighProtein(false);
                     setFilterLight(false);
-                    setFilterVegetarian(false);
-                    setFilterVegan(false);
-                    setFilterGlutenFree(false);
-                    setFilterDairyFree(false);
                   }}
                   className="text-[10px] font-bold text-[var(--accent-magenta)] hover:underline uppercase ml-auto cursor-pointer"
                 >
@@ -732,107 +715,203 @@ export default function Recipes({ token, initialFilters, onClearFilters }) {
               <div className="flex justify-center py-16"><div className="brutal-spinner"></div></div>
             )}
 
-            {!searching && recipes.length > 0 && (
-              <>
-                <div className="flex items-center justify-between border-b border-[var(--border-muted)] pb-2">
-                  <h3 className="text-xs font-black uppercase tracking-wider text-[var(--text-muted)]">
-                    {recipes.length} {recipes.length > 1 ? 'Recettes trouvées' : 'Recette trouvée'}
-                  </h3>
-                  <span className="text-[10px] font-bold uppercase text-[var(--accent-pistachio)]">
-                    Affichage responsive ({recipes.length} cartes)
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
-                {recipes.map((recipe) => {
-                  const recipeFoodId = `recipe_${recipe.recipe_id}`;
-                  const isFav = favoriteIds.includes(recipeFoodId);
-                  return (
-                    <div key={recipe.recipe_id} 
-                      onClick={() => handleFetchRecipeDetails(recipe.recipe_id)}
-                      className="relative overflow-hidden rounded-[28px] border border-[var(--border)] bg-[var(--surface)] flex flex-col shadow-[var(--shadow-soft)] hover:translate-y-[-2px] transition-all duration-300 group cursor-pointer"
-                    >
-                      {/* Image */}
-                      <div className="h-44 w-full overflow-hidden relative bg-[var(--surface-inset)]">
-                        <img src={recipe.recipe_image} alt={recipe.recipe_name}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400'; }}
-                        />
-                        <div className="absolute top-3 right-3 brutal-tag border border-[var(--border)] text-[var(--text)] bg-[var(--surface-raised)]/95 backdrop-blur-md text-[9px] font-bold rounded-lg shadow-sm">
-                          <Flame className="w-3 h-3 text-[var(--accent-pistachio)]" /> {recipe.calories} kcal
-                        </div>
-                      </div>
-
-                      {/* Content */}
-                      <div className="p-5 flex-1 flex flex-col justify-between space-y-4" onClick={(e) => e.stopPropagation()}>
-                        <div onClick={() => handleFetchRecipeDetails(recipe.recipe_id)} className="cursor-pointer">
-                          <h3 className="font-bold text-sm text-[var(--text)] line-clamp-1 group-hover:text-[var(--accent-pistachio)] transition-colors">{recipe.recipe_name}</h3>
-                          <p className="text-[10px] text-[var(--text-muted)] line-clamp-2 mt-1.5 font-medium">
-                            {recipe.recipe_description || 'Une recette équilibrée pour enrichir votre alimentation.'}
-                          </p>
-                        </div>
-
-                        <div className="flex items-center justify-between text-[10px] text-[var(--text-muted)] border-t border-[var(--border-muted)] pt-3 font-semibold">
-                          <div className="flex items-center gap-2">
-                            <div className="flex items-center gap-1">
-                              <Star className="w-3 h-3 text-[var(--accent-sand)] fill-[var(--accent-sand)]" />
-                              <span className="font-bold text-[var(--text)]">{recipe.rating}</span>
-                            </div>
-                            {/* Favorite button */}
-                            <button 
-                               onClick={(e) => handleToggleFavorite(e, recipe)} 
-                               className={`p-1.5 border-2 border-black rounded-xl shadow-[2px_2px_0px_#000000] cursor-pointer transition-all duration-150 ${
-                                 isFav 
-                                   ? 'bg-[var(--accent-magenta)] text-white' 
-                                   : 'bg-[var(--surface-raised)] text-[var(--text-muted)] hover:text-[var(--accent-magenta)]'
-                               }`}
-                               title={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-                             >
-                               <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-white text-white' : ''}`} />
-                             </button>
-                             {/* Add to list button */}
-                             <button 
-                               onClick={(e) => setShowListSelectorForRecipe(showListSelectorForRecipe === recipe.recipe_id ? null : recipe.recipe_id)} 
-                               className="p-1.5 border-2 border-black rounded-xl shadow-[2px_2px_0px_#000000] bg-[var(--surface-raised)] text-[var(--text-muted)] hover:text-[var(--accent-powder)] cursor-pointer transition-all duration-150"
-                               title="Ajouter à une liste"
-                             >
-                               <FolderOpen className="w-3.5 h-3.5" />
-                             </button>
-
-                            {showListSelectorForRecipe === recipe.recipe_id && (
-                              <div className="absolute left-4 mt-8 bg-[var(--surface)] border border-[var(--border)] p-3.5 z-50 w-44 rounded-2xl shadow-[var(--shadow-soft)]" onClick={(e) => e.stopPropagation()}>
-                                <span className="brutal-label block border-b border-[var(--border-muted)] pb-1 mb-2">Ajouter à :</span>
-                                {lists.length === 0 ? (
-                                  <p className="text-[10px] text-[var(--text-dim)]">Aucune liste.</p>
-                                ) : (
-                                  lists.map(l => (
-                                    <button key={l.id} onClick={() => handleAddToList(l.id, recipe)}
-                                      className="w-full text-left py-1 text-xs text-[var(--text-muted)] hover:text-[var(--accent-pistachio)] font-semibold cursor-pointer transition-colors duration-150">
-                                      → {l.list_name}
-                                    </button>
-                                  ))
-                                )}
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex gap-2">
-                            <span className="text-[var(--accent-powder)]">P:{Math.round(recipe.protein)}g</span>
-                            <span className="text-[var(--accent-pistachio)]">G:{Math.round(recipe.carbs)}g</span>
-                            <span className="text-[var(--accent-sand)]">L:{Math.round(recipe.fat)}g</span>
-                          </div>
-                        </div>
-
-                        <button onClick={() => handleFetchRecipeDetails(recipe.recipe_id)}
-                          className="brutal-btn-ghost w-full text-[10px] cursor-pointer">
-                          Voir la recette <ChevronRight className="w-3.5 h-3.5" />
-                        </button>
+            {!searching && recipes.length > 0 && (() => {
+              const renderCard = (recipe, keyPrefix = '', isCarousel = false) => {
+                const recipeFoodId = `recipe_${recipe.recipe_id}`;
+                const isFav = favoriteIds.includes(recipeFoodId);
+                return (
+                  <div 
+                    key={`${keyPrefix}_${recipe.recipe_id}`}
+                    onClick={() => handleFetchRecipeDetails(recipe.recipe_id)}
+                    className={`brutal-card p-0 overflow-hidden relative border-3 border-black shadow-[4px_4px_0px_#000000] flex flex-col hover:-translate-y-1 transition-all duration-300 group cursor-pointer ${
+                      isCarousel ? 'w-[280px] sm:w-[320px] shrink-0 snap-start' : 'w-full'
+                    }`}
+                  >
+                    {/* Image Header */}
+                    <div className="h-44 w-full overflow-hidden relative bg-[var(--surface-inset)] border-b-3 border-black">
+                      <img 
+                        src={recipe.recipe_image} 
+                        alt={recipe.recipe_name}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400'; }}
+                      />
+                      <div className="absolute top-3 right-3 brutal-tag border-2 border-black text-black bg-[var(--accent-sand)] text-[9px] font-black rounded-lg shadow-[2px_2px_0px_#000000] px-2 py-1 flex items-center gap-1">
+                        <Flame className="w-3.5 h-3.5 text-black" /> {recipe.calories} kcal
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            </>
-            )}
+
+                    {/* Content Body */}
+                    <div className="p-4 flex-1 flex flex-col justify-between space-y-3" onClick={(e) => e.stopPropagation()}>
+                      <div onClick={() => handleFetchRecipeDetails(recipe.recipe_id)} className="cursor-pointer">
+                        <h3 className="font-extrabold text-sm text-[var(--text)] line-clamp-1 group-hover:text-[var(--accent-pistachio)] transition-colors">
+                          {recipe.recipe_name}
+                        </h3>
+                        <p className="text-[10px] text-[var(--text-muted)] line-clamp-2 mt-1 font-medium leading-relaxed">
+                          {recipe.recipe_description || 'Une recette équilibrée pour enrichir votre alimentation.'}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between text-[10px] text-[var(--text-muted)] border-t-2 border-[var(--border-muted)] pt-3 font-semibold">
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1 bg-[var(--surface-raised)] border-2 border-black px-1.5 py-0.5 rounded-lg shadow-[1px_1px_0px_#000]">
+                            <Star className="w-3 h-3 text-[var(--accent-sand)] fill-[var(--accent-sand)]" />
+                            <span className="font-black text-[var(--text)]">{recipe.rating || 4.5}</span>
+                          </div>
+
+                          {/* Favorite button */}
+                          <button 
+                            onClick={(e) => handleToggleFavorite(e, recipe)} 
+                            className={`p-1.5 border-2 border-black rounded-xl shadow-[2px_2px_0px_#000000] cursor-pointer transition-all duration-150 active:translate-x-0.5 active:translate-y-0.5 ${
+                              isFav 
+                                ? 'bg-[var(--accent-magenta)] text-white' 
+                                : 'bg-[var(--surface-raised)] text-[var(--text-muted)] hover:text-[var(--accent-magenta)]'
+                            }`}
+                            title={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                          >
+                            <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-white text-white' : ''}`} />
+                          </button>
+
+                          {/* Add to list button */}
+                          <button 
+                            onClick={(e) => setShowListSelectorForRecipe(showListSelectorForRecipe === recipe.recipe_id ? null : recipe.recipe_id)} 
+                            className="p-1.5 border-2 border-black rounded-xl shadow-[2px_2px_0px_#000000] bg-[var(--surface-raised)] text-[var(--text-muted)] hover:text-[var(--accent-powder)] cursor-pointer transition-all duration-150 active:translate-x-0.5 active:translate-y-0.5"
+                            title="Ajouter à une liste"
+                          >
+                            <FolderOpen className="w-3.5 h-3.5" />
+                          </button>
+
+                          {showListSelectorForRecipe === recipe.recipe_id && (
+                            <div className="absolute left-4 mt-8 bg-[var(--surface)] border-3 border-black p-3.5 z-50 w-48 rounded-2xl shadow-[4px_4px_0px_#000000]" onClick={(e) => e.stopPropagation()}>
+                              <span className="brutal-label block border-b-2 border-black pb-1 mb-2">Ajouter à :</span>
+                              {lists.length === 0 ? (
+                                <p className="text-[10px] text-[var(--text-dim)]">Aucune liste.</p>
+                              ) : (
+                                lists.map(l => (
+                                  <button key={l.id} onClick={() => handleAddToList(l.id, recipe)}
+                                    className="w-full text-left py-1 text-xs text-[var(--text-muted)] hover:text-[var(--accent-pistachio)] font-semibold cursor-pointer transition-colors duration-150">
+                                    → {l.list_name}
+                                  </button>
+                                ))
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex gap-1.5 text-[10px] font-black">
+                          <span className="text-[var(--accent-powder)]">P:{Math.round(recipe.protein)}g</span>
+                          <span className="text-[var(--accent-pistachio)]">G:{Math.round(recipe.carbs)}g</span>
+                          <span className="text-[var(--accent-sand)]">L:{Math.round(recipe.fat)}g</span>
+                        </div>
+                      </div>
+
+                      <button 
+                        onClick={() => handleFetchRecipeDetails(recipe.recipe_id)}
+                        className="brutal-btn-ghost w-full text-[10px] font-black uppercase cursor-pointer py-2 flex items-center justify-center gap-1.5"
+                      >
+                        {language === 'fr' ? 'Voir la recette' : 'View Recipe'} <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              };
+
+              return (
+                <>
+                  {/* Horizontal Scrollable Curated Category Carousels */}
+                  <div className="space-y-8 pb-4">
+                    {/* Category Row 1: High Protein */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between pb-1 border-b border-[var(--border-muted)]">
+                        <h3 className="text-xs font-black uppercase tracking-wider text-[var(--text)] flex items-center gap-2">
+                          <span>💪</span> {language === 'fr' ? 'Repas Forts en Protéines' : 'High Protein Meals'}
+                        </h3>
+                        
+                        {/* Well-designed Arrow Buttons */}
+                        <div className="flex items-center gap-2">
+                          <button 
+                            type="button" 
+                            onClick={() => scrollRow(row1Ref, 'left')} 
+                            className="p-1.5 border-2 border-black rounded-xl bg-[var(--surface-raised)] text-[var(--text)] shadow-[2px_2px_0px_#000000] hover:bg-[var(--accent-pistachio)] hover:text-black cursor-pointer transition-all duration-150 active:translate-x-0.5 active:translate-y-0.5"
+                            aria-label="Défiler à gauche"
+                            title="Défiler à gauche"
+                          >
+                            <ChevronLeft className="w-4 h-4" />
+                          </button>
+                          <button 
+                            type="button" 
+                            onClick={() => scrollRow(row1Ref, 'right')} 
+                            className="p-1.5 border-2 border-black rounded-xl bg-[var(--surface-raised)] text-[var(--text)] shadow-[2px_2px_0px_#000000] hover:bg-[var(--accent-pistachio)] hover:text-black cursor-pointer transition-all duration-150 active:translate-x-0.5 active:translate-y-0.5"
+                            aria-label="Défiler à droite"
+                            title="Défiler à droite"
+                          >
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div 
+                        ref={row1Ref} 
+                        className="flex gap-6 overflow-x-auto pb-4 pt-1 scroll-smooth scrollbar-none snap-x cursor-grab"
+                      >
+                        {recipes.filter(r => r.protein >= 20).concat(recipes).slice(0, 6).map(recipe => (
+                          renderCard(recipe, 'carousel_hp', true)
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Category Row 2: Express / Fast Meals */}
+                    <div className="space-y-3 pt-2">
+                      <div className="flex items-center justify-between pb-1 border-b border-[var(--border-muted)]">
+                        <h3 className="text-xs font-black uppercase tracking-wider text-[var(--text)] flex items-center gap-2">
+                          <span>⏱️</span> {language === 'fr' ? 'Recettes Rapides & Léger' : 'Quick & Light Meals'}
+                        </h3>
+                        
+                        {/* Well-designed Arrow Buttons */}
+                        <div className="flex items-center gap-2">
+                          <button 
+                            type="button" 
+                            onClick={() => scrollRow(row2Ref, 'left')} 
+                            className="p-1.5 border-2 border-black rounded-xl bg-[var(--surface-raised)] text-[var(--text)] shadow-[2px_2px_0px_#000000] hover:bg-[var(--accent-pistachio)] hover:text-black cursor-pointer transition-all duration-150 active:translate-x-0.5 active:translate-y-0.5"
+                            aria-label="Défiler à gauche"
+                            title="Défiler à gauche"
+                          >
+                            <ChevronLeft className="w-4 h-4" />
+                          </button>
+                          <button 
+                            type="button" 
+                            onClick={() => scrollRow(row2Ref, 'right')} 
+                            className="p-1.5 border-2 border-black rounded-xl bg-[var(--surface-raised)] text-[var(--text)] shadow-[2px_2px_0px_#000000] hover:bg-[var(--accent-pistachio)] hover:text-black cursor-pointer transition-all duration-150 active:translate-x-0.5 active:translate-y-0.5"
+                            aria-label="Défiler à droite"
+                            title="Défiler à droite"
+                          >
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div 
+                        ref={row2Ref} 
+                        className="flex gap-6 overflow-x-auto pb-4 pt-1 scroll-smooth scrollbar-none snap-x cursor-grab"
+                      >
+                        {recipes.filter(r => r.calories <= 350 || r.carbs <= 15).concat(recipes).slice(0, 6).map(recipe => (
+                          renderCard(recipe, 'carousel_fast', true)
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between border-b-2 border-black pt-4 pb-3 mb-2">
+                    <h3 className="text-sm font-black uppercase tracking-wider text-[var(--text)]">
+                      {language === 'fr' ? 'Toutes les recettes' : 'All Recipes'} ({recipes.length})
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-6">
+                    {recipes.map((recipe) => renderCard(recipe, 'grid', false))}
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </>
       ) : (

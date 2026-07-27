@@ -835,7 +835,7 @@ export default function Dashboard() {
         role="tabpanel" 
         aria-labelledby={`tab-${activeTab}`} 
         className={`flex-1 w-full mx-auto px-4 py-6 space-y-6 transition-all duration-300 ${
-          activeTab === 'recipes' ? 'max-w-7xl md:px-8' : 'max-w-4xl'
+          activeTab === 'recipes' ? 'max-w-[1600px] md:px-8 xl:px-12' : 'max-w-4xl'
         }`}
       >
 
