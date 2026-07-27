@@ -88,15 +88,15 @@ export default function LoginRegister() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-[var(--surface)] border border-[var(--border)] rounded-[28px] overflow-hidden shadow-[var(--shadow-soft)] transition-transform duration-300">
+      <div className="w-full max-w-md bg-[var(--surface)] border-3 border-black rounded-2xl overflow-hidden shadow-[6px_6px_0px_#000000]">
         
-        {/* Solid Matte Header */}
-        <div className="h-32 bg-gradient-to-br from-[var(--surface-raised)] to-[var(--surface)] border-b border-[var(--border-muted)] relative flex items-end pb-4 pl-6">
+        {/* Neo-Brutalist Saturated Header */}
+        <div className="h-32 bg-[var(--accent-sand)] border-b-3 border-black relative flex items-end pb-4 pl-6">
           <div>
-            <h1 className="text-3xl font-extrabold uppercase tracking-tight text-[var(--accent-pistachio)]">
+            <h1 className="text-3xl font-black uppercase tracking-tight text-black">
               Nutrilib
             </h1>
-            <p className="text-[var(--text-muted)] text-xs font-medium mt-1">
+            <p className="text-black/80 text-xs font-bold uppercase tracking-wider mt-0.5">
               {isLogin ? t('login_title_login') : t('login_title_register')}
             </p>
           </div>

@@ -1,76 +1,81 @@
 @import "tailwindcss";
 
 /* ============================================================
-   NUTRILIB — PREMIUM MATTE SOFT PASTEL DESIGN SYSTEM
+   NUTRILIB — NEO-BRUTALIST DESIGN SYSTEM (RULE[design.md])
+   "Brutalism, but make it pop. Hard lines, stark shadows, vibrant colors."
    ============================================================ */
 
 :root {
-  /* Core surfaces - Unified Professional Neobrutalist Dark Slate */
-  --bg-dark-slate: #0b0f17; /* Deep charcoal slate body canvas */
-  --bg-charcoal: #111622;
-  --surface: #171f2e; /* Card surface - high contrast from body! */
-  --surface-raised: #202b3c; /* Elevated cards & containers */
-  --surface-inset: #090d14; /* Inset search & input recessed fields */
+  /* Core surfaces - Dark Neo-Brutalism */
+  --bg-dark-slate: #121214; /* Deep stark matte canvas */
+  --bg-charcoal: #18181c;
+  --surface: #1e1e24; /* Card surface */
+  --surface-raised: #2a2a32; /* Raised cards & containers */
+  --surface-inset: #0b0b0e; /* Inset search & input fields */
 
-  /* Borders - Neobrutalist Crisp Borders */
-  --border: rgba(148, 163, 184, 0.18);
-  --border-focus: rgba(74, 222, 128, 0.5); /* Lime/Pistachio glow */
-  --border-muted: rgba(148, 163, 184, 0.1);
-  --border-dim: rgba(148, 163, 184, 0.04);
+  /* Borders & Shadows */
+  --border: #000000;
+  --border-focus: #000000;
+  --border-muted: rgba(0, 0, 0, 0.7);
+  --border-dim: rgba(255, 255, 255, 0.15);
+  
+  --shadow-color: #000000;
+  --shadow-hard: 4px 4px 0px #000000;
+  --shadow-hard-lg: 6px 6px 0px #000000;
+  --shadow-hard-sm: 2px 2px 0px #000000;
+  --shadow-soft: 4px 4px 0px #000000;
+  --shadow-subtle: 3px 3px 0px #000000;
 
-  /* Text - High Legibility Crisp Slate Whites */
-  --text: #f8fafc; /* Clean warm white */
-  --text-muted: #cbd5e1; /* Light slate */
-  --text-dim: #94a3b8; /* Muted slate */
+  /* Text - High Contrast Stark Whites */
+  --text: #ffffff;
+  --text-muted: #e4e4e7;
+  --text-dim: #a1a1aa;
 
-  /* Accents - Professional Neobrutalist "Good Vibes" */
-  --accent-pistachio: #4ade80; /* Vibrant Lime/Pistachio Green (Fresh & High Contrast) */
-  --accent-powder: #38bdf8; /* Bright Ice Sky Blue (Protein & Hydration) */
-  --accent-sand: #facc15; /* Warm Golden Amber (Fats & Calorie Targets) */
-  --accent-magenta: #fb7185; /* Warm Coral Pink (Favorites & Alerts) */
+  /* Saturated Neo-Brutalist Pop Accents */
+  --accent-pistachio: #4ade80; /* Electric Lime Green */
+  --accent-powder: #38bdf8; /* Electric Cyan Blue */
+  --accent-sand: #ffde59; /* Lemon Yellow */
+  --accent-magenta: #ff3366; /* Neon Coral Pink */
 
   /* Macro mappings */
   --protein: #38bdf8;
   --carbs: #4ade80;
-  --fat: #facc15;
-
-  /* Shadows - Neobrutalist Depth */
-  --shadow-soft: 0 16px 40px rgba(0, 0, 0, 0.5);
-  --shadow-subtle: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --fat: #ffde59;
 }
 
 [data-theme="light"] {
-  /* Core surfaces - Light Neobrutalist Cream & Slate */
-  --bg-dark-slate: #f8fafc;
-  --bg-charcoal: #f1f5f9;
-  --surface: #ffffff;
-  --surface-raised: #f1f5f9;
-  --surface-inset: #e2e8f0;
+  /* Core surfaces - Light Neo-Brutalism (Warm Off-White Canvas) */
+  --bg-dark-slate: #fdf8f5; /* Off-white warm paper canvas */
+  --bg-charcoal: #f5eee8;
+  --surface: #ffffff; /* Pure white card surface */
+  --surface-raised: #fff5ea;
+  --surface-inset: #f3efea;
 
-  /* Borders */
-  --border: rgba(15, 23, 42, 0.15);
-  --border-focus: rgba(34, 197, 94, 0.5);
-  --border-muted: rgba(15, 23, 42, 0.08);
-  --border-dim: rgba(15, 23, 42, 0.03);
+  /* Borders & Shadows */
+  --border: #000000;
+  --border-focus: #000000;
+  --border-muted: rgba(0, 0, 0, 0.7);
+  --border-dim: rgba(0, 0, 0, 0.1);
+  
+  --shadow-color: #000000;
+  --shadow-hard: 4px 4px 0px #000000;
+  --shadow-hard-lg: 6px 6px 0px #000000;
+  --shadow-hard-sm: 2px 2px 0px #000000;
 
-  /* Text */
-  --text: #0f172a;
-  --text-muted: #334155;
-  --text-dim: #64748b;
+  /* Text - Stark Black */
+  --text: #000000;
+  --text-muted: #27272a;
+  --text-dim: #52525b;
 
-  /* Accents */
-  --accent-pistachio: #16a34a;
+  /* Saturated Pop Accents */
+  --accent-pistachio: #22c55e;
   --accent-powder: #0284c7;
-  --accent-sand: #d97706;
+  --accent-sand: #eab308;
   --accent-magenta: #e11d48;
-
-  /* Shadows */
-  --shadow-soft: 0 16px 40px rgba(15, 23, 42, 0.1);
-  --shadow-subtle: 0 8px 24px rgba(15, 23, 42, 0.06);
 }
 
 /* ============================================================
-   BASE RESET & TYPOGRAPHY
+   BASE RESET & NEO-BRUTALIST TYPOGRAPHY
    ============================================================ */
 
 * {
@@ -80,8 +85,7 @@
 html, body {
   margin: 0;
   padding: 0;
-  background: linear-gradient(135deg, var(--bg-dark-slate) 0%, var(--bg-charcoal) 100%);
-  background-attachment: fixed;
+  background-color: var(--bg-dark-slate);
   color: var(--text);
   font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -90,73 +94,72 @@ html, body {
 
 /* Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
   background: var(--bg-dark-slate);
+  border-left: 2px solid #000000;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--surface-raised);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-dim);
+  background: var(--accent-sand);
+  border: 2px solid #000000;
 }
 
 /* ============================================================
-   PREMIUM MATTE UTILITY CLASSES
+   NEO-BRUTALIST UTILITY CLASSES
    ============================================================ */
 
 /* Cards */
 .brutal-card {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 28px;
-  box-shadow: var(--shadow-soft);
-  padding: 1.5rem;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
+  border: 3px solid #000000;
+  border-radius: 16px;
+  box-shadow: 4px 4px 0px #000000;
+  padding: 1.25rem;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 .brutal-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 20px 48px rgba(5, 8, 15, 0.7);
-  border-color: rgba(255, 255, 255, 0.12);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #000000;
 }
 
 .brutal-card-accent {
   background: var(--surface);
-  border: 1px solid var(--border-focus);
-  border-radius: 28px;
-  box-shadow: 0 0 25px rgba(210, 240, 192, 0.03), var(--shadow-soft);
-  padding: 1.5rem;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 3px solid #000000;
+  border-radius: 16px;
+  box-shadow: 5px 5px 0px #000000;
+  padding: 1.25rem;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 .brutal-card-accent:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 35px rgba(210, 240, 192, 0.05), 0 20px 48px rgba(5, 8, 15, 0.7);
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0px #000000;
 }
 
 /* Inputs */
 .brutal-input {
   width: 100%;
-  padding: 0.875rem 1.25rem;
+  padding: 0.75rem 1rem;
   background: var(--surface-inset);
-  border: 1px solid var(--border);
-  border-radius: 16px;
+  border: 3px solid #000000;
+  border-radius: 12px;
   color: var(--text);
   font-family: 'Space Grotesk', sans-serif;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 700;
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  box-shadow: 2px 2px 0px #000000;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 }
 .brutal-input::placeholder {
   color: var(--text-dim);
+  font-weight: 500;
 }
 .brutal-input:focus {
-  border-color: var(--accent-pistachio);
-  background-color: rgba(9, 13, 22, 0.6);
-  box-shadow: 0 0 0 4px rgba(210, 240, 192, 0.1);
+  background-color: var(--surface-raised);
+  box-shadow: 4px 4px 0px #000000;
+  transform: translate(-1px, -1px);
 }
 
 /* Buttons */
@@ -165,31 +168,34 @@ html, body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.875rem 1.75rem;
-  background: var(--text);
-  color: var(--bg-dark-slate);
+  padding: 0.75rem 1.5rem;
+  background: var(--accent-sand);
+  color: #000000;
   font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700;
+  font-weight: 900;
   font-size: 0.875rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border: none;
-  border-radius: 20px;
+  border: 3px solid #000000;
+  border-radius: 12px;
   cursor: pointer;
-  box-shadow: var(--shadow-subtle);
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+  box-shadow: 4px 4px 0px #000000;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.15s ease;
+  user-select: none;
 }
 .brutal-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-soft);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #000000;
 }
 .brutal-btn:active {
-  transform: translateY(0);
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px #000000;
 }
 .brutal-btn:disabled {
-  opacity: 0.4;
+  opacity: 0.5;
   cursor: not-allowed;
   transform: none;
+  box-shadow: 2px 2px 0px #000000;
 }
 
 .brutal-btn-accent {
@@ -197,31 +203,28 @@ html, body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.875rem 1.75rem;
+  padding: 0.75rem 1.5rem;
   background: var(--accent-pistachio);
-  color: var(--bg-dark-slate);
+  color: #000000;
   font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700;
+  font-weight: 900;
   font-size: 0.875rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border: none;
-  border-radius: 20px;
+  border: 3px solid #000000;
+  border-radius: 12px;
   cursor: pointer;
-  box-shadow: 0 8px 20px rgba(210, 240, 192, 0.1);
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+  box-shadow: 4px 4px 0px #000000;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  user-select: none;
 }
 .brutal-btn-accent:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(210, 240, 192, 0.18);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #000000;
 }
 .brutal-btn-accent:active {
-  transform: translateY(0);
-}
-.brutal-btn-accent:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  transform: none;
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px #000000;
 }
 
 .brutal-btn-ghost {
@@ -229,23 +232,28 @@ html, body {
   align-items: center;
   justify-content: center;
   gap: 0.375rem;
-  padding: 0.625rem 1.25rem;
-  background: transparent;
-  color: var(--text-muted);
+  padding: 0.5rem 1rem;
+  background: var(--surface-raised);
+  color: var(--text);
   font-family: 'Space Grotesk', sans-serif;
-  font-weight: 600;
+  font-weight: 800;
   font-size: 0.8125rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border: 1px solid var(--border);
-  border-radius: 16px;
+  border: 2px solid #000000;
+  border-radius: 10px;
   cursor: pointer;
-  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+  box-shadow: 2px 2px 0px #000000;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.15s ease;
 }
 .brutal-btn-ghost:hover {
-  border-color: var(--text);
-  color: var(--text);
-  background-color: rgba(255, 255, 255, 0.02);
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px #000000;
+  background-color: var(--surface);
+}
+.brutal-btn-ghost:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0px #000000;
 }
 
 .brutal-btn-danger {
@@ -254,68 +262,76 @@ html, body {
   justify-content: center;
   gap: 0.375rem;
   padding: 0.5rem;
-  background: transparent;
-  color: var(--text-dim);
-  border: 1px solid transparent;
-  border-radius: 12px;
+  background: var(--accent-magenta);
+  color: #ffffff;
+  border: 2px solid #000000;
+  border-radius: 10px;
   cursor: pointer;
-  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  box-shadow: 2px 2px 0px #000000;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 .brutal-btn-danger:hover {
-  color: var(--accent-magenta);
-  border-color: rgba(229, 152, 155, 0.2);
-  background-color: rgba(229, 152, 155, 0.05);
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px #000000;
+}
+.brutal-btn-danger:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0px #000000;
 }
 
 /* Labels */
 .brutal-label {
   display: block;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--text-muted);
+  color: var(--text);
   margin-bottom: 0.5rem;
 }
 
 /* Dividers */
 .brutal-divider {
   border: none;
-  border-top: 1px solid var(--border-muted);
+  border-top: 3px solid #000000;
   margin: 1.25rem 0;
 }
 
 /* Progress bars */
 .brutal-progress-track {
   width: 100%;
-  height: 8px;
+  height: 14px;
   background: var(--surface-inset);
-  border: none;
+  border: 2px solid #000000;
   border-radius: 8px;
   overflow: hidden;
+  box-shadow: 1px 1px 0px #000000;
 }
 .brutal-progress-fill {
   height: 100%;
-  border-radius: 8px;
-  transition: width 300ms ease;
+  border-right: 2px solid #000000;
+  transition: width 300ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Tags / badges */
+/* Tags / Badges */
 .brutal-tag {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
   padding: 0.375rem 0.75rem;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-radius: 12px;
-  border: 1px solid currentColor;
+  border-radius: 8px;
+  border: 2px solid #000000;
+  box-shadow: 2px 2px 0px #000000;
+  background: var(--surface-raised);
+  color: var(--text);
 }
 
 /* ============================================================
-   BOTTOM NAVIGATION (MOBILE-FIRST)
+   BOTTOM NAVIGATION (MOBILE-FIRST NEO-BRUTALISM)
    ============================================================ */
 
 .bottom-nav {
@@ -327,9 +343,8 @@ html, body {
   display: flex;
   align-items: stretch;
   background: var(--surface);
-  backdrop-filter: blur(20px);
-  border-top: 1px solid var(--border);
-  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4);
+  border-top: 3px solid #000000;
+  box-shadow: 0 -4px 0px #000000;
 }
 
 .bottom-nav-item {
@@ -347,27 +362,29 @@ html, body {
   color: var(--text-dim);
   font-family: 'Space Grotesk', sans-serif;
   font-size: 0.625rem;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  transition: color 0.2s ease, background-color 0.2s ease;
+  transition: color 0.15s ease, background-color 0.15s ease;
   position: relative;
 }
 .bottom-nav-item:hover {
-  color: var(--text-muted);
+  color: var(--text);
+  background-color: var(--surface-raised);
 }
 .bottom-nav-item.active {
-  color: var(--accent-pistachio);
+  color: #000000;
+  background-color: var(--accent-pistachio);
+  font-weight: 900;
 }
 .bottom-nav-item.active::before {
   content: '';
   position: absolute;
   top: 0;
-  left: 20%;
-  right: 20%;
-  height: 3px;
-  background: var(--accent-pistachio);
-  border-radius: 0 0 3px 3px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: #000000;
 }
 
 /* Desktop: convert bottom nav to left sidebar */
@@ -381,33 +398,34 @@ html, body {
     width: 80px;
     flex-direction: column;
     border-top: none;
-    border-right: 1px solid var(--border);
-    background: var(--surface);
+    border-right: 3px solid #000000;
+    box-shadow: 4px 0px 0px #000000;
   }
   .bottom-nav-item {
     min-height: 80px;
     padding: 1rem 0;
+    border-bottom: 2px solid #000000;
   }
   .bottom-nav-item.active::before {
-    top: 20%;
-    bottom: 20%;
+    top: 0;
+    bottom: 0;
     left: 0;
     right: auto;
-    width: 3px;
-    height: auto;
-    border-radius: 0 3px 3px 0;
+    width: 5px;
+    height: 100%;
+    background: #000000;
   }
 }
 
 /* ============================================================
-   MODAL OVERLAY
+   MODAL OVERLAY (NEO-BRUTALIST)
    ============================================================ */
 
 .brutal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(11, 15, 25, 0.85); /* Dark slate background */
-  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
   z-index: 60;
   display: flex;
   align-items: center;
@@ -417,11 +435,11 @@ html, body {
 
 .brutal-modal {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 28px;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+  border: 3px solid #000000;
+  border-radius: 20px;
+  box-shadow: 8px 8px 0px #000000;
   width: 100%;
-  max-width: 440px;
+  max-width: 460px;
   max-height: 90vh;
   overflow-y: auto;
 }
@@ -436,27 +454,27 @@ html, body {
 }
 
 .brutal-spinner {
-  width: 36px;
-  height: 36px;
-  border: 3px solid var(--border-muted);
+  width: 40px;
+  height: 40px;
+  border: 4px solid #000000;
   border-top-color: var(--accent-pistachio);
   border-radius: 50%;
-  animation: nature-spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation: nature-spin 0.8s linear infinite;
+  box-shadow: 2px 2px 0px #000000;
 }
 
-/* Small inline spinner */
 .brutal-spinner-sm {
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgba(0, 0, 0, 0.1);
-  border-top-color: var(--bg-dark-slate);
+  width: 20px;
+  height: 20px;
+  border: 3px solid #000000;
+  border-top-color: var(--accent-pistachio);
   border-radius: 50%;
-  animation: nature-spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation: nature-spin 0.8s linear infinite;
 }
 
 @keyframes slide-down {
   from {
-    transform: translateY(-20px);
+    transform: translateY(-16px);
     opacity: 0;
   }
   to {
@@ -466,14 +484,13 @@ html, body {
 }
 
 .animate-slide-down {
-  animation: slide-down 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slide-down 0.2s ease-out forwards;
 }
 
 /* ============================================================
    ACCESSIBILITY HELPERS (RGAA)
    ============================================================ */
 
-/* Hide visually but keep visible to screen readers */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -486,25 +503,24 @@ html, body {
   border: 0;
 }
 
-/* Skip link style */
 .skip-link {
   position: absolute;
   top: -100px;
   left: 1rem;
-  background: var(--accent-pistachio);
-  color: var(--bg-dark-slate);
-  font-weight: bold;
+  background: var(--accent-sand);
+  color: #000000;
+  font-weight: 900;
   padding: 0.75rem 1.5rem;
-  border-radius: 12px;
+  border: 3px solid #000000;
+  border-radius: 8px;
+  box-shadow: 4px 4px 0px #000000;
   z-index: 9999;
   transition: top 0.2s ease;
   text-decoration: none;
   font-size: 0.875rem;
-  box-shadow: var(--shadow-soft);
 }
 
 .skip-link:focus {
   top: 1rem;
-  outline: 2px solid var(--border-focus);
 }
 
