@@ -30,6 +30,8 @@ import Profile from './Profile';
 import WeightTracker from './WeightTracker';
 import Favorites from './Favorites';
 import Recipes from './Recipes';
+import LogoIcon from './LogoIcon';
+import Footer from './Footer';
 
 const API_URL = 'http://localhost:5000/api';
 
@@ -194,7 +196,7 @@ export default function Dashboard() {
     setLoadingEntries(true);
     try {
       const response = await fetch(`${API_URL}/journal?date=${selectedDate}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 'Authorization': `Bearer ${token}`, 'x-app-lang': language }
       });
       if (response.ok) { setJournalEntries(await response.json()); }
     } catch (error) { console.error('Erreur chargement journal:', error); }
@@ -202,7 +204,7 @@ export default function Dashboard() {
   };
 
   useEffect(() => { fetchProfileData(); fetchFavoritesAndLists(); }, [token]);
-  useEffect(() => { fetchJournalEntries(); }, [selectedDate, token]);
+  useEffect(() => { fetchJournalEntries(); }, [selectedDate, token, language]);
 
   // Dynamically update document title based on the active tab for SPAs
   useEffect(() => {
@@ -619,9 +621,10 @@ export default function Dashboard() {
                 setActiveTab('journal');
               }
             }}
-            className="text-xl font-extrabold uppercase tracking-tight text-[var(--accent-pistachio)] shrink-0 cursor-pointer hover:opacity-85 transition-opacity"
+            className="text-xl font-extrabold uppercase tracking-tight text-[var(--accent-pistachio)] shrink-0 cursor-pointer hover:opacity-85 transition-opacity flex items-center gap-2"
           >
-            Nutrilib
+            <LogoIcon className="w-9 h-9 md:w-10 md:h-10 shrink-0" />
+            <span>Nutrilib</span>
           </h1>
 
           {/* Search Container */}
@@ -1520,6 +1523,7 @@ export default function Dashboard() {
         </div>
       )}
 
+      <Footer />
     </div>
     </>
   );

@@ -3,11 +3,14 @@ const router = express.Router();
 const db = require('../database');
 const authMiddleware = require('../middleware/auth');
 
+const { translateTextBatch } = require('../utils/translator');
+
 // @route   GET api/journal
 // @desc    Obtenir toutes les entrées de journal pour une date spécifique
 // @access  Privé
 router.get('/', authMiddleware, async (req, res) => {
   const { date } = req.query; // Format attendu: AAAA-MM-JJ
+  const lang = req.headers['x-app-lang'] || 'fr';
 
   if (!date) {
     return res.status(400).json({ message: 'Veuillez spécifier une date (AAAA-MM-JJ).' });
@@ -23,6 +26,18 @@ router.get('/', authMiddleware, async (req, res) => {
       'SELECT * FROM journal_entries WHERE user_id = ? AND entry_date = ? ORDER BY id DESC',
       [req.user.id, date]
     );
+
+    if (entries.length > 0) {
+      const foodNames = entries.map(e => e.food_name);
+      const targetLang = lang === 'fr' ? 'fr' : 'en';
+      const sourceLang = lang === 'fr' ? 'en' : 'fr';
+      const translatedNames = await translateTextBatch(foodNames, sourceLang, targetLang);
+      entries.forEach((e, idx) => {
+        if (translatedNames[idx] && translatedNames[idx].trim() !== '') {
+          e.food_name = translatedNames[idx];
+        }
+      });
+    }
 
     res.json(entries);
   } catch (error) {

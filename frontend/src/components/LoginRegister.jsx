@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Mail, Lock, User, ArrowRight, UserPlus } from 'lucide-react';
+import LogoIcon from './LogoIcon';
 
 export default function LoginRegister() {
   const [isLogin, setIsLogin] = useState(true);
@@ -93,8 +94,9 @@ export default function LoginRegister() {
         {/* Neo-Brutalist Saturated Header */}
         <div className="h-32 bg-[var(--accent-sand)] border-b-3 border-black relative flex items-end pb-4 pl-6">
           <div>
-            <h1 className="text-3xl font-black uppercase tracking-tight text-black">
-              Nutrilib
+            <h1 className="text-3xl font-black uppercase tracking-tight text-black flex items-center gap-2.5">
+              <LogoIcon className="w-10 h-10 shrink-0" />
+              <span>Nutrilib</span>
             </h1>
             <p className="text-black/80 text-xs font-bold uppercase tracking-wider mt-0.5">
               {isLogin ? t('login_title_login') : t('login_title_register')}
