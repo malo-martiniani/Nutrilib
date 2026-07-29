@@ -39,9 +39,9 @@ Thumbs.db
 *.sw?
 *.local
  
-# Ressource
-
-ressources
+# Resources
+ressources/
+**/ressources/
 
 #agents
 .agents
