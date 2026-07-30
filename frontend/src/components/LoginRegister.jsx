@@ -3,6 +3,11 @@ import { useAuth } from '../context/AuthContext';
 import { Mail, Lock, User, ArrowRight, UserPlus } from 'lucide-react';
 import LogoIcon from './LogoIcon';
 
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{12,}$/;
+
+const validateStrongPassword = (password) => strongPasswordRegex.test(password);
+
 export default function LoginRegister() {
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState('');
@@ -50,6 +55,9 @@ export default function LoginRegister() {
         if (!email || !password) {
           throw new Error(t('validation_fill_fields'));
         }
+        if (!emailRegex.test(email)) {
+          throw new Error(t('validation_email_format'));
+        }
         await login(email, password);
       } else {
         if (!gdprConsent) {
@@ -58,14 +66,14 @@ export default function LoginRegister() {
         if (!username || !email || !password) {
           throw new Error(t('validation_fill_fields'));
         }
+        if (!emailRegex.test(email)) {
+          throw new Error(t('validation_email_format'));
+        }
         if (username.length < 3) {
           throw new Error(t('validation_username_len'));
         }
-        if (password.length < 8) {
-          throw new Error(t('validation_password_len'));
-        }
-        if (!/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) {
-          throw new Error(t('validation_password_complexity'));
+        if (!validateStrongPassword(password)) {
+          throw new Error(t('validation_password_strong'));
         }
         await register(username, email, password);
       }
@@ -158,6 +166,9 @@ export default function LoginRegister() {
                     required
                   />
                 </div>
+                <p className="mt-1 text-[10px] text-[var(--text-muted)] leading-relaxed">
+                  {t('auth_email_hint')}
+                </p>
               </div>
 
               <div>
@@ -176,6 +187,11 @@ export default function LoginRegister() {
                     required
                   />
                 </div>
+                {!isLogin && (
+                  <p className="mt-1 text-[10px] text-[var(--text-muted)] leading-relaxed">
+                    {t('auth_password_hint')}
+                  </p>
+                )}
                 {isLogin && (
                   <div className="text-right mt-1">
                     <button
@@ -188,6 +204,17 @@ export default function LoginRegister() {
                   </div>
                 )}
               </div>
+
+              {!isLogin && (
+                <div className="rounded-2xl border border-[var(--border-muted)] bg-[var(--surface-inset)]/70 px-4 py-3 text-[11px] leading-relaxed text-[var(--text-muted)]">
+                  <p className="font-bold uppercase tracking-wider text-[var(--text)]">
+                    {t('auth_form_guidance_title')}
+                  </p>
+                  <p className="mt-1">
+                    {t('auth_form_guidance_text')}
+                  </p>
+                </div>
+              )}
               
               {!isLogin && (
                 <div className="flex items-start gap-2.5 pt-2">

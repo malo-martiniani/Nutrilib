@@ -8,6 +8,9 @@ const authMiddleware = require('../middleware/auth');
 
 // Expression régulière simple pour valider l'email
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{12,}$/;
+
+const isStrongPassword = (password) => strongPasswordRegex.test(password);
 
 // @route   POST api/auth/register
 // @desc    Inscription d'un utilisateur
@@ -27,14 +30,8 @@ router.post('/register', async (req, res) => {
     return res.status(400).json({ message: 'Format d\'email invalide.' });
   }
 
-  if (password.length < 8) {
-    return res.status(400).json({ message: 'Le mot de passe doit faire au moins 8 caractères.' });
-  }
-
-  const hasLetter = /[a-zA-Z]/.test(password);
-  const hasNumber = /[0-9]/.test(password);
-  if (!hasLetter || !hasNumber) {
-    return res.status(400).json({ message: 'Le mot de passe doit contenir au moins une lettre et un chiffre.' });
+  if (!isStrongPassword(password)) {
+    return res.status(400).json({ message: 'Le mot de passe doit faire au moins 12 caractères et contenir une majuscule, une minuscule, un chiffre et un caractère spécial.' });
   }
 
   try {
@@ -187,12 +184,12 @@ router.post('/reset-password', async (req, res) => {
     return res.status(400).json({ message: 'Veuillez remplir tous les champs.' });
   }
 
-  if (new_password.length < 8) {
-    return res.status(400).json({ message: 'Le mot de passe doit contenir au moins 8 caractères.' });
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ message: 'Format d\'email invalide.' });
   }
 
-  if (!/[a-zA-Z]/.test(new_password) || !/[0-9]/.test(new_password)) {
-    return res.status(400).json({ message: 'Le mot de passe doit contenir au moins une lettre et un chiffre.' });
+  if (!isStrongPassword(new_password)) {
+    return res.status(400).json({ message: 'Le mot de passe doit faire au moins 12 caractères et contenir une majuscule, une minuscule, un chiffre et un caractère spécial.' });
   }
 
   try {
