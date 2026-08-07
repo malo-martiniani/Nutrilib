@@ -70,6 +70,19 @@ app.get('/api/status', (req, res) => {
   });
 });
 
+// Servir le Frontend React compilé en production
+if (process.env.NODE_ENV === 'production') {
+  const frontendDistPath = path.join(__dirname, '../../frontend/dist');
+  app.use(express.static(frontendDistPath));
+
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api/')) {
+      return next();
+    }
+    res.sendFile(path.join(frontendDistPath, 'index.html'));
+  });
+}
+
 // Gestion des routes inexistantes
 app.use((req, res, next) => {
   res.status(404).json({ message: 'Ressource non trouvée' });
