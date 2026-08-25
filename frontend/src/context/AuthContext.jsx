@@ -2,7 +2,7 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 
 const AuthContext = createContext(null);
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = '/api';
 
 const TRANSLATIONS = {
   fr: {

@@ -4,7 +4,7 @@ import { useNotification } from '../context/NotificationContext';
 import { useAuth } from '../context/AuthContext';
 import { FALLBACK_RECIPES, filterFallbackRecipes } from '../data/fallbackRecipes';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = '/api';
 
 export default function Recipes({ token, initialFilters, onClearFilters }) {
   const { showToast, askConfirmation } = useNotification();

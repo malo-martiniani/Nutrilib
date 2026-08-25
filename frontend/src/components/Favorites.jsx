@@ -40,8 +40,8 @@ export default function Favorites({ token, defaultDate }) {
 
   const fetchData = async () => {
     try {
-      const favResponse = await fetch('http://localhost:5000/api/favorites', { headers: { 'Authorization': `Bearer ${token}` } });
-      const listsResponse = await fetch('http://localhost:5000/api/lists', { headers: { 'Authorization': `Bearer ${token}` } });
+      const favResponse = await fetch('/api/favorites', { headers: { 'Authorization': `Bearer ${token}` } });
+      const listsResponse = await fetch('/api/lists', { headers: { 'Authorization': `Bearer ${token}` } });
       if (favResponse.ok) setFavorites(await favResponse.json());
       if (listsResponse.ok) setLists(await listsResponse.json());
     } catch (err) { console.error(err); }
@@ -59,7 +59,7 @@ export default function Favorites({ token, defaultDate }) {
     const delayDebounceFn = setTimeout(async () => {
       setListSearching(true);
       try {
-        const response = await fetch(`http://localhost:5000/api/foods/search?query=${encodeURIComponent(listSearchQuery)}`, {
+        const response = await fetch(`/api/foods/search?query=${encodeURIComponent(listSearchQuery)}`, {
           headers: { 'Authorization': `Bearer ${token}`, 'x-app-lang': language }
         });
         if (response.ok) {
@@ -74,7 +74,7 @@ export default function Favorites({ token, defaultDate }) {
 
   const handleRemoveFavorite = async (id) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/favorites/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+      const response = await fetch(`/api/favorites/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
       if (response.ok) { setFavorites(favorites.filter(f => f.id !== id)); }
     } catch (err) { console.error(err); }
   };
@@ -84,10 +84,10 @@ export default function Favorites({ token, defaultDate }) {
     const match = favorites.find(f => f.food_id === recipeFoodId);
     try {
       if (match) {
-        const delRes = await fetch(`http://localhost:5000/api/favorites/${match.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+        const delRes = await fetch(`/api/favorites/${match.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
         if (delRes.ok) { setFavorites(favorites.filter(f => f.id !== match.id)); }
       } else {
-        const addRes = await fetch(`http://localhost:5000/api/favorites`, {
+        const addRes = await fetch(`/api/favorites`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({
@@ -110,7 +110,7 @@ export default function Favorites({ token, defaultDate }) {
     if (!newListName.trim()) return;
     setCreatingList(true);
     try {
-      const response = await fetch('http://localhost:5000/api/lists', {
+      const response = await fetch('/api/lists', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ list_name: newListName })
@@ -124,7 +124,7 @@ export default function Favorites({ token, defaultDate }) {
     const confirmed = await askConfirmation(t('confirm_delete_list') || 'Supprimer cette liste ?');
     if (!confirmed) return;
     try {
-      const response = await fetch(`http://localhost:5000/api/lists/${listId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+      const response = await fetch(`/api/lists/${listId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
       if (response.ok) { 
         setLists(lists.filter(l => l.id !== listId)); 
         showToast(t('list_deleted') || 'Liste supprimée.');
@@ -137,7 +137,7 @@ export default function Favorites({ token, defaultDate }) {
 
   const handleRemoveItemFromList = async (itemId, listId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/lists/items/${itemId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+      const response = await fetch(`/api/lists/items/${itemId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
       if (response.ok) { setLists(lists.map(l => l.id === listId ? { ...l, items: l.items.filter(i => i.id !== itemId) } : l)); }
     } catch (err) { console.error(err); }
   };
@@ -169,7 +169,7 @@ export default function Favorites({ token, defaultDate }) {
       entry_date: quickAddDate
     };
     try {
-      const response = await fetch('http://localhost:5000/api/journal', {
+      const response = await fetch('/api/journal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(payload)
@@ -190,7 +190,7 @@ export default function Favorites({ token, defaultDate }) {
 
   const handleAddSearchItemToList = async (listId, food) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/lists/${listId}/items`, {
+      const response = await fetch(`/api/lists/${listId}/items`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
@@ -220,7 +220,7 @@ export default function Favorites({ token, defaultDate }) {
     setLoadingRecipe(true);
     setCheckedIngredients({});
     try {
-      const response = await fetch(`http://localhost:5000/api/foods/recipes/${id}`, { headers: { 'Authorization': `Bearer ${token}`, 'x-app-lang': language } });
+      const response = await fetch(`/api/foods/recipes/${id}`, { headers: { 'Authorization': `Bearer ${token}`, 'x-app-lang': language } });
       if (response.ok) { setSelectedRecipe((await response.json()).recipe); }
       else { showToast('Erreur chargement recette.', 'error'); }
     } catch (err) { 

@@ -58,7 +58,7 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
 
   const fetchProfile = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/profile', {
+      const response = await fetch('/api/profile', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -224,7 +224,7 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
     setUpdating(true);
     setMessage({ text: '', type: '' });
     try {
-      const response = await fetch('http://localhost:5000/api/profile', {
+      const response = await fetch('/api/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ display_name: displayName, avatar_url: avatarUrl, is_private: isPrivate })
@@ -252,7 +252,7 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
     const reader = new FileReader();
     reader.onloadend = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/profile/avatar', {
+        const response = await fetch('/api/profile/avatar', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ image_data: reader.result })
@@ -282,7 +282,7 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
 
   const handleExportData = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/profile/export', {
+      const response = await fetch('/api/profile/export', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -314,7 +314,7 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
     if (!confirm2) return;
 
     try {
-      const response = await fetch('http://localhost:5000/api/profile', {
+      const response = await fetch('/api/profile', {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -353,7 +353,7 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
     setUpdating(true);
     setMessage({ text: '', type: '' });
     try {
-      const response = await fetch('http://localhost:5000/api/profile/calculator', {
+      const response = await fetch('/api/profile/calculator', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
@@ -408,7 +408,7 @@ export default function Profile({ token, onProfileUpdate, onRecipeSearch }) {
         </div>
       );
     } else if (avatarUrl) {
-      const fullUrl = avatarUrl.startsWith('/') ? `http://localhost:5000${avatarUrl}` : avatarUrl;
+      const fullUrl = avatarUrl.startsWith('/') ? `${avatarUrl}` : avatarUrl;
       return (
         <img src={fullUrl} alt="Avatar"
           className="w-16 h-16 object-cover border border-[var(--border)] rounded-full"

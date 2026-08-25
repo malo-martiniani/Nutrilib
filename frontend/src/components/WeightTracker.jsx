@@ -31,7 +31,7 @@ export default function WeightTracker({ token, onWeightChange }) {
 
   const fetchWeightHistory = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/weight', {
+      const response = await fetch('/api/weight', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) { setWeightHistory(await response.json()); }
@@ -47,7 +47,7 @@ export default function WeightTracker({ token, onWeightChange }) {
     setError('');
     setSaving(true);
     try {
-      const response = await fetch('http://localhost:5000/api/weight', {
+      const response = await fetch('/api/weight', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ weight, entry_date: date })
@@ -73,7 +73,7 @@ export default function WeightTracker({ token, onWeightChange }) {
     const confirmed = await askConfirmation(t('confirm_delete_weight'));
     if (!confirmed) return;
     try {
-      const response = await fetch(`http://localhost:5000/api/weight/${id}`, {
+      const response = await fetch(`/api/weight/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

@@ -33,7 +33,7 @@ import Recipes from './Recipes';
 import LogoIcon from './LogoIcon';
 import Footer from './Footer';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = '/api';
 
 const MEALS = [
   { 
