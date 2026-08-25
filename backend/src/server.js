@@ -44,7 +44,20 @@ const apiLimiter = rateLimit({
 const path = require('path');
 
 // Configuration des Middlewares
-app.use(helmet({ crossOriginResourcePolicy: false })); // Sécurisation des en-têtes HTTP
+// Sécurisation des en-têtes HTTP avec CSP autorisant les images distantes (FatSecret, Unsplash)
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "blob:", "https:", "http:"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+      connectSrc: ["'self'", "https:", "http:"]
+    }
+  }
+})); // Sécurisation des en-têtes HTTP
 app.use(cors({
   origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:5173'],
   credentials: true
