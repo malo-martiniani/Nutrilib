@@ -1,42 +1,77 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
-const dbConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  port: process.env.DB_PORT || 3306
-};
+let dbConfig;
+let dbName;
+
+const databaseUrl = process.env.JAWSDB_URL || process.env.CLEARDB_DATABASE_URL || process.env.DATABASE_URL;
+
+if (databaseUrl) {
+  try {
+    const parsedUrl = new URL(databaseUrl);
+    dbName = parsedUrl.pathname.replace(/^\//, '');
+    dbConfig = {
+      host: parsedUrl.hostname,
+      user: parsedUrl.username,
+      password: decodeURIComponent(parsedUrl.password),
+      port: parsedUrl.port ? parseInt(parsedUrl.port) : 3306,
+      database: dbName
+    };
+  } catch (e) {
+    console.error('Erreur lors du parsing de l\'URL de la base de données:', e.message);
+  }
+}
+
+if (!dbConfig) {
+  dbName = process.env.DB_NAME || 'nutrilib';
+  dbConfig = {
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306
+  };
+}
 
 let pool;
 
 async function initializeDatabase() {
   try {
-    // 1. Connexion initiale sans base de données pour vérifier/créer la base
-    const connection = await mysql.createConnection(dbConfig);
-    console.log('Connexion au serveur MySQL réussie.');
+    // Si on est sur Heroku / Cloud avec une URL de base ou en production
+    if (databaseUrl || process.env.NODE_ENV === 'production') {
+      pool = mysql.createPool({
+        ...dbConfig,
+        database: dbConfig.database || dbName,
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0,
+        ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined
+      });
+      console.log(`Pool MySQL connecté à la base "${dbConfig.database || dbName}".`);
+    } else {
+      // En local : vérification/création automatique de la base de données
+      const connection = await mysql.createConnection(dbConfig);
+      console.log('Connexion au serveur MySQL réussie.');
 
-    const dbName = process.env.DB_NAME || 'nutrilib';
-    await connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
-    console.log(`Base de données "${dbName}" vérifiée ou créée.`);
-    await connection.end();
+      await connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
+      console.log(`Base de données "${dbName}" vérifiée ou créée.`);
+      await connection.end();
 
-    // 2. Création du Pool de connexion avec la base de données
-    pool = mysql.createPool({
-      ...dbConfig,
-      database: dbName,
-      waitForConnections: true,
-      connectionLimit: 10,
-      queueLimit: 0
-    });
+      pool = mysql.createPool({
+        ...dbConfig,
+        database: dbName,
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0
+      });
+    }
 
-    // 3. Création des tables si elles n'existent pas
+    // Création des tables si elles n'existent pas
     await createTables();
 
     return pool;
   } catch (error) {
     console.error('Erreur lors de l\'initialisation de la base de données:', error.message);
-    console.error('Veuillez vérifier vos identifiants MySQL dans le fichier backend/.env');
+    console.error('Veuillez vérifier vos identifiants MySQL dans les variables d\'environnement.');
     throw error;
   }
 }
