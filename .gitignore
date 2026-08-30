@@ -45,3 +45,5 @@ ressources/
 
 #agents
 .agents
+
+*.py
