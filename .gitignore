@@ -8,9 +8,14 @@ uploads/
 
 # Environment variables (contains secrets, API keys, DB credentials)
 .env
-.env.local
-.env.production
-.env.*.local
+.env.*
+*.env
+**/.env
+**/.env.*
+backend/.env
+frontend/.env
+!.env.example
+!**/.env.example
 
 # Build output
 dist/
